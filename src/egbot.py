@@ -17,6 +17,7 @@ class EGbot(sc2.BotAI):
     #Do these actions every step
     async def on_step(self, iteration):
         larvae: Units = self.larva
+        hq: Unit = self.townhalls.first
         
         # Build overlords if about to be supply blocked
         if (
@@ -49,14 +50,6 @@ class EGbot(sc2.BotAI):
             for drone in self.workers.collecting:
                 drone: Unit
                 drone.build(UnitTypeId.HATCHERY, location)
-
-        # If all our townhalls are dead, send all our units to attack
-        if not self.townhalls:
-            for unit in self.units.of_type({UnitTypeId.DRONE, UnitTypeId.QUEEN, UnitTypeId.ZERGLING}):
-                unit.attack(self.enemy_start_locations[0])
-            return
-        else:
-            hq: Unit = self.townhalls.first
         
         # Send idle queens with >=25 energy to inject
         for queen in self.units(UnitTypeId.QUEEN).idle:
@@ -90,18 +83,21 @@ class EGbot(sc2.BotAI):
                     w.random.gather(a)
 
         # Build queen once the pool is done
+        
+        # TODO: Create more queens than Hatcheries - support defense and creep spread
+        # TODO: Shorten "self.townhalls.second" - hq:beginning hatch, exp1 - first expansion, etc
         if self.structures(UnitTypeId.SPAWNINGPOOL).ready:
-            if not self.units(UnitTypeId.QUEEN) and hq.is_idle:
+            if self.units(UnitTypeId.QUEEN).amount < 3:
                 if self.can_afford(UnitTypeId.QUEEN):
                     hq.train(UnitTypeId.QUEEN)
-            
+    
+
     #moves excess drones to next location
     async def on_building_construction_complete(self, unit: Unit):
         """ Set rally point of new hatcheries. """
         if unit.type_id == UnitTypeId.HATCHERY and self.mineral_field:
             mf = self.mineral_field.closest_to(unit)
             unit.smart(mf)
-
 
 #run game
 run_game(maps.get("AbyssalReefLE"), [Bot(Race.Zerg, EGbot()), 
