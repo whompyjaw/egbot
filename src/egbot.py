@@ -86,35 +86,41 @@ class EGbot(sc2.BotAI):
                 if w:
                     w.random.gather(a)
 
-        # Build queen once the pool is done
         
-        # TODO: Create more queens than Hatcheries - support defense and creep spread
-        # TODO: Shorten "self.townhalls.second" - hq:beginning hatch, exp1 - first expansion, etc
+        '''
+            Spawn Queens
+                self.townhalls.ready is a list of hatcheries, once a hatchery is made it is added to the list:
+                in the following syntax i.e. [Unit(name='Hatchery', tag=4376756226)], tags do not seem to be
+                sequential, always begin with 43 though.
+
+            Issues
+                - issue here is since this is in a loop and each step of the program moves to the next hatchery (loops through each hatchery) a queen
+                  gets made at whatever hatchery is identified when the below conditions are met.  
+                  
+                  In one game you could have all your queens made at the starting hatchery, in another, you could have the
+                  first two queens at the starting hatchery (haven't corrected that yet), then a single queen 
+                  spawning at each of the other hatcheries.
+                  
+                  One possible solution would be to associate the Queen with each Hatchery. Which could be done by using the unit's proximity functions.
+
+            TODO: Create more queens than Hatcheries - support defense and creep spread
+            TODO: Shorten "self.townhalls.second" - hq:beginning hatch, exp1 - first expansion, etc
+        '''
         if self.structures(UnitTypeId.SPAWNINGPOOL).ready:
-            #self.townhalls.ready is a list of hatcheries, once a hatcher is made it is added to the list
-            #in the following syntax i.e. [Unit(name='Hatchery', tag=4376756226)], tags do not seem to be
-            #sequential, always begin with 43 though.
             for hatchery in self.townhalls.ready:
-                #check the amount of queens vs the amount of hatcheries
-                if self.units(UnitTypeId.QUEEN).amount < len(self.townhalls.ready):
-                # - issue here is since this is in a loop
-                #and each step of the program moves to the next hatchery (loops through each hatchery) a queen
-                #gets made at whatever hatchery is identified when the below conditions are met.  In one game
-                #you could have all your queens made at the starting hatchery, in another, you could have the
-                #first two queens at the starting hatchery (haven't corrected that yet), then a single queen 
-                #spawning at each of the other hatcheries.
+                if self.units(UnitTypeId.QUEEN).amount < len(self.townhalls.ready): # check the amount of queens vs the amount of hatcheries
                     if self.can_afford(UnitTypeId.QUEEN):
                         hatchery.train(UnitTypeId.QUEEN)
     
 
-    #moves excess drones to next location
+    # moves excess drones to next location
     async def on_building_construction_complete(self, unit: Unit):
         """ Set rally point of new hatcheries. """
         if unit.type_id == UnitTypeId.HATCHERY and self.mineral_field:
             mf = self.mineral_field.closest_to(unit)
             unit.smart(mf)
 
-#run game
+# Setting realtime=False makes the game/bot play as fast as possible
 run_game(maps.get("AbyssalReefLE"), [Bot(Race.Zerg, EGbot()), 
-    Computer(Race.Terran, Difficulty.Easy)], realtime=True)
+    Computer(Race.Terran, Difficulty.Easy)], realtime=False)
 
