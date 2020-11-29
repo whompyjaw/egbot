@@ -39,14 +39,14 @@ class EGbot(sc2.BotAI):
                 return
 
         # Send workers across bases
-        await self.distribute_workers()
+        await self.distribute_workers(4)
 
-        #Expands to nearest location when 300 minerals are available
+        # Expands to nearest location when 300 minerals are available
         if self.can_afford(UnitTypeId.HATCHERY):
-            #grabs next closest location
+            # grabs next closest location
             location = await self.get_next_expansion()
             
-            #takes availabe drone and orders to build a hatchery at location
+            # takes availabe drone and orders to build a hatchery at location
             for drone in self.workers.collecting:
                 drone: Unit
                 drone.build(UnitTypeId.HATCHERY, location)
@@ -68,16 +68,17 @@ class EGbot(sc2.BotAI):
                 await self.build(UnitTypeId.SPAWNINGPOOL, near=hq.position.towards(self.game_info.map_center, 5))
 
         # If we dont have both extractors: build them
-        #TODO: implement strategy here - really only need one extractor in the beginning
+        # TODO: implement strategy here - really only need one extractor in the beginning
         if (self.structures(UnitTypeId.SPAWNINGPOOL) and self.gas_buildings.amount + 
-            self.already_pending(UnitTypeId.EXTRACTOR) < 2):
+            self.already_pending(UnitTypeId.EXTRACTOR) < 6):
             if self.can_afford(UnitTypeId.EXTRACTOR):
                 # May crash if we dont have any drones
-                for vg in self.vespene_geyser.closer_than(10, hq):
-                    drone: Unit = self.workers.random
-                    drone.build_gas(vg)
-                    break
-
+                for hatch in self.townhalls.ready:
+                    for vg in self.vespene_geyser.closer_than(10, hatch):
+                        drone: Unit = self.workers.random
+                        drone.build_gas(vg)
+                        break
+                        
 
         # Saturate gas
         for a in self.gas_buildings:
@@ -112,13 +113,13 @@ class EGbot(sc2.BotAI):
                     if self.can_afford(UnitTypeId.QUEEN):
                         hatchery.train(UnitTypeId.QUEEN)
     
-
     # moves excess drones to next location
+    # TODO: Possibly where we can create Queens upon building completion.
     async def on_building_construction_complete(self, unit: Unit):
         """ Set rally point of new hatcheries. """
         if unit.type_id == UnitTypeId.HATCHERY and self.mineral_field:
             mf = self.mineral_field.closest_to(unit)
-            unit.smart(mf)
+            unit.smart(mf) # sets gathering location to mineral patch near recently built hatch
 
 # Setting realtime=False makes the game/bot play as fast as possible
 run_game(maps.get("AbyssalReefLE"), [Bot(Race.Zerg, EGbot()), 
