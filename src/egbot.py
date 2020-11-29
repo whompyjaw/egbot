@@ -56,6 +56,9 @@ class EGbot(sc2.BotAI):
             # The following checks if the inject ability is in the queen abilitys - basically it checks if we have enough energy and if the ability is off-cooldown
             # abilities = await self.get_available_abilities(queen)
             # if AbilityId.EFFECT_INJECTLARVA in abilities:
+
+            #TODO: implement a self.units(UnitTypeId.HATCHERY).closer_than(1.0, hatchery) - would mean if the queen is next to the hatchery it should inject at that 
+            #hatchery only
             if queen.energy >= 25:
                 queen(AbilityId.EFFECT_INJECTLARVA, hq)
 
@@ -64,7 +67,8 @@ class EGbot(sc2.BotAI):
             if self.can_afford(UnitTypeId.SPAWNINGPOOL):
                 await self.build(UnitTypeId.SPAWNINGPOOL, near=hq.position.towards(self.game_info.map_center, 5))
 
-                # If we dont have both extractors: build them
+        # If we dont have both extractors: build them
+        #TODO: implement strategy here - really only need one extractor in the beginning
         if (self.structures(UnitTypeId.SPAWNINGPOOL) and self.gas_buildings.amount + 
             self.already_pending(UnitTypeId.EXTRACTOR) < 2):
             if self.can_afford(UnitTypeId.EXTRACTOR):
@@ -87,9 +91,20 @@ class EGbot(sc2.BotAI):
         # TODO: Create more queens than Hatcheries - support defense and creep spread
         # TODO: Shorten "self.townhalls.second" - hq:beginning hatch, exp1 - first expansion, etc
         if self.structures(UnitTypeId.SPAWNINGPOOL).ready:
-            if self.units(UnitTypeId.QUEEN).amount < 3:
-                if self.can_afford(UnitTypeId.QUEEN):
-                    hq.train(UnitTypeId.QUEEN)
+            #self.townhalls.ready is a list of hatcheries, once a hatcher is made it is added to the list
+            #in the following syntax i.e. [Unit(name='Hatchery', tag=4376756226)], tags do not seem to be
+            #sequential, always begin with 43 though.
+            for hatchery in self.townhalls.ready:
+                #check the amount of queens vs the amount of hatcheries
+                if self.units(UnitTypeId.QUEEN).amount < len(self.townhalls.ready):
+                # - issue here is since this is in a loop
+                #and each step of the program moves to the next hatchery (loops through each hatchery) a queen
+                #gets made at whatever hatchery is identified when the below conditions are met.  In one game
+                #you could have all your queens made at the starting hatchery, in another, you could have the
+                #first two queens at the starting hatchery (haven't corrected that yet), then a single queen 
+                #spawning at each of the other hatcheries.
+                    if self.can_afford(UnitTypeId.QUEEN):
+                        hatchery.train(UnitTypeId.QUEEN)
     
 
     #moves excess drones to next location
