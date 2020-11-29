@@ -39,7 +39,7 @@ class EGbot(sc2.BotAI):
                 return
 
         # Send workers across bases
-        await self.distribute_workers(4)
+        await self.distribute_workers(1.0)
 
         # Expands to nearest location when 300 minerals are available
         if self.can_afford(UnitTypeId.HATCHERY):
@@ -108,10 +108,15 @@ class EGbot(sc2.BotAI):
             TODO: Shorten "self.townhalls.second" - hq:beginning hatch, exp1 - first expansion, etc
         '''
         if self.structures(UnitTypeId.SPAWNINGPOOL).ready:
+            #TODO: check if a hatchery has a queen close to it, if not, build queen
             for hatchery in self.townhalls.ready:
-                if self.units(UnitTypeId.QUEEN).amount < len(self.townhalls.ready): # check the amount of queens vs the amount of hatcheries
-                    if self.can_afford(UnitTypeId.QUEEN):
-                        hatchery.train(UnitTypeId.QUEEN)
+                if self.can_afford(UnitTypeId.QUEEN) and self.units(UnitTypeId.QUEEN).empty:
+                    hq.train(UnitTypeId.QUEEN)
+
+                # for queen in self.units(UnitTypeId.QUEEN):
+                #     #if self.units(UnitTypeId.QUEEN).amount < len(self.townhalls.ready): # check the amount of queens vs the amount of hatcheries
+                #     if queen.distance_to(hatchery.position) < 5.0:
+                #         hatchery.train(UnitTypeId.QUEEN)
     
     # moves excess drones to next location
     # TODO: Possibly where we can create Queens upon building completion.
