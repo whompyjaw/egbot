@@ -1,10 +1,5 @@
 import sys,os
 from contextlib import suppress
-
-import numpy as np
-from sc2.position import Point2, Point3
-
-
 import sc2
 from sc2 import run_game, maps, Race, Difficulty
 from sc2.ids.unit_typeid import UnitTypeId
@@ -12,11 +7,16 @@ from sc2.ids.ability_id import AbilityId
 from sc2.player import Bot, Computer
 from sc2.unit import Unit
 from sc2.units import Units
+#from sc2.position import Point2, Point3
+
+
 
 class EGbot(sc2.BotAI):
-    #TODO: figure out how to typecast lists as Units
-    creep_queens = self.Units(creep_queens)
-    larva_queens = self.Units(larva_queens)
+    def __init__(self):
+        self.creep_queen_tags = []
+        self.larva_queen_tags = []
+        self.defense_queens = {} # just created for fun
+
 
     #Do these actions every step
     async def on_step(self, iteration):
@@ -78,14 +78,14 @@ class EGbot(sc2.BotAI):
             if self.can_afford(UnitTypeId.QUEEN): #check to afford
                 for hatchery in hatcheries: # loop through available hatcheries each step
                     close_queens = queens.closer_than(5.0, hatchery) #find list of queens close to hatchery
-                    if close_queens and hatchery.is_idle and len(self.creep_queens) < 2:
-                        self.creep_queens.append(hatchery.train(UnitTypeId.QUEEN))
+                    if close_queens and hatchery.is_idle and len(close_queens) == 2:
+                        hatchery.train(UnitTypeId.QUEEN)
                     if not close_queens and hatchery.is_idle: 
-                        self.larva_queens.append(hatchery.train(UnitTypeId.QUEEN))
+                        hatchery.train(UnitTypeId.QUEEN)
 
     async def larva_inject(self):
         hatcheries = self.townhalls.ready #list of ready hatcheries
-        queens = self.larva_queens  # list of queens
+        queens = self.units(UnitTypeId.QUEEN)  # list of queens
 
         for hatchery in hatcheries:
             for queen in queens.closer_than(5.0, hatchery):
@@ -122,6 +122,7 @@ class EGbot(sc2.BotAI):
         pass
         # TODO: tumor spread
 
+
     #TODO: implement strategy here - really only need one extractor in the beginning
     async def build_gas(self):  
         if (self.structures(UnitTypeId.SPAWNINGPOOL) and self.gas_buildings.amount + 
@@ -141,6 +142,18 @@ class EGbot(sc2.BotAI):
         if unit.type_id == UnitTypeId.HATCHERY and self.mineral_field:
             mf = self.mineral_field.closest_to(unit)
             unit.smart(mf) # sets gathering location to mineral patch near recently built hatch
+
+
+    async def on_unit_created(self, unit: Unit):
+        """ Override this in your bot class. This function is called when a unit is created."""
+        # need to figure out how to decide if it's a creep
+        if unit.type_id is UnitTypeId.QUEEN:
+            # if there is a queen already there, then its a creep queen
+            self.larva_queen_tags.append(unit.tag)
+        
+
+    def _get_closest_queen(self):
+        pass
 
 # Setting realtime=False makes the game/bot play as fast as possible
 run_game(maps.get("AbyssalReefLE"), [Bot(Race.Zerg, EGbot()), 
