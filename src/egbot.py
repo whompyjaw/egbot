@@ -25,6 +25,7 @@ class EGbot(sc2.BotAI):
         await self.build_spawning_pool()
         await self.build_queens()
         await self.larva_inject()
+        await self.build_gas()
 
         # If we have less than 22 drones, build drones
         # TODO: Will need to add an array or vector of buildings for "worker_en_route_to_build" to check instead of only HATCHERY
@@ -80,27 +81,19 @@ class EGbot(sc2.BotAI):
             for queen in queens.closer_than(5.0, hatchery):
                 if queen.energy >= 25:
                     queen(AbilityId.EFFECT_INJECTLARVA, hatchery)
-         
-        # # If we dont have both extractors: build them
-        # # TODO: implement strategy here - really only need one extractor in the beginning
-        # if (self.structures(UnitTypeId.SPAWNINGPOOL) and self.gas_buildings.amount + 
-        #     self.already_pending(UnitTypeId.EXTRACTOR) < 6):
-        #     if self.can_afford(UnitTypeId.EXTRACTOR):
-        #         # May crash if we dont have any drones
-        #         for hatch in self.townhalls.ready:
-        #             for vg in self.vespene_geyser.closer_than(10, hatch):
-        #                 drone: Unit = self.workers.random
-        #                 drone.build_gas(vg)
-        #                 break
+
+    #TODO: implement strategy here - really only need one extractor in the beginning
+    async def build_gas(self):  
+        if (self.structures(UnitTypeId.SPAWNINGPOOL) and self.gas_buildings.amount + 
+            self.already_pending(UnitTypeId.EXTRACTOR) < 8):
+            if self.can_afford(UnitTypeId.EXTRACTOR):
+                # May crash if we dont have any drones
+                for hatch in self.townhalls.ready:
+                    for vg in self.vespene_geyser.closer_than(10, hatch):
+                        drone: Unit = self.workers.random
+                        drone.build_gas(vg)
+                        break
                         
-
-        # # Saturate gas
-        # for a in self.gas_buildings:
-        #     if a.assigned_harvesters < a.ideal_harvesters:
-        #         w: Units = self.workers.closer_than(10, a)
-        #         if w:
-        #             w.random.gather(a)
-
     # moves excess drones to next location
     # TODO: Possibly where we can create Queens upon building completion.
     async def on_building_construction_complete(self, unit: Unit):
