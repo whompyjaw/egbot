@@ -14,6 +14,10 @@ from sc2.unit import Unit
 from sc2.units import Units
 
 class EGbot(sc2.BotAI):
+    #TODO: figure out how to typecast lists as Units
+    creep_queens = self.Units(creep_queens)
+    larva_queens = self.Units(larva_queens)
+
     #Do these actions every step
     async def on_step(self, iteration):
         '''On_step actions'''
@@ -26,6 +30,7 @@ class EGbot(sc2.BotAI):
         await self.build_queens()
         await self.larva_inject()
         await self.build_gas()
+        await self.spread_creep()
 
         # If we have less than 22 drones, build drones
         # TODO: Will need to add an array or vector of buildings for "worker_en_route_to_build" to check instead of only HATCHERY
@@ -61,26 +66,61 @@ class EGbot(sc2.BotAI):
             if self.can_afford(UnitTypeId.SPAWNINGPOOL):
                await self.build(UnitTypeId.SPAWNINGPOOL, near=hq.position.towards(self.game_info.map_center, 5))
 
+    '''TODO: Assign creep queens to creep queens list, larva queens to larva queen list.
+    '''
     async def build_queens(self):
         #list of hatcheries
         hatcheries = self.townhalls.ready #list of ready hatcheries
         queens = self.units(UnitTypeId.QUEEN)  # list of queens
-
+        
+        # larva queens
         if self.structures(UnitTypeId.SPAWNINGPOOL).ready:
             if self.can_afford(UnitTypeId.QUEEN): #check to afford
-                for hatchery in hatcheries: #loop through available hatcheries each step
+                for hatchery in hatcheries: # loop through available hatcheries each step
                     close_queens = queens.closer_than(5.0, hatchery) #find list of queens close to hatchery
+                    if close_queens and hatchery.is_idle and len(self.creep_queens) < 2:
+                        self.creep_queens.append(hatchery.train(UnitTypeId.QUEEN))
                     if not close_queens and hatchery.is_idle: 
-                        hatchery.train(UnitTypeId.QUEEN)    
+                        self.larva_queens.append(hatchery.train(UnitTypeId.QUEEN))
 
     async def larva_inject(self):
         hatcheries = self.townhalls.ready #list of ready hatcheries
-        queens = self.units(UnitTypeId.QUEEN)  # list of queens
+        queens = self.larva_queens  # list of queens
 
         for hatchery in hatcheries:
             for queen in queens.closer_than(5.0, hatchery):
                 if queen.energy >= 25:
                     queen(AbilityId.EFFECT_INJECTLARVA, hatchery)
+
+
+    async def spread_creep(self):
+        # TODO: queen spread
+        # queen_build_tumor = AbilityId.BUILD_CREEPTUMOR_QUEEN
+        # creep_build_tumor = AbilityId.ZERGBUILD_CREEPTUMOR
+        # hatcheries = self.townhalls.ready # list of ready hatcheries
+        #                                   # list of queens
+        # # 
+        # queens = self.units(UnitTypeId.QUEEN)  # list of queens
+        
+        # # pick or build a queen
+        
+        # if len(hatcheries) > 1:
+        #     second_hatch = hatcheries[1]
+        #     for queen in queens.closer_than(5.0, second_hatch):
+        #         if queen and second_hatch.is_idle: 
+        #             second_hatch.train(UnitTypeId.QUEEN)  
+
+        # creep_queens.append(second_hatch.train(UnitTypeId.QUEEN))
+        # creep_queens[0](queen_build_tumor)
+        # cq = creep_queens[0]
+            
+        # if cq.is_idle:
+        #     cq(queen_build_tumor)
+        # goto an area near the end of creep
+        # build tumor
+        
+        pass
+        # TODO: tumor spread
 
     #TODO: implement strategy here - really only need one extractor in the beginning
     async def build_gas(self):  
