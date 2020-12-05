@@ -24,6 +24,7 @@ class EGbot(sc2.BotAI):
         await self.expand()
         await self.build_spawning_pool()
         await self.build_queens()
+        await self.larva_inject()
 
         # If we have less than 22 drones, build drones
         # TODO: Will need to add an array or vector of buildings for "worker_en_route_to_build" to check instead of only HATCHERY
@@ -65,29 +66,21 @@ class EGbot(sc2.BotAI):
         queens = self.units(UnitTypeId.QUEEN)  # list of queens
 
         if self.structures(UnitTypeId.SPAWNINGPOOL).ready:
-            #TODO: check if a hatchery has a queen close to it, if not, build queen
             if self.can_afford(UnitTypeId.QUEEN): #check to afford
                 for hatchery in hatcheries: #loop through available hatcheries each step
                     close_queens = queens.closer_than(5.0, hatchery) #find list of queens close to hatchery
-                    if not close_queens and self.already_pending(UnitTypeId.QUEEN)==0: 
-                        '''TODO: test self.already_pending(UnitTypeId.QUEEN)==0:  as hatchery.self.already_pending(UnitTypeId.QUEEN)==0:
-                        current problem is only one queen can be "birthing" at any given time no matter how many hatcheries you have.
-                        TODO: add check for number of "queens", this current code will continue to make queens if they are moved
-                        outside of the 5.0 distance
-                        '''
-                        #if no queens & one is not being made, train queen
+                    if not close_queens and hatchery.is_idle: 
                         hatchery.train(UnitTypeId.QUEEN)    
-               
-        # # Send idle queens with >=25 energy to inject
-        # for queen in self.units(UnitTypeId.QUEEN).idle:
-        #     # The following checks if the inject ability is in the queen abilitys - basically it checks if we have enough energy and if the ability is off-cooldown
-        #     # abilities = await self.get_available_abilities(queen)
-        #     # if AbilityId.EFFECT_INJECTLARVA in abilities:
 
-        #     #TODO: implement a self.units(UnitTypeId.HATCHERY).closer_than(1.0, hatchery) - would mean if the queen is next to the hatchery it should inject at that 
-        #     #hatchery only
-        #     if queen.energy >= 25:
-        #         queen(AbilityId.EFFECT_INJECTLARVA, hq)
+    async def larva_inject(self):
+        hatcheries = self.townhalls.ready #list of ready hatcheries
+        queens = self.units(UnitTypeId.QUEEN)  # list of queens
+
+        for hatchery in hatcheries:
+            for queen in queens.closer_than(5.0, hatchery):
+                if queen.energy >= 25:
+                    queen(AbilityId.EFFECT_INJECTLARVA, hatchery)
+         
         # # If we dont have both extractors: build them
         # # TODO: implement strategy here - really only need one extractor in the beginning
         # if (self.structures(UnitTypeId.SPAWNINGPOOL) and self.gas_buildings.amount + 
@@ -118,5 +111,5 @@ class EGbot(sc2.BotAI):
 
 # Setting realtime=False makes the game/bot play as fast as possible
 run_game(maps.get("AbyssalReefLE"), [Bot(Race.Zerg, EGbot()), 
-    Computer(Race.Terran, Difficulty.Easy)], realtime=True)
+    Computer(Race.Terran, Difficulty.Easy)], realtime=False)
 
