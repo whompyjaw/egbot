@@ -15,30 +15,35 @@ class EGbot(sc2.BotAI):
     def __init__(self):
         self.creep_queen_tags = []
         self.larva_queen_tags = []
-        self.defense_queens = {} # just created for fun
+        self.defense_queens = [] # just created for fun
+        
 
 
     #Do these actions every step
     async def on_step(self, iteration):
+        self.hq: Unit = self.townhalls.first # will need to account for if it's destroyed
+        self.queens: Units = self.units(UnitTypeId.QUEEN)
+        self.hatcheries = self.townhalls.ready
+        larvae: Units = self.larva
         '''On_step actions'''
         # Send workers across bases
         await self.distribute_workers(1.0)
-        await self.build_drones()
-        await self.build_overlords()
+        await self.build_drones(larvae)
+        await self.build_overlords(larvae)
         await self.expand()
         await self.build_spawning_pool()
         await self.build_queens()
         await self.larva_inject()
         await self.build_gas()
         await self.spread_creep()
+        
 
+        
         # If we have less than 22 drones, build drones
         # TODO: Will need to add an array or vector of buildings for "worker_en_route_to_build" to check instead of only HATCHERY
         # TODO: Check for max number of hatcheries
-    async def build_drones(self):
+    async def build_drones(self, larvae):
         #variables
-        larvae: Units = self.larva
-
         if larvae and self.can_afford(UnitTypeId.DRONE): 
             if (self.supply_workers - self.worker_en_route_to_build(UnitTypeId.HATCHERY) + 
                 self.already_pending(UnitTypeId.DRONE)) < (self.townhalls.amount + self.placeholders(UnitTypeId.HATCHERY).amount) * 22:
@@ -46,12 +51,15 @@ class EGbot(sc2.BotAI):
                 larva.train(UnitTypeId.DRONE)
                 return
         
-    async def build_overlords(self):
-        # Build overlords if about to be supply blocked
-        if (self.supply_left < 3 and self.supply_cap < 200
-            and self.already_pending(UnitTypeId.OVERLORD) < 2
-            and self.can_afford(UnitTypeId.OVERLORD)):
-            self.train(UnitTypeId.OVERLORD)
+    async def build_overlords(self, larvae):
+        '''
+            TODO: Will need to figure out if we need to create more than 200 supply OLs
+
+        '''
+        if (self.supply_left < 2 and larvae
+            and self.can_afford(UnitTypeId.OVERLORD)
+            and self.already_pending(UnitTypeId.OVERLORD) < 2):
+            larvae.random.train(UnitTypeId.OVERLORD)
   
     async def expand(self):
         # Expands to nearest location when 300 minerals are available up to maximum 3 hatcheries
@@ -61,6 +69,7 @@ class EGbot(sc2.BotAI):
 
     async def build_spawning_pool(self):
         hq: Unit = self.townhalls.first
+        
         # Build spawning pool
         if self.structures(UnitTypeId.SPAWNINGPOOL).amount + self.already_pending(UnitTypeId.SPAWNINGPOOL) == 0:
             if self.can_afford(UnitTypeId.SPAWNINGPOOL):
@@ -68,25 +77,14 @@ class EGbot(sc2.BotAI):
 
     '''TODO: Assign creep queens to creep queens list, larva queens to larva queen list.
     '''
-    async def build_queens(self):
-        #list of hatcheries
-        hatcheries = self.townhalls.ready #list of ready hatcheries
-        queens = self.units(UnitTypeId.QUEEN)  # list of queens
-        
-        # larva queens
-        if self.structures(UnitTypeId.SPAWNINGPOOL).ready:
-            if self.can_afford(UnitTypeId.QUEEN): #check to afford
-                for hatchery in hatcheries: # loop through available hatcheries each step
-                    close_queens = queens.closer_than(5.0, hatchery) #find list of queens close to hatchery
-                    if close_queens and hatchery.is_idle and len(close_queens) == 2:
-                        hatchery.train(UnitTypeId.QUEEN)
-                    if not close_queens and hatchery.is_idle: 
-                        hatchery.train(UnitTypeId.QUEEN)
+
+
 
     async def larva_inject(self):
         hatcheries = self.townhalls.ready #list of ready hatcheries
         queens = self.units(UnitTypeId.QUEEN)  # list of queens
 
+        # TODO: use queen tags instead
         for hatchery in hatcheries:
             for queen in queens.closer_than(5.0, hatchery):
                 if queen.energy >= 25:
@@ -144,16 +142,50 @@ class EGbot(sc2.BotAI):
             unit.smart(mf) # sets gathering location to mineral patch near recently built hatch
 
 
+    async def build_queens(self):
+        # larva queens
+        if self.structures(UnitTypeId.SPAWNINGPOOL).ready and self.queens.amount + self.already_pending(UnitTypeId.QUEEN) < 6:
+            if self.can_afford(UnitTypeId.QUEEN): #check to afford
+                for hatchery in self.hatcheries: # loop through available hatcheries each step
+                    close_queens = self._get_close_queens(hatchery) #find list of queens close to hatchery
+                    # if # of larva queens = 3 then build creep queen
+                    if close_queens and hatchery.is_idle and len(self.larva_queen_tags) >= 3:
+                        hatchery.train(UnitTypeId.QUEEN)
+                    if not close_queens and hatchery.is_idle: # creates larva queen
+                        hatchery.train(UnitTypeId.QUEEN)
+
     async def on_unit_created(self, unit: Unit):
         """ Override this in your bot class. This function is called when a unit is created."""
         # need to figure out how to decide if it's a creep
         if unit.type_id is UnitTypeId.QUEEN:
-            # if there is a queen already there, then its a creep queen
-            self.larva_queen_tags.append(unit.tag)
-        
+            # 
+            if len(self.larva_queen_tags) == 0:
+                self.larva_queen_tags.append(unit.tag)
+            
+            if len(self.larva_queen_tags) >= 3:
+                self.creep_queen_tags.append(unit.tag)
+            else:
+                self.larva_queen_tags.append(unit.tag)
+            # for hatch in self.hatcheries:
+            #     # TODO: Edge case when checking second hatchery and queen spawns at first hatch
+            #     queens = self._get_close_queens(hatch)
+            #     if queens:
+            #         self.creep_queen_tags.append(unit.tag)
+            #     else:
+            #         self.larva_queen_tags.append(unit.tag)
+            # if self.units(UnitTypeId.QUEEN).amount <= self.townhalls.ready.amount:
+            # # if there is a queen already there, then its a creep queen
+            # # and no larva_queen is there
+            #     self.larva_queen_tags.append(unit.tag)
+            # else:
+            #     self.creep_queen_tags.append(unit.tag)
+    
+    # TODO: Save this for later: # creep_queens: Units = self.units(UnitTypeId.QUEEN).closer_than(5.0, hq)    
 
-    def _get_closest_queen(self):
-        pass
+
+    def _get_close_queens(self, hatchery):
+        return self.queens.closer_than(5.0, hatchery)
+    
 
 # Setting realtime=False makes the game/bot play as fast as possible
 run_game(maps.get("AbyssalReefLE"), [Bot(Race.Zerg, EGbot()), 
