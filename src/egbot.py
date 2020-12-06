@@ -162,6 +162,14 @@ class EGbot(sc2.BotAI):
             else:
                 self.creep_queen_tags.append(unit.tag)
     
+    
+    async def on_unit_destroyed(self, unit_tag: int):
+        if unit_tag in self.creep_queen_tags:
+            self.creep_queen_tags.remove(unit_tag)
+        if unit_tag in self.larva_queen_tags:
+            self.larva_queen_tags.remove(unit_tag)
+            
+
     # TODO: Save this for later: # creep_queens: Units = self.units(UnitTypeId.QUEEN).closer_than(5.0, hq)    
 
 
