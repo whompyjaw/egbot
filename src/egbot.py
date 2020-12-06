@@ -7,7 +7,7 @@ from sc2.ids.ability_id import AbilityId
 from sc2.player import Bot, Computer
 from sc2.unit import Unit
 from sc2.units import Units
-#from sc2.position import Point2, Point3
+from sc2.position import Point2, Point3
 
 
 
@@ -50,7 +50,8 @@ class EGbot(sc2.BotAI):
                 larva: Unit = larvae.random
                 larva.train(UnitTypeId.DRONE)
                 return
-        
+
+
     async def build_overlords(self, larvae):
         '''
             TODO: Will need to figure out if we need to create more than 200 supply OLs
@@ -61,11 +62,13 @@ class EGbot(sc2.BotAI):
             and self.already_pending(UnitTypeId.OVERLORD) < 2):
             larvae.random.train(UnitTypeId.OVERLORD)
   
+
     async def expand(self):
         # Expands to nearest location when 300 minerals are available up to maximum 3 hatcheries
         if self.townhalls.ready.amount + self.already_pending(UnitTypeId.HATCHERY) < 3:
             if self.can_afford(UnitTypeId.HATCHERY):
                 await self.expand_now()
+
 
     async def build_spawning_pool(self):
         hq: Unit = self.townhalls.first
@@ -74,10 +77,6 @@ class EGbot(sc2.BotAI):
         if self.structures(UnitTypeId.SPAWNINGPOOL).amount + self.already_pending(UnitTypeId.SPAWNINGPOOL) == 0:
             if self.can_afford(UnitTypeId.SPAWNINGPOOL):
                await self.build(UnitTypeId.SPAWNINGPOOL, near=hq.position.towards(self.game_info.map_center, 5))
-
-    '''TODO: Assign creep queens to creep queens list, larva queens to larva queen list.
-    '''
-
 
 
     async def larva_inject(self):
@@ -92,21 +91,34 @@ class EGbot(sc2.BotAI):
 
 
     async def spread_creep(self):
-        # TODO: queen spread
-        # queen_build_tumor = AbilityId.BUILD_CREEPTUMOR_QUEEN
+        '''
+            QUEEN
+            select a queen from creep_tumors (find_by_tag)
+            check if can cast creep tumor
+            move queen to edge of creep
+            place tumor
+
+            TUMOR
+            iterate through unused tumors 
+            calculate place to plant tumor
+            cast plant
+            update unused_tumors for next check
+        '''
+        build_tumor = AbilityId.BUILD_CREEPTUMOR_QUEEN
         # creep_build_tumor = AbilityId.ZERGBUILD_CREEPTUMOR
-        # hatcheries = self.townhalls.ready # list of ready hatcheries
-        #                                   # list of queens
-        # # 
-        # queens = self.units(UnitTypeId.QUEEN)  # list of queens
         
-        # # pick or build a queen
+        # select queen
+        cqt = self.creep_queen_tags[0]
+        creep_queen = self.units.find_by_tag(cqt):
+        current_pos = creep_queen.position
+        # check if queen can cast creep tumor
+        if creep_queen.energy >= 25:
+            # move queen to edge of creep
+            creep_queen(build_tumor, 5)
+            # cast tumor
+
+        # move queen to edge of creep
         
-        # if len(hatcheries) > 1:
-        #     second_hatch = hatcheries[1]
-        #     for queen in queens.closer_than(5.0, second_hatch):
-        #         if queen and second_hatch.is_idle: 
-        #             second_hatch.train(UnitTypeId.QUEEN)  
 
         # creep_queens.append(second_hatch.train(UnitTypeId.QUEEN))
         # creep_queens[0](queen_build_tumor)
@@ -153,6 +165,7 @@ class EGbot(sc2.BotAI):
                         hatchery.train(UnitTypeId.QUEEN)
                     if not close_queens and hatchery.is_idle: # creates larva queen
                         hatchery.train(UnitTypeId.QUEEN)
+
 
     async def on_unit_created(self, unit: Unit):
         """ Override this in your bot class. This function is called when a unit is created."""
