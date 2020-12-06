@@ -10,6 +10,9 @@ from sc2.units import Units
 from sc2.position import Point2, Point3
 
 class DebugQueen(sc2.BotAI):
+    '''
+        Where we can test small problems within a vacuum
+    '''
     async def on_step(self, iteration):
         if iteration == 0:
             await self.client.debug_show_map()
