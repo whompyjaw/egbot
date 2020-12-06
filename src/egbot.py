@@ -156,29 +156,11 @@ class EGbot(sc2.BotAI):
 
     async def on_unit_created(self, unit: Unit):
         """ Override this in your bot class. This function is called when a unit is created."""
-        # need to figure out how to decide if it's a creep
         if unit.type_id is UnitTypeId.QUEEN:
-            # 
-            if len(self.larva_queen_tags) == 0:
+            if len(self.larva_queen_tags) < 3:
                 self.larva_queen_tags.append(unit.tag)
-            
-            if len(self.larva_queen_tags) >= 3:
-                self.creep_queen_tags.append(unit.tag)
             else:
-                self.larva_queen_tags.append(unit.tag)
-            # for hatch in self.hatcheries:
-            #     # TODO: Edge case when checking second hatchery and queen spawns at first hatch
-            #     queens = self._get_close_queens(hatch)
-            #     if queens:
-            #         self.creep_queen_tags.append(unit.tag)
-            #     else:
-            #         self.larva_queen_tags.append(unit.tag)
-            # if self.units(UnitTypeId.QUEEN).amount <= self.townhalls.ready.amount:
-            # # if there is a queen already there, then its a creep queen
-            # # and no larva_queen is there
-            #     self.larva_queen_tags.append(unit.tag)
-            # else:
-            #     self.creep_queen_tags.append(unit.tag)
+                self.creep_queen_tags.append(unit.tag)
     
     # TODO: Save this for later: # creep_queens: Units = self.units(UnitTypeId.QUEEN).closer_than(5.0, hq)    
 
