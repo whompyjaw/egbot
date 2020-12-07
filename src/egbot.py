@@ -8,7 +8,9 @@ from sc2.player import Bot, Computer
 from sc2.unit import Unit
 from sc2.units import Units
 from sc2.position import Point2, Point3
+import logging
 
+logging.basicConfig(level=logging.DEBUG, filename='egbot.log', datefmt='%d-%m-%y %H:%M:%S', format='%(asctime)s | %(levelname)s | %(funcName)s | ln:%(lineno)d: %(message)s')
 
 
 class EGbot(sc2.BotAI):
@@ -104,17 +106,17 @@ class EGbot(sc2.BotAI):
             cast plant
             update unused_tumors for next check
         '''
-        build_tumor = AbilityId.BUILD_CREEPTUMOR_QUEEN
-        # creep_build_tumor = AbilityId.ZERGBUILD_CREEPTUMOR
+        # build_tumor = AbilityId.BUILD_CREEPTUMOR_QUEEN
+        # # creep_build_tumor = AbilityId.ZERGBUILD_CREEPTUMOR
         
-        # select queen
-        cqt = self.creep_queen_tags[0]
-        creep_queen = self.units.find_by_tag(cqt):
-        current_pos = creep_queen.position
-        # check if queen can cast creep tumor
-        if creep_queen.energy >= 25:
-            # move queen to edge of creep
-            creep_queen(build_tumor, 5)
+        # # select queen
+        # cqt = self.creep_queen_tags[0]
+        # creep_queen = self.units.find_by_tag(cqt)
+        # current_pos = creep_queen.position
+        # # check if queen can cast creep tumor
+        # if creep_queen.energy >= 25:
+        #     # move queen to edge of creep
+        #     creep_queen(build_tumor, 5)
             # cast tumor
 
         # move queen to edge of creep
@@ -152,7 +154,7 @@ class EGbot(sc2.BotAI):
         if unit.type_id == UnitTypeId.HATCHERY and self.mineral_field:
             mf = self.mineral_field.closest_to(unit)
             unit.smart(mf) # sets gathering location to mineral patch near recently built hatch
-
+        logging.debug(f'{unit.name} has completed.')
 
     async def build_queens(self):
         # larva queens
