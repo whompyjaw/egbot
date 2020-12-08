@@ -14,3 +14,16 @@ DEBUG-on_building_construction_complete-157:SpawningPool has completed.
 06-12-20 12:43:53 | DEBUG | on_building_construction_complete | ln:157: Hatchery has completed.
 06-12-20 12:44:36 | DEBUG | on_building_construction_complete | ln:157: Extractor has completed.
 06-12-20 12:58:51 | DEBUG | __init__ | ln:59: Using selector: KqueueSelector
+07-12-20 20:03:00 | DEBUG | __init__ | ln:59: Using selector: KqueueSelector
+07-12-20 20:03:34 | DEBUG | on_building_construction_complete | ln:157: Hatchery has completed.
+07-12-20 20:03:51 | DEBUG | on_building_construction_complete | ln:157: Extractor has completed.
+07-12-20 20:03:51 | DEBUG | on_building_construction_complete | ln:157: Extractor has completed.
+07-12-20 20:03:55 | DEBUG | on_building_construction_complete | ln:157: SpawningPool has completed.
+07-12-20 20:04:15 | DEBUG | on_building_construction_complete | ln:157: Hatchery has completed.
+07-12-20 20:04:24 | DEBUG | on_building_construction_complete | ln:157: Extractor has completed.
+07-12-20 20:04:24 | DEBUG | on_building_construction_complete | ln:157: Extractor has completed.
+07-12-20 20:04:30 | DEBUG | on_building_construction_complete | ln:157: Hatchery has completed.
+07-12-20 20:04:39 | DEBUG | on_building_construction_complete | ln:157: Extractor has completed.
+07-12-20 20:04:43 | DEBUG | on_building_construction_complete | ln:157: Extractor has completed.
+07-12-20 20:07:14 | DEBUG | __init__ | ln:59: Using selector: KqueueSelector
+07-12-20 20:07:40 | DEBUG | on_building_construction_complete | ln:157: Hatchery has completed.
