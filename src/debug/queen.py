@@ -24,16 +24,30 @@ class DebugQueen(sc2.BotAI):
             await self.client.debug_create_unit(
                 [[UnitTypeId.QUEEN, 1, self.start_location, 1]]
             )
-        await self.spread_creep()
+        await self.queen_spread_creep()
 
-    async def spread_creep(self):
+    async def queen_spread_creep(self):
+        '''
+            1. select queen
+            2. get positions around queen (get_pos_around_unit)
+            3. find if positions are placeable, no buildings, minerals, etc (can_place)
+            4. check if those possible locations have creep (has_creep)
+            5. 
+
+        '''
+        
         positions = []
         build_tumor = AbilityId.BUILD_CREEPTUMOR_QUEEN
         queens = self.units(UnitTypeId.QUEEN)
+        
         for queen in queens:
-            pos = self.get_pos_around_unit(queen)
             if queen.energy >= 25:
-                queen(build_tumor, 3)
+                positions = self.get_pos_around_unit(queen, min_range=5, max_range=30, loc_amt=10)
+                # seems to take too long... maybe need to use less positions?
+                # valid_positions = await self.can_place(build_tumor, positions) 
+            
+                if self.has_creep(positions[0]):
+                    queen(build_tumor, positions[0])
 
 
     def get_pos_around_unit(self, unit, min_range=0, max_range=500, step_size=1, loc_amt=32):
