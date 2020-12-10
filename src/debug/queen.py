@@ -10,6 +10,7 @@ from sc2.player import Bot, Computer
 from sc2.unit import Unit
 from sc2.units import Units
 from sc2.position import Point2, Point3
+from random import randrange
 
 
 class DebugQueen(sc2.BotAI):
@@ -30,27 +31,35 @@ class DebugQueen(sc2.BotAI):
         '''
             1. select queen
             2. get positions around queen (get_pos_around_unit)
-            3. find if positions are placeable, no buildings, minerals, etc (can_place)
+            3. TODO: Need a better find if positions are placeable, no buildings, minerals, etc (can_place)
             4. check if those possible locations have creep (has_creep)
             5. 
 
         '''
         
         positions = []
+        filtered_positions = []
         build_tumor = AbilityId.BUILD_CREEPTUMOR_QUEEN
         queens = self.units(UnitTypeId.QUEEN)
         
         for queen in queens:
-            if queen.energy >= 25:
-                positions = self.get_pos_around_unit(queen, min_range=5, max_range=30, loc_amt=10)
-                # seems to take too long... maybe need to use less positions?
-                # valid_positions = await self.can_place(build_tumor, positions) 
-            
-                if self.has_creep(positions[0]):
-                    queen(build_tumor, positions[0])
+            if queen.energy >= 25 and queen.is_idle: # i think i need to check if action not already in q
+                positions = self.get_pos_around_unit(queen, min_range=5, max_range=10, loc_amt=16) 
+                # valid_placements = await self.can_place(build_tumor, positions) # all would return false.. seems weird
+                # valid_placements = [p for index, p in enumerate(valid_placements) if valid_placements[index] == ActionResult.Success]
+                
+                # filter out places without creep
+                for loc in positions:
+                    if self.has_creep(loc):
+                        filtered_positions.append(loc)
+                    
+                queen(build_tumor, filtered_positions[randrange(len(filtered_positions))])
 
 
     def get_pos_around_unit(self, unit, min_range=0, max_range=500, step_size=1, loc_amt=32):
+        '''
+        # e.g. locationAmount=4 would only consider 4 points: north, west, east, south
+        '''
         loc = unit.position.to2
         # loc = unit
         positions = [Point2(( \
