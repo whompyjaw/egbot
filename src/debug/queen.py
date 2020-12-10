@@ -45,9 +45,7 @@ class DebugQueen(sc2.BotAI):
         for queen in queens:
             if queen.energy >= 25 and queen.is_idle: # i think i need to check if action not already in q
                 positions = self.get_pos_around_unit(queen, min_range=5, max_range=10, loc_amt=16) 
-                # valid_placements = await self.can_place(build_tumor, positions) # all would return false.. seems weird
-                # valid_placements = [p for index, p in enumerate(valid_placements) if valid_placements[index] == ActionResult.Success]
-                
+
                 # filter out places without creep
                 for loc in positions:
                     if self.has_creep(loc):
@@ -58,7 +56,7 @@ class DebugQueen(sc2.BotAI):
 
     def get_pos_around_unit(self, unit, min_range=0, max_range=500, step_size=1, loc_amt=32):
         '''
-        # e.g. locationAmount=4 would only consider 4 points: north, west, east, south
+        # e.g. loc_amt=4 would only consider 4 points: north, west, east, south
         '''
         loc = unit.position.to2
         # loc = unit
