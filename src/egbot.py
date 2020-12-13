@@ -9,6 +9,7 @@ from sc2.unit import Unit
 from sc2.units import Units
 from sc2.position import Point2, Point3
 import logging
+import random
 
 logging.basicConfig(level=logging.DEBUG, filename='egbot.log', datefmt='%d-%m-%y %H:%M:%S', format='%(asctime)s | %(levelname)s | %(funcName)s | ln:%(lineno)d: %(message)s')
 
@@ -18,6 +19,7 @@ class EGbot(sc2.BotAI):
         self.creep_queen_tags = []
         self.larva_queen_tags = []
         self.defense_queens = [] # just created for fun
+        self.hatch_strat = random.randint(1,3) # random number between 1-3 to determine strat at beginning of match
         
 
 
@@ -32,8 +34,7 @@ class EGbot(sc2.BotAI):
         await self.distribute_workers(1.0)
         await self.build_drones(larvae)
         await self.build_overlords(larvae)
-        await self.expand()
-        await self.build_spawning_pool()
+        await self.opening_strats()
         await self.build_queens()
         await self.larva_inject()
         await self.build_gas()
@@ -64,21 +65,52 @@ class EGbot(sc2.BotAI):
             and self.already_pending(UnitTypeId.OVERLORD) < 2):
             larvae.random.train(UnitTypeId.OVERLORD)
   
-
-    async def expand(self):
-        # Expands to nearest location when 300 minerals are available up to maximum 3 hatcheries
-        if self.townhalls.ready.amount + self.already_pending(UnitTypeId.HATCHERY) < 3:
-            if self.can_afford(UnitTypeId.HATCHERY):
-                await self.expand_now()
-
-
-    async def build_spawning_pool(self):
+    '''Starter method to develop strategies for various openings.  Uses a dictionary with different strategies
+    to select from.  A random number is generated when the program starts determining the strategy.  
+    '''
+    async def opening_strats(self):
         hq: Unit = self.townhalls.first
-        
-        # Build spawning pool
-        if self.structures(UnitTypeId.SPAWNINGPOOL).amount + self.already_pending(UnitTypeId.SPAWNINGPOOL) == 0:
-            if self.can_afford(UnitTypeId.SPAWNINGPOOL):
-               await self.build(UnitTypeId.SPAWNINGPOOL, near=hq.position.towards(self.game_info.map_center, 5))
+        strat_dict = {"pool_first":1, "expand_first":2,"double_expand":3}
+
+        async def build_pool(): # Build spawning pool
+            if self.structures(UnitTypeId.SPAWNINGPOOL).amount + self.already_pending(UnitTypeId.SPAWNINGPOOL) == 0:
+                if self.can_afford(UnitTypeId.SPAWNINGPOOL):
+                    await self.build(UnitTypeId.SPAWNINGPOOL, near=hq.position.towards(self.game_info.map_center, 5))
+       
+        async def expand():
+            # Expands to nearest location when 300 minerals are available up to maximum 5 hatcheries
+            if self.townhalls.ready.amount + self.already_pending(UnitTypeId.HATCHERY) < 5:
+                if self.can_afford(UnitTypeId.HATCHERY):
+                    await self.expand_now()
+
+        #normal strat - let it play out
+        if self.hatch_strat == strat_dict.get("pool_first"):
+            await build_pool()
+            await expand()
+
+        if self.hatch_strat == strat_dict.get("expand_first"):
+            #expand as long as less than 2 hatcheries
+            if self.townhalls.ready.amount + self.already_pending(UnitTypeId.HATCHERY) < 2:
+                await expand()
+            #elif to see if pool AND 2 hatcheries built, if so expand
+            elif self.structures(UnitTypeId.SPAWNINGPOOL).amount + self.already_pending(UnitTypeId.SPAWNINGPOOL) == 1 and \
+                self.townhalls.ready.amount + self.already_pending(UnitTypeId.HATCHERY)==2:
+                await expand()
+            #if and elif are false, build pool
+            else:
+                await build_pool()
+          
+        if self.hatch_strat == strat_dict.get("double_expand"):
+            #expand as long as less than 2 hatcheries
+            if self.townhalls.ready.amount + self.already_pending(UnitTypeId.HATCHERY) < 3:
+                await expand()
+            #if pool built AND 3 hatcheries, continue to attempt to expand
+            elif self.structures(UnitTypeId.SPAWNINGPOOL).amount + self.already_pending(UnitTypeId.SPAWNINGPOOL) == 1 and \
+                self.townhalls.ready.amount + self.already_pending(UnitTypeId.HATCHERY)==3:
+                await expand()
+            #if no pool built yet and 3 hatcheries pending or built, build pool
+            else:
+                await build_pool()
 
 
     async def larva_inject(self):
