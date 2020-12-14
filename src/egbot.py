@@ -41,26 +41,32 @@ class EGbot(sc2.BotAI):
         await self.spread_creep()
         
 
+        '''TODO: Think we should add in an early game tag, that once we're above X supply we move to mid game tag.  Early game tag has different
+        parameters.  Example: if early_game: only build one gas geyser per hatchery, elif mid_game, build two.
+        '''
         
         # If we have less than 22 drones, build drones
         # TODO: Will need to add an array or vector of buildings for "worker_en_route_to_build" to check instead of only HATCHERY
         # TODO: Check for max number of hatcheries
     async def build_drones(self, larvae):
-        #variables
-        if larvae and self.can_afford(UnitTypeId.DRONE): 
+        #corrects game opening ->12:drone, 13:overlord, 14:drone, then 3 drones when OL pops
+        if larvae and self.can_afford(UnitTypeId.DRONE) and (self.supply_left > 1 or self.already_pending(UnitTypeId.OVERLORD)>=1): 
             if (self.supply_workers - self.worker_en_route_to_build(UnitTypeId.HATCHERY) + 
                 self.already_pending(UnitTypeId.DRONE)) < (self.townhalls.amount + self.placeholders(UnitTypeId.HATCHERY).amount) * 22:
                 larva: Unit = larvae.random
                 larva.train(UnitTypeId.DRONE)
                 return
 
-
     async def build_overlords(self, larvae):
         '''
             TODO: Will need to figure out if we need to create more than 200 supply OLs
 
         '''
-        if (self.supply_left < 2 and larvae
+        #works with build_drones, ensures at game opening, only one OL is pending
+        if self.supply_used <= 13 and self.already_pending(UnitTypeId.OVERLORD) < 1:
+            larvae.random.train(UnitTypeId.OVERLORD)
+        #after we're above 13 supply, complete the normal OL method
+        elif(self.supply_cap>14 and self.supply_left < 2 and larvae
             and self.can_afford(UnitTypeId.OVERLORD)
             and self.already_pending(UnitTypeId.OVERLORD) < 2):
             larvae.random.train(UnitTypeId.OVERLORD)
