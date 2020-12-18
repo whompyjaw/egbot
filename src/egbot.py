@@ -22,7 +22,6 @@ class EGbot(sc2.BotAI):
         self.hatch_strat = random.randint(1,3) # random number between 1-3 to determine strat at beginning of match
         
 
-
     #Do these actions every step
     async def on_step(self, iteration):
         self.hq: Unit = self.townhalls.first # will need to account for if it's destroyed
@@ -37,7 +36,6 @@ class EGbot(sc2.BotAI):
         await self.opening_strats()
         await self.build_queens()
         await self.larva_inject()
-        await self.build_gas()
         await self.spread_creep()
         
 
@@ -88,10 +86,22 @@ class EGbot(sc2.BotAI):
             if self.townhalls.ready.amount + self.already_pending(UnitTypeId.HATCHERY) < 5:
                 if self.can_afford(UnitTypeId.HATCHERY):
                     await self.expand_now()
+        
+        #TODO: implement strategy here - really only need one extractor in the beginning
+        async def build_gas():  
+            if self.can_afford(UnitTypeId.EXTRACTOR):
+                # May crash if we dont have any drones
+                for hatch in self.townhalls.ready:
+                    for vg in self.vespene_geyser.closer_than(10, hatch):
+                        if not self.worker_en_route_to_build(UnitTypeId.EXTRACTOR):
+                            await self.build(UnitTypeId.EXTRACTOR, vg)
+                            break
 
         #normal strat - let it play out
         if self.hatch_strat == strat_dict.get("pool_first"):
             await build_pool()
+            if self.already_pending(UnitTypeId.SPAWNINGPOOL)==1 and self.structures(UnitTypeId.EXTRACTOR).amount < 1:
+                await build_gas()
             await expand()
 
         if self.hatch_strat == strat_dict.get("expand_first"):
@@ -105,6 +115,9 @@ class EGbot(sc2.BotAI):
             #if and elif are false, build pool
             else:
                 await build_pool()
+            #build a gas if pool is pending
+            if self.already_pending(UnitTypeId.SPAWNINGPOOL)==1 and self.structures(UnitTypeId.EXTRACTOR).amount < 1:
+                await build_gas()
           
         if self.hatch_strat == strat_dict.get("double_expand"):
             #expand as long as less than 2 hatcheries
@@ -117,6 +130,10 @@ class EGbot(sc2.BotAI):
             #if no pool built yet and 3 hatcheries pending or built, build pool
             else:
                 await build_pool()
+
+            #build a gas if pool is pending
+            if self.already_pending(UnitTypeId.SPAWNINGPOOL)==1 and self.structures(UnitTypeId.EXTRACTOR).amount < 1:
+                await build_gas()                
 
 
     async def larva_inject(self):
@@ -171,20 +188,7 @@ class EGbot(sc2.BotAI):
         
         pass
         # TODO: tumor spread
-
-
-    #TODO: implement strategy here - really only need one extractor in the beginning
-    async def build_gas(self):  
-        if (self.structures(UnitTypeId.SPAWNINGPOOL) and self.gas_buildings.amount + 
-            self.already_pending(UnitTypeId.EXTRACTOR) < 8):
-            if self.can_afford(UnitTypeId.EXTRACTOR):
-                # May crash if we dont have any drones
-                for hatch in self.townhalls.ready:
-                    for vg in self.vespene_geyser.closer_than(10, hatch):
-                        drone: Unit = self.workers.random
-                        drone.build_gas(vg)
-                        break
-                        
+                      
     # moves excess drones to next location
     # TODO: Possibly where we can create Queens upon building completion.
     async def on_building_construction_complete(self, unit: Unit):
@@ -232,5 +236,5 @@ class EGbot(sc2.BotAI):
 
 # Setting realtime=False makes the game/bot play as fast as possible
 run_game(maps.get("AbyssalReefLE"), [Bot(Race.Zerg, EGbot()), 
-    Computer(Race.Terran, Difficulty.Easy)], realtime=False)
+    Computer(Race.Terran, Difficulty.Easy)], realtime=True)
 
