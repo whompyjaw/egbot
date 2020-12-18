@@ -4,6 +4,7 @@ import sc2
 from sc2 import run_game, maps, Race, Difficulty
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.ids.ability_id import AbilityId
+from sc2.ids.buff_id import BuffId
 from sc2.player import Bot, Computer
 from sc2.unit import Unit
 from sc2.units import Units
@@ -16,9 +17,8 @@ logging.basicConfig(level=logging.DEBUG, filename='egbot.log', datefmt='%d-%m-%y
 
 class EGbot(sc2.BotAI):
     def __init__(self):
-        self.creep_queen_tags = []
-        self.larva_queen_tags = []
-        self.defense_queens = [] # just created for fun
+        self.queensAssignedHatcheries={}
+        self.injectInterval=100
         self.hatch_strat = random.randint(1,3) # random number between 1-3 to determine strat at beginning of match
         
 
@@ -27,6 +27,7 @@ class EGbot(sc2.BotAI):
         self.hq: Unit = self.townhalls.first # will need to account for if it's destroyed
         self.queens: Units = self.units(UnitTypeId.QUEEN)
         self.hatcheries = self.townhalls.ready
+        self.iteration = iteration
         larvae: Units = self.larva
         '''On_step actions'''
         # Send workers across bases
@@ -35,7 +36,8 @@ class EGbot(sc2.BotAI):
         await self.build_overlords(larvae)
         await self.opening_strats()
         await self.build_queens()
-        await self.larva_inject()
+        await self.doQueenInjects(iteration)
+        #await self.larva_inject()
         await self.spread_creep()
         
 
@@ -87,7 +89,6 @@ class EGbot(sc2.BotAI):
                 if self.can_afford(UnitTypeId.HATCHERY):
                     await self.expand_now()
         
-        #TODO: implement strategy here - really only need one extractor in the beginning
         async def build_gas():  
             if self.can_afford(UnitTypeId.EXTRACTOR):
                 # May crash if we dont have any drones
@@ -103,6 +104,8 @@ class EGbot(sc2.BotAI):
             if self.already_pending(UnitTypeId.SPAWNINGPOOL)==1 and self.structures(UnitTypeId.EXTRACTOR).amount < 1:
                 await build_gas()
             await expand()
+            if self.townhalls.ready.amount==2 and self.structures(UnitTypeId.EXTRACTOR).amount < 3:
+                await build_gas()
 
         if self.hatch_strat == strat_dict.get("expand_first"):
             #expand as long as less than 2 hatcheries
@@ -117,6 +120,8 @@ class EGbot(sc2.BotAI):
                 await build_pool()
             #build a gas if pool is pending
             if self.already_pending(UnitTypeId.SPAWNINGPOOL)==1 and self.structures(UnitTypeId.EXTRACTOR).amount < 1:
+                await build_gas()
+            if self.townhalls.ready.amount==2 and self.structures(UnitTypeId.EXTRACTOR).amount < 3:
                 await build_gas()
           
         if self.hatch_strat == strat_dict.get("double_expand"):
@@ -133,18 +138,20 @@ class EGbot(sc2.BotAI):
 
             #build a gas if pool is pending
             if self.already_pending(UnitTypeId.SPAWNINGPOOL)==1 and self.structures(UnitTypeId.EXTRACTOR).amount < 1:
+                await build_gas()
+            if self.townhalls.ready.amount==3 and self.structures(UnitTypeId.EXTRACTOR).amount < 3:
                 await build_gas()                
 
 
-    async def larva_inject(self):
-        hatcheries = self.townhalls.ready #list of ready hatcheries
-        queens = self.units(UnitTypeId.QUEEN)  # list of queens
+    # async def larva_inject(self):
+    #     hatcheries = self.townhalls.ready #list of ready hatcheries
+    #     queens = self.units(UnitTypeId.QUEEN)  # list of queens
 
-        # TODO: use queen tags instead
-        for hatchery in hatcheries:
-            for queen in queens.closer_than(5.0, hatchery):
-                if queen.energy >= 25:
-                    queen(AbilityId.EFFECT_INJECTLARVA, hatchery)
+    #     # TODO: use queen tags instead
+    #     for hatchery in hatcheries:
+    #         for queen in queens.closer_than(5.0, hatchery):
+    #             if queen.energy >= 25:
+    #                 queen(AbilityId.EFFECT_INJECTLARVA, hatchery)
 
 
     async def spread_creep(self):
@@ -161,33 +168,6 @@ class EGbot(sc2.BotAI):
             cast plant
             update unused_tumors for next check
         '''
-        # build_tumor = AbilityId.BUILD_CREEPTUMOR_QUEEN
-        # # creep_build_tumor = AbilityId.ZERGBUILD_CREEPTUMOR
-        
-        # # select queen
-        # cqt = self.creep_queen_tags[0]
-        # creep_queen = self.units.find_by_tag(cqt)
-        # current_pos = creep_queen.position
-        # # check if queen can cast creep tumor
-        # if creep_queen.energy >= 25:
-        #     # move queen to edge of creep
-        #     creep_queen(build_tumor, 5)
-            # cast tumor
-
-        # move queen to edge of creep
-        
-
-        # creep_queens.append(second_hatch.train(UnitTypeId.QUEEN))
-        # creep_queens[0](queen_build_tumor)
-        # cq = creep_queens[0]
-            
-        # if cq.is_idle:
-        #     cq(queen_build_tumor)
-        # goto an area near the end of creep
-        # build tumor
-        
-        pass
-        # TODO: tumor spread
                       
     # moves excess drones to next location
     # TODO: Possibly where we can create Queens upon building completion.
@@ -203,29 +183,63 @@ class EGbot(sc2.BotAI):
         if self.structures(UnitTypeId.SPAWNINGPOOL).ready and self.queens.amount + self.already_pending(UnitTypeId.QUEEN) < 6:
             if self.can_afford(UnitTypeId.QUEEN): #check to afford
                 for hatchery in self.hatcheries: # loop through available hatcheries each step
-                    close_queens = self._get_close_queens(hatchery) #find list of queens close to hatchery
                     # if # of larva queens = 3 then build creep queen
-                    if close_queens and hatchery.is_idle and len(self.larva_queen_tags) >= 3:
+                    if hatchery.is_idle:
                         hatchery.train(UnitTypeId.QUEEN)
-                    if not close_queens and hatchery.is_idle: # creates larva queen
-                        hatchery.train(UnitTypeId.QUEEN)
+                        self.assignQueen()
+
+    def assignQueen(self, maxAmountInjectQueens=5):
+        # # list of all alive queens and bases, will be used for injecting
+        if not hasattr(self, "queensAssignedHatcheries"):
+            self.queensAssignedHatcheries = {}
+
+        if maxAmountInjectQueens == 0:
+            self.queensAssignedHatcheries = {}
+
+        # if queen is done, move it to the closest hatch/lair/hive that doesnt have a queen assigned
+        queensNoInjectPartner = self.units(UnitTypeId.QUEEN).filter(lambda q: q.tag not in self.queensAssignedHatcheries.keys())
+        basesNoInjectPartner = self.townhalls.filter(lambda h: h.tag not in self.queensAssignedHatcheries.values() and h.build_progress > 0.8)
+
+        for queen in queensNoInjectPartner:                          
+            if basesNoInjectPartner.amount == 0:
+                break
+            closestBase = basesNoInjectPartner.closest_to(queen)
+            self.queensAssignedHatcheries[queen.tag] = closestBase.tag
+            basesNoInjectPartner = basesNoInjectPartner - [closestBase]
+            break # else one hatch gets assigned twice
 
 
-    async def on_unit_created(self, unit: Unit):
-        """ Override this in your bot class. This function is called when a unit is created."""
-        if unit.type_id is UnitTypeId.QUEEN:
-            if len(self.larva_queen_tags) < 3:
-                self.larva_queen_tags.append(unit.tag)
-            else:
-                self.creep_queen_tags.append(unit.tag)
-    
-    
-    async def on_unit_destroyed(self, unit_tag: int):
-        if unit_tag in self.creep_queen_tags:
-            self.creep_queen_tags.remove(unit_tag)
-        if unit_tag in self.larva_queen_tags:
-            self.larva_queen_tags.remove(unit_tag)
-            
+    async def doQueenInjects(self, iteration):
+        # list of all alive queens and bases, will be used for injecting
+        aliveQueenTags = [queen.tag for queen in self.units(UnitTypeId.QUEEN)] # list of numbers (tags / unit IDs)
+        aliveBasesTags = [base.tag for base in self.townhalls]
+
+        # make queens inject if they have 25 or more energy
+        toRemoveTags = []
+
+        if hasattr(self, "queensAssignedHatcheries"):
+            for queenTag, hatchTag in self.queensAssignedHatcheries.items():
+                # queen is no longer alive
+                if queenTag not in aliveQueenTags: 
+                    toRemoveTags.append(queenTag)
+                    continue
+                # hatchery / lair / hive is no longer alive
+                if hatchTag not in aliveBasesTags:
+                    toRemoveTags.append(queenTag)
+                    continue
+                # queen and base are alive, try to inject if queen has 25+ energy
+                queen = self.units(UnitTypeId.QUEEN).find_by_tag(queenTag)            
+                hatch = self.townhalls.find_by_tag(hatchTag)            
+                if hatch.is_ready:
+                    if queen.energy >= 25 and queen.is_idle and not hatch.has_buff(BuffId.QUEENSPAWNLARVATIMER):
+                        queen(AbilityId.EFFECT_INJECTLARVA, hatch)
+                else:
+                    if iteration % self.injectInterval == 0 and queen.is_idle and queen.position.distance_to(hatch.position) > 10:
+                        queen(AbilityId.MOVE, hatch.position.to2)
+
+            # clear queen tags (in case queen died or hatch got destroyed) from the dictionary outside the iteration loop
+            for tag in toRemoveTags:
+                self.queensAssignedHatcheries.pop(tag)
 
     # TODO: Save this for later: # creep_queens: Units = self.units(UnitTypeId.QUEEN).closer_than(5.0, hq)    
 
@@ -236,5 +250,5 @@ class EGbot(sc2.BotAI):
 
 # Setting realtime=False makes the game/bot play as fast as possible
 run_game(maps.get("AbyssalReefLE"), [Bot(Race.Zerg, EGbot()), 
-    Computer(Race.Terran, Difficulty.Easy)], realtime=True)
+    Computer(Race.Terran, Difficulty.Easy)], realtime=False)
 
