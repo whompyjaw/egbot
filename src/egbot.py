@@ -9,8 +9,10 @@ from sc2.player import Bot, Computer
 from sc2.unit import Unit
 from sc2.units import Units
 from sc2.position import Point2, Point3
+from typing import Union, Set
 import logging
 import random
+import math
 
 logging.basicConfig(level=logging.DEBUG, filename='egbot.log', datefmt='%d-%m-%y %H:%M:%S', format='%(asctime)s | %(levelname)s | %(funcName)s | ln:%(lineno)d: %(message)s')
 
@@ -28,6 +30,7 @@ class EGbot(sc2.BotAI):
         self.queens: Units = self.units(UnitTypeId.QUEEN)
         self.hatcheries = self.townhalls.ready
         self.iteration = iteration
+        self.used_tumors: Set[int]=set()
         larvae: Units = self.larva
         '''On_step actions'''
         # Send workers across bases
@@ -155,19 +158,96 @@ class EGbot(sc2.BotAI):
 
 
     async def spread_creep(self):
-        '''
-            QUEEN
-            select a queen from creep_tumors (find_by_tag)
-            check if can cast creep tumor
-            move queen to edge of creep
-            place tumor
+        
+        positions = []
+        filtered_locations = []
+        build_tumor = AbilityId.BUILD_CREEPTUMOR_QUEEN
+        unused_tumors = []
+        enemy_base = self.enemy_start_locations
+        
+        if hasattr(self, "queensAssignedHatcheries"):
+            unassignedQueens = self.units(UnitTypeId.QUEEN).filter(lambda q: (q.tag not in self.queensAssignedHatcheries and q.energy >= 25 or q.energy >= 50) and
+            (q.is_idle or len(q.orders) == 1 and q.orders[0].ability.id in [AbilityId.MOVE]))
+        else:
+            unassignedQueens = self.units(UnitTypeId.QUEEN).filter(lambda q: q.energy >= 25 and
+            (q.is_idle or len(q.orders) == 1 and q.orders[0].ability.id in [AbilityId.MOVE]))
 
-            TUMOR
-            iterate through unused tumors 
-            calculate place to plant tumor
-            cast plant
-            update unused_tumors for next check
+        # queen
+        for queen in unassignedQueens:
+            positions = self.get_pos_around_unit(queen, min_range=5, max_range=10, loc_amt=12) 
+
+            # filter out places without creep
+            for loc in positions:
+                if self.has_creep(loc):
+                    filtered_locations.append(loc)
+
+                # find shortest distance to enemy base
+            shortest_distance = 1000.00
+            for loc in filtered_locations:
+                temp_distance = math.sqrt((enemy_base[0].x - loc.x)**2.0 + (enemy_base[0].y - loc.y)**2.0)
+                if temp_distance < shortest_distance:
+                    best_loc = loc
+                    shortest_distance = temp_distance
+
+            queen(build_tumor, best_loc)
+
+        '''TODO: Determine directions for creep spread - still random, but only spreads outwards away from starting hatchery
+            TODO: Ensure creep doesn't spread onto hatchery locations - potentially done'''
+
+        filtered_locations = [] #locations to place tumors
+        #all possible tumors
+        tumors = self.structures(UnitTypeId.CREEPTUMORQUEEN) | self.structures(UnitTypeId.CREEPTUMOR) | self.structures(UnitTypeId.CREEPTUMORBURROWED)
+
+        if tumors: #if tumors exists
+            all_tumors_abilities = await self.get_available_abilities(tumors) #get all the abilities from available tumors
+            for i, abilities in enumerate(all_tumors_abilities): #loop through tumors that have abilities
+                tumor = tumors[i] #select single tumor
+                if not tumor.is_idle and isinstance(tumor.order_target, Point2):  #if tumor is in process of morphing or something, add to used.tumors
+                    self.used_tumors.add(tumor.tag)
+                    continue
+                #ensure tumor has Ability to spread creep
+                if AbilityId.BUILD_CREEPTUMOR_TUMOR in abilities:
+                    #gets positions around tumor - note: loc_amt does not seem to work, returned over 70 positions last I checked
+                    #max range seems too far as well - was getting out of range errors
+                    positions = self.get_pos_around_unit(tumor, min_range=5, max_range=20, loc_amt=12)
+                    #determine which positions have creep
+                    for loc in positions:
+                        if self.has_creep(loc) and not self.position_blocks_expansion(loc):
+                            #working towards sending creep out - this filters positions that are closer to the starting hatchery, so tumors don't go backwards, can go sideways though
+                            if self._distance_pos_to_pos(tumor.position, self.townhalls.first.position) <= self._distance_pos_to_pos(loc, self.townhalls.first.position):
+                                filtered_locations.append(loc)
+    
+                    pos = random.randrange(0, len(filtered_locations))
+                    #build that tumor!
+                    tumor(AbilityId.BUILD_CREEPTUMOR_TUMOR, filtered_locations[pos])
+                    
+   
+    def get_pos_around_unit(self, unit, min_range=0, max_range=500, step_size=1, loc_amt=32):
         '''
+        TODO: need to fix loc_amt - despite having a value in there, get_pos_around_unit was retuning 70+ positions - could possibly be hard on system
+        resources at a later date
+        # e.g. loc_amt=4 would only consider 4 points: north, west, east, south
+        '''
+        loc = unit.position.to2
+        # loc = unit
+        positions = [Point2(( \
+            loc.x + distance * math.cos(math.pi * 2 * alpha / loc_amt), \
+            loc.y + distance * math.sin(math.pi * 2 * alpha / loc_amt))) \
+            for alpha in range(loc_amt) # alpha is the angle here, locationAmount is the variable on how accurate the attempts look like a circle (= how many points on a circle)
+            for distance in range(min_range, max_range+1)] # distance depending on minrange and maxrange
+        return positions
+    '''
+    TODO: figure out why Union and self.expansion_locations_list say they have an error yet no issues arise in the code.  Suspect Pylint is goofed.
+    Note: used pos: Union[Point2, Unit] instead of just pos: Point2 in attempt to fix a y is -1, self.height is 176 error.  Seems to work...
+    '''
+    def position_blocks_expansion(self, pos: Union[Point2, Unit]) -> bool:
+        blocks_expansion = False
+        for expansion in self.expansion_locations_list:
+            if pos.distance_to(expansion) < 6:
+                blocks_expansion = True
+                break
+        return blocks_expansion
+    
                       
     # moves excess drones to next location
     # TODO: Possibly where we can create Queens upon building completion.
@@ -188,7 +268,7 @@ class EGbot(sc2.BotAI):
                         hatchery.train(UnitTypeId.QUEEN)
                         self.assignQueen()
 
-    def assignQueen(self, maxAmountInjectQueens=5):
+    def assignQueen(self, maxAmountInjectQueens=3):
         # # list of all alive queens and bases, will be used for injecting
         if not hasattr(self, "queensAssignedHatcheries"):
             self.queensAssignedHatcheries = {}
