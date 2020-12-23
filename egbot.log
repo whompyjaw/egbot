@@ -244,3 +244,16 @@ DEBUG-on_building_construction_complete-157:SpawningPool has completed.
 18-12-20 16:41:57 | DEBUG | on_building_construction_complete | ln:259: CreepTumorBurrowed has completed.
 18-12-20 16:41:57 | DEBUG | on_building_construction_complete | ln:259: CreepTumorBurrowed has completed.
 18-12-20 16:41:58 | DEBUG | on_building_construction_complete | ln:259: CreepTumorBurrowed has completed.
+20-12-20 07:45:28 | DEBUG | __init__ | ln:59: Using selector: KqueueSelector
+20-12-20 07:46:02 | DEBUG | on_building_construction_complete | ln:373: Hatchery has completed.
+20-12-20 07:46:40 | DEBUG | on_building_construction_complete | ln:373: Extractor has completed.
+20-12-20 07:46:56 | DEBUG | on_building_construction_complete | ln:373: SpawningPool has completed.
+20-12-20 07:47:52 | DEBUG | on_building_construction_complete | ln:373: Hatchery has completed.
+20-12-20 07:48:13 | DEBUG | on_building_construction_complete | ln:373: CreepTumorBurrowed has completed.
+20-12-20 07:48:19 | DEBUG | on_building_construction_complete | ln:373: Extractor has completed.
+20-12-20 07:48:21 | DEBUG | on_building_construction_complete | ln:373: Extractor has completed.
+20-12-20 07:48:33 | DEBUG | on_building_construction_complete | ln:373: CreepTumor has completed.
+20-12-20 07:48:49 | DEBUG | on_building_construction_complete | ln:373: CreepTumorBurrowed has completed.
+20-12-20 07:48:50 | DEBUG | on_building_construction_complete | ln:373: Hatchery has completed.
+20-12-20 07:49:05 | DEBUG | on_building_construction_complete | ln:373: CreepTumor has completed.
+20-12-20 07:49:11 | DEBUG | on_building_construction_complete | ln:373: CreepTumorQueen has completed.
