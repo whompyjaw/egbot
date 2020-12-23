@@ -18,14 +18,14 @@ logging.basicConfig(
     level=logging.DEBUG,
     filename="egbot.log",
     datefmt="%d-%m-%y %H:%M:%S",
-    format="%(asctime)s | %(levelname)s | %(funcName)s | ln:%(lineno)d: %(message)s",
+    format="%(asctime)s | %(levelname)s | %(funcName)s | ln:%(lineno)d | %(message)s",
 )
 
 
 class EGbot(sc2.BotAI):
     def __init__(self):
-        self.queensAssignedHatcheries = {}
-        self.injectInterval = 100
+        self.queens_assigned_hatcheries = {}
+        self.inject_interval = 100
         self.hatch_strat = random.randint(
             1, 3
         )
@@ -39,14 +39,13 @@ class EGbot(sc2.BotAI):
         self.iteration = iteration
         self.used_tumors: Set[int] = set()
         larvae: Units = self.larva
-        """On_step actions"""
         # Send workers across bases
         await self.distribute_workers(1.0)
         await self.build_drones(larvae)
         await self.build_overlords(larvae)
         await self.opening_strats()
         await self.build_queens()
-        await self.doQueenInjects(iteration)
+        await self.do_queen_injects(iteration)
         # await self.larva_inject()
         await self.spread_creep()
 
@@ -94,11 +93,12 @@ class EGbot(sc2.BotAI):
         ):
             larvae.random.train(UnitTypeId.OVERLORD)
 
-    """Starter method to develop strategies for various openings.  Uses a dictionary with different strategies
-    to select from.  A random number is generated when the program starts determining the strategy.  
-    """
-
     async def opening_strats(self):
+        """
+        Starter method to develop strategies for various openings.  Uses a dictionary with different strategies
+        to select from.  A random number is generated when the program starts determining the strategy.  
+        """
+        # TODO: This is already declared up top and assigned to self.hq. Do we need both?
         hq: Unit = self.townhalls.first
         strat_dict = {"pool_first": 1, "expand_first": 2, "double_expand": 3}
 
@@ -230,10 +230,10 @@ class EGbot(sc2.BotAI):
         unused_tumors = []
         enemy_base = self.enemy_start_locations
 
-        if hasattr(self, "queensAssignedHatcheries"):
+        if hasattr(self, "queens_assigned_hatcheries"):
             unassignedQueens = self.units(UnitTypeId.QUEEN).filter(
                 lambda q: (
-                    q.tag not in self.queensAssignedHatcheries
+                    q.tag not in self.queens_assigned_hatcheries
                     and q.energy >= 25
                     or q.energy >= 50
                 )
@@ -309,7 +309,7 @@ class EGbot(sc2.BotAI):
                     )
                     # determine which positions have creep
                     for loc in positions:
-                        if self.has_creep(loc) and not self.position_blocks_expansion(
+                        if self.has_creep(loc) and not self._position_blocks_expansion(
                             loc
                         ):
                             # working towards sending creep out - this filters positions that are closer to the starting hatchery, so tumors don't go backwards, can go sideways though
@@ -348,12 +348,16 @@ class EGbot(sc2.BotAI):
         ]  # distance depending on minrange and maxrange
         return positions
 
-    """
-    TODO: figure out why Union and self.expansion_locations_list say they have an error yet no issues arise in the code.  Suspect Pylint is goofed.
-    Note: used pos: Union[Point2, Unit] instead of just pos: Point2 in attempt to fix a y is -1, self.height is 176 error.  Seems to work...
-    """
+    def _position_blocks_expansion(self, pos):
+        """
+        TODO: figure out why Union and self.expansion_locations_list say they have an error yet no issues arise in the code.  Suspect Pylint is goofed.
+        Note: used pos: Union[Point2, Unit] instead of just pos: Point2 in attempt to fix a y is -1, self.height is 176 error.  Seems to work...
+        
+        From Glenn: You don't need to instantiate pos in this function because you're passing a position to this function. Python already knows what it is.
+                    Also, put these docstring inside the function you are referring to.
+                    we should do that for future TODO's as well.
+        """
 
-    def position_blocks_expansion(self, pos: Union[Point2, Unit]) -> bool:
         blocks_expansion = False
         for expansion in self.expansion_locations_list:
             if pos.distance_to(expansion) < 6:
@@ -361,16 +365,16 @@ class EGbot(sc2.BotAI):
                 break
         return blocks_expansion
 
-    # moves excess drones to next location
-    # TODO: Possibly where we can create Queens upon building completion.
+
     async def on_building_construction_complete(self, unit: Unit):
+        # TODO: Possibly where we can create Queens upon building completion.
         """ Set rally point of new hatcheries. """
         if unit.type_id == UnitTypeId.HATCHERY and self.mineral_field:
             mf = self.mineral_field.closest_to(unit)
             unit.smart(
                 mf
             )  # sets gathering location to mineral patch near recently built hatch
-        logging.debug(f"{unit.name} has completed.")
+        ogging.debug(f"{unit.name} has completed.")
 
     async def build_queens(self):
         # larva queens
@@ -384,56 +388,56 @@ class EGbot(sc2.BotAI):
                 ) in self.hatcheries:
                     if hatchery.is_idle:
                         hatchery.train(UnitTypeId.QUEEN)
-                        self.assignQueen()
+                        self.assign_queen()
 
-    def assignQueen(self, maxAmountInjectQueens=3):
+    def assign_queen(self, max_amount_inject_queens=3):
         # # list of all alive queens and bases, will be used for injecting
-        if not hasattr(self, "queensAssignedHatcheries"):
-            self.queensAssignedHatcheries = {}
+        if not hasattr(self, "queens_assigned_hatcheries"):
+            self.queens_assigned_hatcheries = {}
 
-        if maxAmountInjectQueens == 0:
-            self.queensAssignedHatcheries = {}
+        if max_amount_inject_queens == 0:
+            self.queens_assigned_hatcheries = {}
 
         # if queen is done, move it to the closest hatch/lair/hive that doesnt have a queen assigned
-        queensNoInjectPartner = self.units(UnitTypeId.QUEEN).filter(
-            lambda q: q.tag not in self.queensAssignedHatcheries.keys()
+        queens_no_inject_partner = self.units(UnitTypeId.QUEEN).filter(
+            lambda q: q.tag not in self.queens_assigned_hatcheries.keys()
         )
-        basesNoInjectPartner = self.townhalls.filter(
-            lambda h: h.tag not in self.queensAssignedHatcheries.values()
+        bases_no_inject_partner = self.townhalls.filter(
+            lambda h: h.tag not in self.queens_assigned_hatcheries.values()
             and h.build_progress > 0.8
         )
 
-        for queen in queensNoInjectPartner:
-            if basesNoInjectPartner.amount == 0:
+        for queen in queens_no_inject_partner:
+            if bases_no_inject_partner.amount == 0:
                 break
-            closestBase = basesNoInjectPartner.closest_to(queen)
-            self.queensAssignedHatcheries[queen.tag] = closestBase.tag
-            basesNoInjectPartner = basesNoInjectPartner - [closestBase]
+            closest_base = bases_no_inject_partner.closest_to(queen)
+            self.queens_assigned_hatcheries[queen.tag] = closest_base.tag
+            bases_no_inject_partner = bases_no_inject_partner - [closest_base]
             break  # else one hatch gets assigned twice
 
-    async def doQueenInjects(self, iteration):
+    async def do_queen_injects(self, iteration):
         # list of all alive queens and bases, will be used for injecting
-        aliveQueenTags = [
+        alive_queen_tags = [
             queen.tag for queen in self.units(UnitTypeId.QUEEN)
         ]  # list of numbers (tags / unit IDs)
-        aliveBasesTags = [base.tag for base in self.townhalls]
+        alive_bases_tags = [base.tag for base in self.townhalls]
 
         # make queens inject if they have 25 or more energy
-        toRemoveTags = []
+        to_remove_tags = []
 
-        if hasattr(self, "queensAssignedHatcheries"):
-            for queenTag, hatchTag in self.queensAssignedHatcheries.items():
+        if hasattr(self, "queens_assigned_hatcheries"):
+            for queen_tag, hatch_tag in self.queens_assigned_hatcheries.items():
                 # queen is no longer alive
-                if queenTag not in aliveQueenTags:
-                    toRemoveTags.append(queenTag)
+                if queen_tag not in alive_queen_tags:
+                    to_remove_tags.append(queen_tag)
                     continue
                 # hatchery / lair / hive is no longer alive
-                if hatchTag not in aliveBasesTags:
-                    toRemoveTags.append(queenTag)
+                if hatch_tag not in alive_bases_tags:
+                    to_remove_tags.append(queen_tag)
                     continue
                 # queen and base are alive, try to inject if queen has 25+ energy
-                queen = self.units(UnitTypeId.QUEEN).find_by_tag(queenTag)
-                hatch = self.townhalls.find_by_tag(hatchTag)
+                queen = self.units(UnitTypeId.QUEEN).find_by_tag(queen_tag)
+                hatch = self.townhalls.find_by_tag(hatch_tag)
                 if hatch.is_ready:
                     if (
                         queen.energy >= 25
@@ -443,21 +447,20 @@ class EGbot(sc2.BotAI):
                         queen(AbilityId.EFFECT_INJECTLARVA, hatch)
                 else:
                     if (
-                        iteration % self.injectInterval == 0
+                        iteration % self.inject_interval == 0
                         and queen.is_idle
                         and queen.position.distance_to(hatch.position) > 10
                     ):
                         queen(AbilityId.MOVE, hatch.position.to2)
 
             # clear queen tags (in case queen died or hatch got destroyed) from the dictionary outside the iteration loop
-            for tag in toRemoveTags:
-                self.queensAssignedHatcheries.pop(tag)
+            for tag in to_remove_tags:
+                self.queens_assigned_hatcheries.pop(tag)
 
     # TODO: Save this for later: # creep_queens: Units = self.units(UnitTypeId.QUEEN).closer_than(5.0, hq)
 
     def _get_close_queens(self, hatchery):
         return self.queens.closer_than(5.0, hatchery)
-
 
 # Setting realtime=False makes the game/bot play as fast as possible
 run_game(
