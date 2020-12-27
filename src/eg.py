@@ -13,7 +13,7 @@ from typing import Union, Set
 import logging
 import random
 import math
-from managers import MacroManager
+from src.managers.economy.macro import MacroManager
 
 # importing from other folders
 # from folder.folder.file import Whatever
