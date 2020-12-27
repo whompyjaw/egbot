@@ -13,6 +13,7 @@ from typing import Union, Set
 import logging
 import random
 import math
+from managers import MacroManager
 
 # importing from other folders
 # from folder.folder.file import Whatever
@@ -32,6 +33,7 @@ class EGbot(sc2.BotAI):
         self.hatch_strat = random.randint(
             1, 3
         )
+        self.mm = MacroManager(self)
 
     async def on_step(self, iteration):
         self.hq: Unit = (
@@ -41,6 +43,7 @@ class EGbot(sc2.BotAI):
         self.hatcheries = self.townhalls.ready
         self.iteration = iteration
         self.used_tumors: Set[int] = set()
+        
         larvae: Units = self.larva
         # Send workers across bases
         await self.distribute_workers(1.0)
@@ -60,23 +63,23 @@ class EGbot(sc2.BotAI):
         # TODO: Will need to add an array or vector of buildings for "worker_en_route_to_build" to check instead of only HATCHERY
         # TODO: Check for max number of hatcheries
 
-    async def build_drones(self, larvae):
-        # corrects game opening ->12:drone, 13:overlord, 14:drone, then 3 drones when OL pops
-        if (
-            larvae
-            and self.can_afford(UnitTypeId.DRONE)
-            and (self.supply_left > 1 or self.already_pending(UnitTypeId.OVERLORD) >= 1)
-        ):
-            if (
-                self.supply_workers
-                - self.worker_en_route_to_build(UnitTypeId.HATCHERY)
-                + self.already_pending(UnitTypeId.DRONE)
-            ) < (
-                self.townhalls.amount + self.placeholders(UnitTypeId.HATCHERY).amount
-            ) * 22:
-                larva: Unit = larvae.random
-                larva.train(UnitTypeId.DRONE)
-                return
+    # async def build_drones(self, larvae):
+    #     # corrects game opening ->12:drone, 13:overlord, 14:drone, then 3 drones when OL pops
+    #     if (
+    #         larvae
+    #         and self.can_afford(UnitTypeId.DRONE)
+    #         and (self.supply_left > 1 or self.already_pending(UnitTypeId.OVERLORD) >= 1)
+    #     ):
+    #         if (
+    #             self.supply_workers
+    #             - self.worker_en_route_to_build(UnitTypeId.HATCHERY)
+    #             + self.already_pending(UnitTypeId.DRONE)
+    #         ) < (
+    #             self.townhalls.amount + self.placeholders(UnitTypeId.HATCHERY).amount
+    #         ) * 22:
+    #             larva: Unit = larvae.random
+    #             larva.train(UnitTypeId.DRONE)
+    #             return
 
     async def build_overlords(self, larvae):
         """
