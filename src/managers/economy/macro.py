@@ -8,7 +8,7 @@ from sc2.unit import Unit
 from sc2.units import Units
 from sc2.position import Point2, Point3
 from typing import Union, Set
-from src.units.drone import Drone
+from units.drone import Drone
 import logging
 import random
 import math
@@ -19,16 +19,16 @@ class MacroManager:
 
     def __init__(self, bot):
         #larva: Unit = UnitTypeId.LARVA
-        self.larvae: Units = bot.larva
-        self.drone = bot.UnitTypeId.DRONE
+        # self.larvae: Units = bot.UnitTypeId.LARVA
         self.drones = []
+        self.drone = UnitTypeId.DRONE
         self.bot = bot
     
-    def build_drone(self):
+    async def build_drone(self, larvae):
     #corrects game opening ->12:drone, 13:overlord, 14:drone, then 3 drones when OL pops
         if (
-            self.larvae
-            and self.bot.can_afford(self.drone)
+            larvae
+            and self.bot.can_afford(UnitTypeId.DRONE)
 
             and (self.bot.supply_left > 1 or self.bot.already_pending(UnitTypeId.OVERLORD) >= 1)
         ):
@@ -39,7 +39,7 @@ class MacroManager:
             ) < (
                 self.bot.townhalls.amount + self.bot.placeholders(UnitTypeId.HATCHERY).amount
             ) * 22:
-                larva: Unit = self.larvae.random
-                larva.train(self.bot.unit_type)
-                self.drones.append(Drone(self.bot.UnitTypeId.DRONE))
+                larva: Unit = larvae.random
+                larva.train(self.drone)
+                self.drones.append(Drone(UnitTypeId.DRONE))
                 return

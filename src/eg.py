@@ -13,7 +13,8 @@ from typing import Union, Set
 import logging
 import random
 import math
-from src.managers.economy.macro import MacroManager
+# from .egbot.src.managers.economy.macro import MacroManager
+from managers.economy.macro import MacroManager
 
 # importing from other folders
 # from folder.folder.file import Whatever
@@ -46,8 +47,8 @@ class EGbot(sc2.BotAI):
         
         larvae: Units = self.larva
         # Send workers across bases
+        await self.mm.build_drone(larvae)
         await self.distribute_workers(1.0)
-        await self.build_drones(larvae)
         await self.build_overlords(larvae)
         await self.opening_strats()
         await self.build_queens()
@@ -101,35 +102,35 @@ class EGbot(sc2.BotAI):
 
 
 
-        async def build_pool():  # Build spawning pool
-            if (
-                self.structures(UnitTypeId.SPAWNINGPOOL).amount
-                + self.already_pending(UnitTypeId.SPAWNINGPOOL)
-                == 0
-            ):
-                if self.can_afford(UnitTypeId.SPAWNINGPOOL):
-                    await self.build(
-                        UnitTypeId.SPAWNINGPOOL,
-                        near=hq.position.towards(self.game_info.map_center, 5),
-                    )
+    # async def build_pool():  # Build spawning pool
+    #     if (
+    #         self.structures(UnitTypeId.SPAWNINGPOOL).amount
+    #         + self.already_pending(UnitTypeId.SPAWNINGPOOL)
+    #         == 0
+    #     ):
+    #         if self.can_afford(UnitTypeId.SPAWNINGPOOL):
+    #             await self.build(
+    #                 UnitTypeId.SPAWNINGPOOL,
+    #                 near=hq.position.towards(self.game_info.map_center, 5),
+    #             )
 
-        async def expand():
-            # Expands to nearest location when 300 minerals are available up to maximum 5 hatcheries
-            if (
-                self.townhalls.ready.amount + self.already_pending(UnitTypeId.HATCHERY)
-                < 5
-            ):
-                if self.can_afford(UnitTypeId.HATCHERY):
-                    await self.expand_now()
+    # async def expand():
+    #     # Expands to nearest location when 300 minerals are available up to maximum 5 hatcheries
+    #     if (
+    #         self.townhalls.ready.amount + self.already_pending(UnitTypeId.HATCHERY)
+    #         < 5
+    #     ):
+    #         if self.can_afford(UnitTypeId.HATCHERY):
+    #             await self.expand_now()
 
-        async def build_gas():
-            if self.can_afford(UnitTypeId.EXTRACTOR):
-                # May crash if we dont have any drones
-                for hatch in self.townhalls.ready:
-                    for vg in self.vespene_geyser.closer_than(10, hatch):
-                        if not self.worker_en_route_to_build(UnitTypeId.EXTRACTOR):
-                            await self.build(UnitTypeId.EXTRACTOR, vg)
-                            break
+    # async def build_gas():
+    #     if self.can_afford(UnitTypeId.EXTRACTOR):
+    #         # May crash if we dont have any drones
+    #         for hatch in self.townhalls.ready:
+    #             for vg in self.vespene_geyser.closer_than(10, hatch):
+    #                 if not self.worker_en_route_to_build(UnitTypeId.EXTRACTOR):
+    #                     await self.build(UnitTypeId.EXTRACTOR, vg)
+    #                     break
 
     def get_pos_around_unit(
         self, unit, min_range=0, max_range=500, step_size=1, loc_amt=32
@@ -180,7 +181,7 @@ class EGbot(sc2.BotAI):
             unit.smart(
                 mf
             )  # sets gathering location to mineral patch near recently built hatch
-        ogging.debug(f"{unit.name} has completed.")
+        logging.debug(f"{unit.name} has completed.")
 
     async def build_queens(self):
         # larva queens

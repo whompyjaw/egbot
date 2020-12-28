@@ -333,3 +333,9 @@ DEBUG-on_building_construction_complete-157:SpawningPool has completed.
 22-12-20 21:42:58 | DEBUG | on_building_construction_complete | ln:377: CreepTumorQueen has completed.
 22-12-20 21:43:01 | DEBUG | on_building_construction_complete | ln:377: Hatchery has completed.
 22-12-20 21:43:02 | DEBUG | on_building_construction_complete | ln:377: CreepTumor has completed.
+27-12-20 15:54:02 | DEBUG | __init__ | ln:59 | Using selector: KqueueSelector
+27-12-20 15:55:08 | DEBUG | __init__ | ln:59 | Using selector: KqueueSelector
+27-12-20 15:55:19 | DEBUG | __init__ | ln:59 | Using selector: KqueueSelector
+27-12-20 15:55:55 | DEBUG | on_building_construction_complete | ln:184 | Hatchery has completed.
+27-12-20 15:57:58 | DEBUG | __init__ | ln:59 | Using selector: KqueueSelector
+27-12-20 15:58:33 | DEBUG | on_building_construction_complete | ln:184 | Hatchery has completed.
