@@ -1,16 +1,17 @@
 from sc2.unit import Unit
 from sc2.units import Units
 
+
 class LingRush:
-    """Reference: https://github.com/DrInfy/sharpy-sc2/tree/develop/dummies/zerg"""    
-    
+    """Reference: https://github.com/DrInfy/sharpy-sc2/tree/develop/dummies/zerg"""
+
     def __init__(self):
         pass
 
     async def opening_strats(self):
         """
         Starter method to develop strategies for various openings.  Uses a dictionary with different strategies
-        to select from.  A random number is generated when the program starts determining the strategy.  
+        to select from.  A random number is generated when the program starts determining the strategy.
         """
         # TODO: This is already declared up top and assigned to self.hq. Do we need both?
         hq: Unit = self.townhalls.first
@@ -21,8 +22,6 @@ class LingRush:
 
     def strat(self):
         return self.strat
-
-
 
         # normal strat - let it play out
         if self.hatch_strat == strat_dict.get("pool_first"):
