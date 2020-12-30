@@ -62,7 +62,6 @@ class MacroManager:
                     near=hq.position.towards(self.game_info.map_center, 5),
                 )
 
-
     async def build_gas(self):
         if self.can_afford(UnitTypeId.EXTRACTOR):
             # May crash if we dont have any drones
