@@ -33,7 +33,7 @@ class EGbot(sc2.BotAI):
 
         # Send workers across bases
         await self.mm.build_drone(self.um.larva)
-        await self.build_overlords(self.um.larva)
+        await self.mm.build_overlords(self.um.larva)
         # await self.distribute_workers(1.0)
         #        await self.opening_strats()
         #       await self.build_queens()
@@ -59,9 +59,8 @@ class EGbot(sc2.BotAI):
     async def on_unit_created(self, unit):
         self.um.add_unit(unit)
 
-
-# Setting realtime=False makes the game/bot play as fast as possible
 run_game(
+    """Setting realtime=False makes the game/bot play as fast as possible"""
     maps.get("AbyssalReefLE"),
     [Bot(Race.Zerg, EGbot()), Computer(Race.Terran, Difficulty.Easy)],
     realtime=False,

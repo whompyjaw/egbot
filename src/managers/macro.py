@@ -18,26 +18,26 @@ class MacroManager:
     async def build_pool(self):  # Build spawning pool
         if (
             self.structures(UnitTypeId.SPAWNINGPOOL).amount
-            + self.already_pending(UnitTypeId.SPAWNINGPOOL)
+            + self.bot.already_pending(UnitTypeId.SPAWNINGPOOL)
             == 0
         ):
-            if self.can_afford(UnitTypeId.SPAWNINGPOOL):
-                await self.build(
+            if self.bot.can_afford(UnitTypeId.SPAWNINGPOOL):
+                await self.bot.build(
                     UnitTypeId.SPAWNINGPOOL,
                     near=self.hq.position.towards(self.bot.game_info.map_center, 5),
                 )
 
     async def build_gas(self):
-        if self.can_afford(UnitTypeId.EXTRACTOR):
+        if self.bot.can_afford(UnitTypeId.EXTRACTOR):
             # May crash if we dont have any drones
-            for hatch in self.townhalls.ready:
-                for vg in self.vespene_geyser.closer_than(10, hatch):
-                    if not self.worker_en_route_to_build(UnitTypeId.EXTRACTOR):
-                        await self.build(UnitTypeId.EXTRACTOR, vg)
+            for hatch in self.bot.townhalls.ready:
+                for vg in self.bot.vespene_geyser.closer_than(10, hatch):
+                    if not self.bot.worker_en_route_to_build(UnitTypeId.EXTRACTOR):
+                        await self.bot.build(UnitTypeId.EXTRACTOR, vg)
                         break
 
-    def add_structure(self, unit):
-        self.structures = unit
+    def add_structure(self, structure):
+        self.structures = structure
 
     def _position_blocks_expansion(self, pos):
         """
@@ -50,7 +50,7 @@ class MacroManager:
         """
 
         blocks_expansion = False
-        for expansion in self.expansion_locations_list:
+        for expansion in self.bot.expansion_locations_list:
             if pos.distance_to(expansion) < 6:
                 blocks_expansion = True
                 break
@@ -63,8 +63,8 @@ class MacroManager:
     async def expand():       
         # Expands to nearest location when 300 minerals are available up to maximum 5 hatcheries
         if (
-            self.townhalls.ready.amount + self.already_pending(UnitTypeId.HATCHERY)
+            self.bot.townhalls.ready.amount + self.bot.already_pending(UnitTypeId.HATCHERY)
             < 5
         ):
-            if self.can_afford(UnitTypeId.HATCHERY):
-                await self.expand_now()
+            if self.bot.can_afford(UnitTypeId.HATCHERY):
+                await self.bot.expand_now()
