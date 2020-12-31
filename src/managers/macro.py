@@ -1,5 +1,6 @@
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.unit import Unit
+from sc2.units import Units
 
 
 class MacroManager:
@@ -8,6 +9,10 @@ class MacroManager:
 
     def __init__(self, bot):
         self.bot = bot
+        self.hq = None
+        self.structures = []
+        self.pool_name = "SpawningPool"
+        # self.larva: Units = Units([], self)
         # dk why you need to typecast this as a unit
         # self.hq: Unit = self.bot.townhalls.first
 
@@ -15,17 +20,18 @@ class MacroManager:
         #        self.used_tumors: Set[int] = set()
         self.inject_interval = 100
 
-    # async def build_pool(self):  # Build spawning pool
-    #     if (
-    #         self.structures(UnitTypeId.SPAWNINGPOOL).amount
-    #         + self.bot.already_pending(UnitTypeId.SPAWNINGPOOL)
-    #         == 0
-    #     ):
-    #         if self.bot.can_afford(UnitTypeId.SPAWNINGPOOL):
-    #             await self.bot.build(
-    #                 UnitTypeId.SPAWNINGPOOL,
-    #                 near=self.hq.position.towards(self.bot.game_info.map_center, 5),
-    #             )
+
+    def add_structure(self, structure: Unit):
+        self.structures.append(structure)
+
+    async def build_pool(self):  # Build spawning pool
+        if not len(list(filter(lambda struct: struct.name == self.pool_name, self.structures))) == 1: 
+            if not self.bot.already_pending(UnitTypeId.SPAWNINGPOOL):
+                if self.bot.can_afford(UnitTypeId.SPAWNINGPOOL):
+                    await self.bot.build(
+                        UnitTypeId.SPAWNINGPOOL,
+                        near=self.bot.townhalls.first.position.towards(self.bot.game_info.map_center, 5),
+                    )
 
     # async def build_gas(self):
     #     if self.bot.can_afford(UnitTypeId.EXTRACTOR):
@@ -34,10 +40,13 @@ class MacroManager:
     #             for vg in self.bot.vespene_geyser.closer_than(10, hatch):
     #                 if not self.bot.worker_en_route_to_build(UnitTypeId.EXTRACTOR):
     #                     await self.bot.build(UnitTypeId.EXTRACTOR, vg)
-                        # break
+    #                     break
 
-    def add_structure(self, structure):
-        self.structures = structure
+
+ 
+
+        
+    # hatcheries = filter(lambda x: x if x.name == "Hatchery", self.structures)
 
     # def _position_blocks_expansion(self, pos):
     #     """
