@@ -7,7 +7,7 @@ from sc2.units import Units
 import logging
 import random
 
-from managers.economy.macro import MacroManager
+from managers.macro import MacroManager
 from managers.unit import UnitManager
 
 # importing from other folders
@@ -23,17 +23,21 @@ logging.basicConfig(
 
 class EGbot(sc2.BotAI):
     def __init__(self):
-
         # self.hatch_strat = random.randint(1, 3)
         self.mm = MacroManager(self)
         self.um = UnitManager(self)
+        self.iteration = 0
+
 
     async def on_step(self, iteration):
         self.iteration = iteration
 
+        self.um.update_larva()
+        self.mm.update_townhalls(self.townhalls)
+        # await self.um.update_larva(self.larva)
         # Send workers across bases
-        await self.mm.build_drone(self.um.larva)
-        await self.mm.build_overlords(self.um.larva)
+        await self.mm.build_drone(self.um.larvae, self.um.drone, self.um.overlord)
+        await self.mm.build_overlords(self.um.larvae, self.um.overlord)
         # await self.distribute_workers(1.0)
         #        await self.opening_strats()
         #       await self.build_queens()
@@ -59,8 +63,8 @@ class EGbot(sc2.BotAI):
     async def on_unit_created(self, unit):
         self.um.add_unit(unit)
 
+"""Setting realtime=False makes the game/bot play as fast as possible"""
 run_game(
-    """Setting realtime=False makes the game/bot play as fast as possible"""
     maps.get("AbyssalReefLE"),
     [Bot(Race.Zerg, EGbot()), Computer(Race.Terran, Difficulty.Easy)],
     realtime=False,

@@ -3,3 +3,4 @@ venv/
 .DS_Store
 .vscode/
 src/debug/__pychache__/
+src/managers/__pychache__/
