@@ -18,13 +18,45 @@ import math
 
 
 
-class UnitManager(sc2.BotAI):
+class UnitManager():
 
-    def __init__(self):
+    def __init__(self, bot):
+        self.bot = bot
+
+        self.drone = UnitTypeId.DRONE
+        self.larva = UnitTypeId.LARVA
+
+    
         self.drones = []
         self.creep_queens = []
         self.hatch_queens = []
         self.overlords = []
+        self.larvae = []
+
+
+    def add_unit(self, unit):
+        if unit.name is self.drone.name:
+            self.drones.append(unit)
+
+            
+    async def build_drone(self, unit_manager):
+        # corrects game opening ->12:drone, 13:overlord, 14:drone, then 3 drones when OL pop
+        if (
+                (self.larvae
+                 and self.bot.can_afford(self.drone)
+                 and (self.bot.supply_left > 1
+                      or self.bot.already_pending(UnitTypeId.OVERLORD)) >= 1)):
+            if (
+                    self.bot.supply_workers
+                    - self.bot.worker_en_route_to_build(UnitTypeId.HATCHERY)
+                    + self.bot.already_pending(UnitTypeId.DRONE)
+            ) < (
+                self.bot.townhalls.amount
+                + self.bot.placeholders(UnitTypeId.HATCHERY).amount
+            ) * 22:
+            larva: Unit = self.larvae.random
+            larva.train(self.drone)
+
 
     async def build_queens(self):
         # larva queens

@@ -1,21 +1,14 @@
-import sys, os
-from contextlib import suppress
 import sc2
 from sc2 import run_game, maps, Race, Difficulty
 from sc2.ids.unit_typeid import UnitTypeId
-from sc2.ids.ability_id import AbilityId
-from sc2.ids.buff_id import BuffId
 from sc2.player import Bot, Computer
 from sc2.unit import Unit
 from sc2.units import Units
-from sc2.position import Point2, Point3
-from typing import Union, Set
 import logging
 import random
-import math
 
-# from .egbot.src.managers.economy.macro import MacroManager
 from managers.economy.macro import MacroManager
+from managers.unit import UnitManager
 
 # importing from other folders
 # from folder.folder.file import Whatever
@@ -34,6 +27,7 @@ class EGbot(sc2.BotAI):
         self.inject_interval = 100
         self.hatch_strat = random.randint(1, 3)
         self.mm = MacroManager(self)
+        self.um = UnitManager(self)
 
     async def on_step(self, iteration):
         self.hq: Unit = (
@@ -44,9 +38,8 @@ class EGbot(sc2.BotAI):
         self.iteration = iteration
         self.used_tumors: Set[int] = set()
 
-        larvae: Units = self.larva
         # Send workers across bases
-        await self.mm.build_drone(larvae)
+        await self.mm.build_drone(self.um)
         await self.distribute_workers(1.0)
         await self.build_overlords(larvae)
         await self.opening_strats()
@@ -98,8 +91,11 @@ class EGbot(sc2.BotAI):
                 mf
             )  # sets gathering location to mineral patch near recently built hatch
         logging.debug(f"{unit.name} has completed.")
+        self.mm.add_structure(unit)
 
-
+    async def on_unit_created(self, unit):
+            self.um.add_unit(unit)
+        
 # Setting realtime=False makes the game/bot play as fast as possible
 run_game(
     maps.get("AbyssalReefLE"),
