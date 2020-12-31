@@ -1,62 +1,52 @@
-import sc2
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.ids.ability_id import AbilityId
 from sc2.position import Point2, Point3
-import sys, os
 from contextlib import suppress
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.ids.ability_id import AbilityId
 from sc2.ids.buff_id import BuffId
-from sc2.player import Bot, Computer
 from sc2.unit import Unit
 from sc2.units import Units
-from sc2.position import Point2, Point3
-from typing import Union, Set
-import logging
-import random
-import math
 
 
-
-class UnitManager():
-
+class UnitManager:
     def __init__(self, bot):
         self.bot = bot
 
         self.drone = UnitTypeId.DRONE
         self.larva = UnitTypeId.LARVA
+        self.overlord = UnitTypeId.OVERLORD
 
-    
         self.drones = []
         self.creep_queens = []
         self.hatch_queens = []
         self.overlords = []
         self.larvae = []
-
+        self.queens = []
+        self.queens_assigned_hatcheries = {}
 
     def add_unit(self, unit):
         if unit.name is self.drone.name:
             self.drones.append(unit)
 
-            
-    async def build_drone(self, unit_manager):
+    async def build_drone(self):
         # corrects game opening ->12:drone, 13:overlord, 14:drone, then 3 drones when OL pop
         if (
-                (self.larvae
-                 and self.bot.can_afford(self.drone)
-                 and (self.bot.supply_left > 1
-                      or self.bot.already_pending(UnitTypeId.OVERLORD)) >= 1)):
+            self.larvae
+            and self.bot.can_afford(self.drone)
+            and (self.bot.supply_left > 1 or self.bot.already_pending(self.overlord))
+            >= 1
+        ):
             if (
-                    self.bot.supply_workers
-                    - self.bot.worker_en_route_to_build(UnitTypeId.HATCHERY)
-                    + self.bot.already_pending(UnitTypeId.DRONE)
+                self.bot.supply_workers
+                - self.bot.worker_en_route_to_build(UnitTypeId.HATCHERY)
+                + self.bot.already_pending(self.drone)
             ) < (
                 self.bot.townhalls.amount
                 + self.bot.placeholders(UnitTypeId.HATCHERY).amount
             ) * 22:
-            larva: Unit = self.larvae.random
-            larva.train(self.drone)
-
+                larva: Unit = self.larvae.random
+                larva.train(self.drone)
 
     async def build_queens(self):
         # larva queens
@@ -64,15 +54,12 @@ class UnitManager():
             self.structures(UnitTypeId.SPAWNINGPOOL).ready
             and self.queens.amount + self.already_pending(UnitTypeId.QUEEN) < 6
         ):
-            if self.can_afford(UnitTypeId.QUEEN): 
-                for (
-                    hatchery
-                ) in self.hatcheries:
+            if self.can_afford(UnitTypeId.QUEEN):
+                for hatchery in self.hatcheries:
                     if hatchery.is_idle:
                         hatchery.train(UnitTypeId.QUEEN)
                         self.assign_queen()
-            
-            
+
             # positions = []
             # filtered_locations = []
             # unused_tumors = []
@@ -121,8 +108,7 @@ class UnitManager():
             #         if temp_distance < shortest_distance:
             #             best_loc = loc
             #             shortest_distance = temp_distance
-                # queen(build_tumor, loc)
-            
+            # queen(build_tumor, loc)
 
             """ 
                 TODO: Determine directions for creep spread - still random, but only spreads outwards away from starting hatchery
@@ -138,7 +124,6 @@ class UnitManager():
             # )
 
             # if tumors:  # if tumors exists
-
 
             #     all_tumors_abilities = await self.get_available_abilities(
             #         tumors
@@ -176,9 +161,8 @@ class UnitManager():
             #             # build that tumor!
             #             tumor(AbilityId.BUILD_CREEPTUMOR_TUMOR, filtered_locations[pos])
 
-
     def assign_queen(self, max_amount_inject_queens=3):
-    # # list of all alive queens and bases, will be used for injecting
+        # # list of all alive queens and bases, will be used for injecting
         if not hasattr(self, "queens_assigned_hatcheries"):
             self.queens_assigned_hatcheries = {}
 
@@ -203,7 +187,7 @@ class UnitManager():
             break  # else one hatch gets assigned twice
 
     async def do_queen_injects(self, iteration):
-    # list of all alive queens and bases, will be used for injecting
+        # list of all alive queens and bases, will be used for injecting
         alive_queen_tags = [
             queen.tag for queen in self.units(UnitTypeId.QUEEN)
         ]  # list of numbers (tags / unit IDs)
@@ -248,8 +232,6 @@ class UnitManager():
 
     def _get_close_queens(self, hatchery):
         return self.queens.closer_than(5.0, hatchery)
-
-
 
     async def build_overlords(self, larvae):
         """
