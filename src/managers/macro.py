@@ -12,6 +12,8 @@ class MacroManager:
         self.hq = None
         self.structures = []
         self.pool_name = "SpawningPool"
+        self.extractor_name = "Extractor"
+        self.hatch_name = ("Hatchery" or "Hive" or "Lair")
         # self.larva: Units = Units([], self)
         # dk why you need to typecast this as a unit
         # self.hq: Unit = self.bot.townhalls.first
@@ -19,7 +21,8 @@ class MacroManager:
         # self.hq = structures.firstexpansion
         #        self.used_tumors: Set[int] = set()
         self.inject_interval = 100
-
+    def get_structure_number(self, struct_name):
+        return len(list(filter(lambda x: x.name == struct_name, self.structures)))
 
     def add_structure(self, structure: Unit):
         self.structures.append(structure)
@@ -33,14 +36,24 @@ class MacroManager:
                         near=self.bot.townhalls.first.position.towards(self.bot.game_info.map_center, 5),
                     )
 
-    # async def build_gas(self):
-    #     if self.bot.can_afford(UnitTypeId.EXTRACTOR):
-    #         # May crash if we dont have any drones
-    #         for hatch in self.bot.townhalls.ready:
-    #             for vg in self.bot.vespene_geyser.closer_than(10, hatch):
-    #                 if not self.bot.worker_en_route_to_build(UnitTypeId.EXTRACTOR):
-    #                     await self.bot.build(UnitTypeId.EXTRACTOR, vg)
-    #                     break
+    async def build_gas(self):
+        hatches = self.get_structure_number(self.hatch_name)
+        extractors = self.get_structure_number(self.extractor_name)
+
+        if hatches == 1 and self.bot.already_pending(UnitTypeId.SPAWNINGPOOL):
+            if self.bot.can_afford(UnitTypeId.EXTRACTOR) and not self.bot.already_pending(UnitTypeId.EXTRACTOR):
+                if extractors == 0:
+                    for vg in self.bot.vespene_geyser.closer_than(10, self.bot.townhalls.first):
+                        await self.bot.build(UnitTypeId.EXTRACTOR, vg)
+                        break
+
+        elif hatches > 1:            
+            if self.bot.can_afford(UnitTypeId.EXTRACTOR):
+                for hatch in self.bot.townhalls.ready:
+                    for vg in self.bot.vespene_geyser.closer_than(10, hatch):
+                        if not self.bot.worker_en_route_to_build(UnitTypeId.EXTRACTOR):
+                            await self.bot.build(UnitTypeId.EXTRACTOR, vg)
+                            break
 
 
  
