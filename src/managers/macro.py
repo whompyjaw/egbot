@@ -21,14 +21,16 @@ class MacroManager:
         # self.hq = structures.firstexpansion
         #        self.used_tumors: Set[int] = set()
         self.inject_interval = 100
-    def get_structure_number(self, struct_name):
-        return len(list(filter(lambda x: x.name == struct_name, self.structures)))
 
+    def get_structure_number(self, struct_name):
+        y = [x for x in self.structures if x.name == struct_name]
+        return y
+       
     def add_structure(self, structure: Unit):
         self.structures.append(structure)
 
     async def build_pool(self):  # Build spawning pool
-        if not len(list(filter(lambda struct: struct.name == self.pool_name, self.structures))) == 1: 
+        if not len(self.get_structure_number(self.pool_name)) == 1: 
             if not self.bot.already_pending(UnitTypeId.SPAWNINGPOOL):
                 if self.bot.can_afford(UnitTypeId.SPAWNINGPOOL):
                     await self.bot.build(
@@ -37,59 +39,28 @@ class MacroManager:
                     )
 
     async def build_gas(self):
-        hatches = self.get_structure_number(self.hatch_name)
-        extractors = self.get_structure_number(self.extractor_name)
+        extractors = len(self.get_structure_number(self.extractor_name))
 
-        if hatches == 1 and self.bot.already_pending(UnitTypeId.SPAWNINGPOOL):
+        if self.townhalls.ready.amount == 1 and self.bot.already_pending(UnitTypeId.SPAWNINGPOOL):
             if self.bot.can_afford(UnitTypeId.EXTRACTOR) and not self.bot.already_pending(UnitTypeId.EXTRACTOR):
                 if extractors == 0:
                     for vg in self.bot.vespene_geyser.closer_than(10, self.bot.townhalls.first):
                         await self.bot.build(UnitTypeId.EXTRACTOR, vg)
                         break
 
-        elif hatches > 1:            
+        elif self.townhalls.ready.amount > 1:            
             if self.bot.can_afford(UnitTypeId.EXTRACTOR):
-                for hatch in self.bot.townhalls.ready:
+                for hatch in self.townhalls.ready:
                     for vg in self.bot.vespene_geyser.closer_than(10, hatch):
                         if not self.bot.worker_en_route_to_build(UnitTypeId.EXTRACTOR):
                             await self.bot.build(UnitTypeId.EXTRACTOR, vg)
                             break
 
-
- 
-
-        
-    # hatcheries = filter(lambda x: x if x.name == "Hatchery", self.structures)
-
-    # def _position_blocks_expansion(self, pos):
-    #     """
-    #     TODO: figure out why Union and self.expansion_locations_list say they have an error yet no issues arise in the code.  Suspect Pylint is goofed.
-    #     Note: used pos: Union[Point2, Unit] instead of just pos: Point2 in attempt to fix a y is -1, self.height is 176 error.  Seems to work...
-
-    #     From Glenn: You don't need to instantiate pos in this function because you're passing a position to this function. Python already knows what it is.
-    #                 Also, put these docstring inside the function you are referring to.
-    #                 we should do that for future TODO's as well.
-    #     """
-
-    #     blocks_expansion = False
-    #     for expansion in self.bot.expansion_locations_list:
-    #         if pos.distance_to(expansion) < 6:
-    #             blocks_expansion = True
-    #             break
-    #     return blocks_expansion
-
-    # # Glenn: Idk where this belongs
-    # # TODO: Will need to add an array or vector of buildings for "worker_en_route_to_build" to check instead of only HATCHERY
-    # # TODO: Check for max number of hatcheries
-
-    # async def expand(self):       
-    #     # Expands to nearest location when 300 minerals are available up to maximum 5 hatcheries
-    #     if (
-    #         self.bot.townhalls.ready.amount + self.bot.already_pending(UnitTypeId.HATCHERY)
-    #         < 5
-    #     ):
-    #         if self.bot.can_afford(UnitTypeId.HATCHERY):
-    #             await self.bot.expand_now()
+    async def expand(self):       
+        # Expands to nearest location when 300 minerals are available up to maximum 5 hatcheries
+        if (len(self.townhalls.ready) + self.bot.already_pending(UnitTypeId.HATCHERY) < 5):
+            if self.bot.can_afford(UnitTypeId.HATCHERY):
+                await self.bot.expand_now()
 
     async def build_drone(self, larvae: UnitTypeId, drone: UnitTypeId, overlord: UnitTypeId):
         # corrects game opening ->12:drone, 13:overlord, 14:drone, then 3 drones when OL pop
@@ -129,6 +100,7 @@ class MacroManager:
 
     def update_townhalls(self, townhalls):
         self.townhalls = townhalls
+
     # async def build_queens(self):
     #     # larva queens
     #     if (
@@ -140,3 +112,30 @@ class MacroManager:
     #                 if hatchery.is_idle:
     #                     hatchery.train(UnitTypeId.QUEEN)
     #                     self.assign_queen()
+
+    
+ 
+
+        
+    
+
+    # def _position_blocks_expansion(self, pos):
+    #     """
+    #     TODO: figure out why Union and self.expansion_locations_list say they have an error yet no issues arise in the code.  Suspect Pylint is goofed.
+    #     Note: used pos: Union[Point2, Unit] instead of just pos: Point2 in attempt to fix a y is -1, self.height is 176 error.  Seems to work...
+
+    #     From Glenn: You don't need to instantiate pos in this function because you're passing a position to this function. Python already knows what it is.
+    #                 Also, put these docstring inside the function you are referring to.
+    #                 we should do that for future TODO's as well.
+    #     """
+
+    #     blocks_expansion = False
+    #     for expansion in self.bot.expansion_locations_list:
+    #         if pos.distance_to(expansion) < 6:
+    #             blocks_expansion = True
+    #             break
+    #     return blocks_expansion
+
+    # # Glenn: Idk where this belongs
+    # # TODO: Will need to add an array or vector of buildings for "worker_en_route_to_build" to check instead of only HATCHERY
+    # # TODO: Check for max number of hatcheries
