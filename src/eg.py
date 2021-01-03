@@ -41,6 +41,7 @@ class EGbot(sc2.BotAI):
         await self.mm.build_pool()
         await self.mm.build_gas()
         await self.mm.expand()
+        await self.mm.build_queens(self.um.queens)
         await self.distribute_workers(1.0)
         #        await self.opening_strats()
         #       await self.build_queens()

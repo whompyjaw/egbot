@@ -468,3 +468,16 @@ DEBUG-on_building_construction_complete-157:SpawningPool has completed.
 03-01-21 11:27:43 | DEBUG | on_building_construction_complete | ln:63 | Hatchery has completed.
 03-01-21 11:27:57 | DEBUG | on_building_construction_complete | ln:63 | Extractor has completed.
 03-01-21 11:28:01 | DEBUG | on_building_construction_complete | ln:63 | SpawningPool has completed.
+03-01-21 16:45:57 | DEBUG | __init__ | ln:623 | Using proactor: IocpProactor
+03-01-21 16:46:24 | DEBUG | on_building_construction_complete | ln:64 | Hatchery has completed.
+03-01-21 16:46:38 | DEBUG | on_building_construction_complete | ln:64 | Extractor has completed.
+03-01-21 16:46:43 | DEBUG | on_building_construction_complete | ln:64 | SpawningPool has completed.
+03-01-21 16:49:26 | DEBUG | __init__ | ln:623 | Using proactor: IocpProactor
+03-01-21 16:49:43 | DEBUG | on_building_construction_complete | ln:64 | Hatchery has completed.
+03-01-21 16:49:57 | DEBUG | on_building_construction_complete | ln:64 | Extractor has completed.
+03-01-21 16:50:02 | DEBUG | on_building_construction_complete | ln:64 | SpawningPool has completed.
+03-01-21 16:50:58 | DEBUG | on_building_construction_complete | ln:64 | Hatchery has completed.
+03-01-21 16:51:03 | DEBUG | on_building_construction_complete | ln:64 | Extractor has completed.
+03-01-21 16:51:04 | DEBUG | on_building_construction_complete | ln:64 | Extractor has completed.
+03-01-21 16:51:05 | DEBUG | on_building_construction_complete | ln:64 | Extractor has completed.
+03-01-21 16:54:36 | DEBUG | on_building_construction_complete | ln:64 | Hatchery has completed.

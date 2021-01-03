@@ -16,6 +16,7 @@ class UnitManager:
         self.drone = UnitTypeId.DRONE
         self.larva = UnitTypeId.LARVA
         self.overlord = UnitTypeId.OVERLORD
+        self.queen = UnitTypeId.QUEEN
 
         self.drones = []
         self.creep_queens = []
@@ -30,8 +31,21 @@ class UnitManager:
         self.larvae = self.bot.larva
 
     def add_unit(self, unit):
+        '''TODO: got to run, but found error: unit.name = 'Drone' or 'Queen' while self.drone.name = 'QUEEN' 
+        when we compare the two strings they will not be equal and therefore no drones or queens get appended.'''
         if unit.name is self.drone.name:
             self.drones.append(unit)
+        if unit.name is self.queen.name:
+            '''First queen to lay creep, then queens assigned based on how many hatcheries'''
+            if len(self.queens) == 0:
+                self.creep_queens.append(unit)
+                self.queens.append(unit)
+            if len(self.queens) <= self.bot.townhalls.ready and len(self.queens)>=1:
+                self.hatch_queens.append(unit)
+                self.queens.append(unit)
+            else:
+                self.creep_queens.append(unit)
+                self.queens.append(unit)
 
 
             # positions = []

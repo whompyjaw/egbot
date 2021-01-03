@@ -101,17 +101,13 @@ class MacroManager:
     def update_townhalls(self, townhalls):
         self.townhalls = townhalls
 
-    # async def build_queens(self):
-    #     # larva queens
-    #     if (
-    #         self.structures(UnitTypeId.SPAWNINGPOOL).ready
-    #         and self.queens.amount + self.already_pending(UnitTypeId.QUEEN) < 6
-    #     ):
-    #         if self.can_afford(UnitTypeId.QUEEN):
-    #             for hatchery in self.hatcheries:
-    #                 if hatchery.is_idle:
-    #                     hatchery.train(UnitTypeId.QUEEN)
-    #                     self.assign_queen()
+    async def build_queens(self, queens: []):
+        if (len(self.get_structure_number(self.pool_name)) == 1
+            and len(queens) + self.bot.already_pending(UnitTypeId.QUEEN) < 6):
+            if self.bot.can_afford(UnitTypeId.QUEEN):
+                for hatchery in self.townhalls:
+                    if hatchery.is_idle:
+                        hatchery.train(UnitTypeId.QUEEN)
 
     
  
