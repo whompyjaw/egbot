@@ -17,6 +17,8 @@ class UnitManager:
         self.larva = UnitTypeId.LARVA
         self.overlord = UnitTypeId.OVERLORD
         self.queen = UnitTypeId.QUEEN
+        self.drone_name = "DRONE"
+        self.queen_name = "QUEEN"
 
         self.drones = []
         self.creep_queens = []
@@ -26,27 +28,49 @@ class UnitManager:
         self.queens_assigned_hatcheries = {}
         self.larvae = []
 
-
     def update_larva(self):
         self.larvae = self.bot.larva
 
     def add_unit(self, unit):
-        '''TODO: got to run, but found error: unit.name = 'Drone' or 'Queen' while self.drone.name = 'QUEEN' 
-        when we compare the two strings they will not be equal and therefore no drones or queens get appended.'''
-        if unit.name is self.drone.name:
+        """TODO: got to run, but found error: unit.name = 'Drone' or 'Queen' while self.drone.name = 'QUEEN'
+        when we compare the two strings they will not be equal and therefore no drones or queens get appended.
+        
+        1/3/2021
+        From Glenn: because self.drone is only UnitTypeId. Which dosen't have the property "name". Only a Unit object does.
+        So, we could create another variable "self.drone_name = "DRONE" as I did above.
+        
+        We could use own own custom unit objects to hold their names, but I think it's better (to avoid that stuff)
+        we can create an object or enumerate: UnitNames and put all the names there i.e:
+        class UnitNames:
+            self.drone = "DRONE"
+            self.queen = "QUEEN"
+
+        UnitNames = {
+            drone = "DRONE"
+            queen = "QUEEN"
+        }
+        I think that is syntax of enumerate
+
+        This would be an object:
+          unit_name = UnitNames()
+          unit_name.drone
+
+        You prolly wonder why do this, but it just helps prevent typos since linters don't check strings.
+        """
+        if unit.name is self.drone_name:
             self.drones.append(unit)
-        if unit.name is self.queen.name:
-            '''First queen to lay creep, then queens assigned based on how many hatcheries'''
+        if unit.name is self.queen_name:
+            """First queen to lay creep, then queens assigned based on how many hatcheries"""
+            # Don't we want firt queen to be a hatch queen?
             if len(self.queens) == 0:
                 self.creep_queens.append(unit)
                 self.queens.append(unit)
-            if len(self.queens) <= self.bot.townhalls.ready and len(self.queens)>=1:
+            if len(self.queens) <= self.bot.townhalls.ready and len(self.queens) >= 1:
                 self.hatch_queens.append(unit)
                 self.queens.append(unit)
             else:
                 self.creep_queens.append(unit)
                 self.queens.append(unit)
-
 
             # positions = []
             # filtered_locations = []
@@ -220,6 +244,3 @@ class UnitManager:
 
     # def _get_close_queens(self, hatchery):
     #     return self.queens.closer_than(5.0, hatchery)
-
-
-
