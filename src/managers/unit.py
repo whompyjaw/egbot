@@ -40,20 +40,21 @@ class UnitManager:
         So, we could create another variable "self.drone_name = "DRONE" as I did above.
         
         We could use own own custom unit objects to hold their names, but I think it's better (to avoid that stuff)
-        we can create an object or enumerate: UnitNames and put all the names there i.e:
+        we can create an object or dictionary/enumerate.
+
         class UnitNames:
             self.drone = "DRONE"
             self.queen = "QUEEN"
 
-        UnitNames = {
-            drone = "DRONE"
-            queen = "QUEEN"
-        }
-        I think that is syntax of enumerate
-
-        This would be an object:
           unit_name = UnitNames()
           unit_name.drone
+
+        Dictionary:
+        UnitNames = {
+            drone: "DRONE"
+            queen: "QUEEN"
+        }
+
 
         You prolly wonder why do this, but it just helps prevent typos since linters don't check strings.
         """
@@ -61,7 +62,7 @@ class UnitManager:
             self.drones.append(unit)
         if unit.name is self.queen_name:
             """First queen to lay creep, then queens assigned based on how many hatcheries"""
-            # Don't we want firt queen to be a hatch queen?
+            # Glenn: Don't we want firt queen to be a hatch queen?
             if len(self.queens) == 0:
                 self.creep_queens.append(unit)
                 self.queens.append(unit)
