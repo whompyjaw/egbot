@@ -49,7 +49,7 @@ class UnitManager:
     def assign_queen(self, queen: Queen):
         if len(self.queens) == 1:
             queen.is_creep = True
-        if len(self.queen) == 2:
+        if len(self.queens) == 2:
             queen.is_hatch = True
             # queen.hatch_home = 'hatch location'
         if self.mm.n_rdy_hatches > 2:

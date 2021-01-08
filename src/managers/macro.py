@@ -12,7 +12,6 @@ class MacroManager:
         self.hq = None
         self.structures = []
         self.pool_name = "SpawningPool"
-        self.townhalls = None
         self.hatches = None
         self.n_hatches = None
         self.n_rdy_hatches = None
@@ -44,16 +43,16 @@ class MacroManager:
 
     async def build_gas(self):
         extractors = len(self.get_structure_number(self.extractor_name))
-        if self.townhalls.ready.amount == 1 and self.bot.already_pending(UnitTypeId.SPAWNINGPOOL):
+        if self.bot.townhalls.ready.amount == 1 and self.bot.already_pending(UnitTypeId.SPAWNINGPOOL):
             if self.bot.can_afford(UnitTypeId.EXTRACTOR) and not self.bot.already_pending(UnitTypeId.EXTRACTOR):
                 if extractors == 0:
                     for vg in self.bot.vespene_geyser.closer_than(10, self.bot.townhalls.first):
                         await self.bot.build(UnitTypeId.EXTRACTOR, vg)
                         break
 
-        elif self.townhalls.ready.amount > 1:            
+        elif self.bot.townhalls.ready.amount > 1:            
             if self.bot.can_afford(UnitTypeId.EXTRACTOR):
-                for hatch in self.townhalls.ready:
+                for hatch in self.bot.townhalls.ready:
                     for vg in self.bot.vespene_geyser.closer_than(10, hatch):
                         if not self.bot.worker_en_route_to_build(UnitTypeId.EXTRACTOR):
                             await self.bot.build(UnitTypeId.EXTRACTOR, vg)
@@ -61,7 +60,7 @@ class MacroManager:
 
     async def expand(self):       
         # Expands to nearest location when 300 minerals are available up to maximum 5 hatcheries
-        if (len(self.townhalls.ready) + self.bot.already_pending(UnitTypeId.HATCHERY) < 5):
+        if (len(self.bot.townhalls.ready) + self.bot.already_pending(UnitTypeId.HATCHERY) < 5):
             if self.bot.can_afford(UnitTypeId.HATCHERY):
                 await self.bot.expand_now()
 
@@ -111,7 +110,7 @@ class MacroManager:
         if (len(self.get_structure_number(self.pool_name)) == 1
             and len(queens) + self.bot.already_pending(UnitTypeId.QUEEN) < 6):
             if self.bot.can_afford(UnitTypeId.QUEEN):
-                for hatchery in self.townhalls:
+                for hatchery in self.bot.townhalls:
                     if hatchery.is_idle:
                         hatchery.train(UnitTypeId.QUEEN)
 
