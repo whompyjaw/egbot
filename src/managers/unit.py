@@ -17,8 +17,8 @@ class UnitManager:
         self.larva = UnitTypeId.LARVA
         self.overlord = UnitTypeId.OVERLORD
         self.queen = UnitTypeId.QUEEN
-        self.drone_name = "DRONE"
-        self.queen_name = "QUEEN"
+        self.drone_name = "Drone"
+        self.queen_name = "Queen"
 
         self.drones = []
         self.creep_queens = []
@@ -58,22 +58,29 @@ class UnitManager:
 
         You prolly wonder why do this, but it just helps prevent typos since linters don't check strings.
         """
-        if unit.name is self.drone_name:
+        if unit.name == self.drone_name:
             self.drones.append(unit)
-        if unit.name is self.queen_name:
+        if unit.name == self.queen_name:
             """First queen to lay creep, then queens assigned based on how many hatcheries"""
             # Glenn: Don't we want firt queen to be a hatch queen?
             if len(self.queens) == 0:
                 self.creep_queens.append(unit)
                 self.queens.append(unit)
-            if len(self.queens) <= self.bot.townhalls.ready and len(self.queens) >= 1:
+            if len(self.queens) <= self.bot.townhalls.ready.amount:
                 self.hatch_queens.append(unit)
                 self.queens.append(unit)
             else:
                 self.creep_queens.append(unit)
                 self.queens.append(unit)
 
-            # positions = []
+            class Queen:
+                s
+
+is_defense = False
+                self.is_creep = False
+                self.is_hatch = True
+                self.assigned_hatchery = hatchery_location
+          # positions = .[]
             # filtered_locations = []
             # unused_tumors = []
             # enemy_base = BotAI.enemy_start_locations
