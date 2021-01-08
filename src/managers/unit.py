@@ -47,15 +47,35 @@ class UnitManager:
             self.assign_queen(new_queen)
 
     def assign_queen(self, queen: Queen):
+        '''TODO: Everything works EXCEPT queens_no_inject_partner - for some reason my list comprehension doesn't work
+        The first queen through goes to .is_creep perferctly.  Second queen goes through and is matched with the closest
+        hatchery and assigned .is_hatch.  I verified within queen.hatch_home that the queen tag is the key, and the hatch tag
+        is the value.  However, when the third queen pops, queens_no_inject_partner still contains the previous .is_hatch 
+        queen and thus the loop happens and hits the break with no action as that queen is already assigned.  Need to figure out
+        how to remove queens already tagged to a hatch, thus I know my list comprehension is failing.'''
+        queens_no_inject_partner = [q for q in self.queens if q.tag not in queen.hatch_home.keys()]
+        bases_no_inject_partner = self.bot.townhalls.filter(lambda h: h.tag not in queen.hatch_home.values())
+
         if len(self.queens) == 1:
             queen.is_creep = True
-        if len(self.queens) == 2:
-            queen.is_hatch = True
-            # queen.hatch_home = 'hatch location'
-        if self.mm.n_rdy_hatches > 2:
-            print("more than 2 hatches yo!")
-        if len(self.queens) > self.bot.townhalls.ready.amount:
-            self.queens.append(queen)
+        if len(self.queens) > 1:
+            for queen in queens_no_inject_partner:
+                if not queen.is_creep: 
+                    if bases_no_inject_partner.amount == 0:
+                        break
+                    else:
+                        closest_base = bases_no_inject_partner.closest_to(queen.position)
+                        queen.hatch_home[queen.tag] = closest_base.tag
+                        bases_no_inject_partner = bases_no_inject_partner - [closest_base]
+                        queen.is_hatch = True
+                        break
+
+
+    # else one hatch gets assigned twice
+        # if self.mm.n_rdy_hatches > 2:
+        #     print("more than 2 hatches yo!")
+        # if len(self.queens) > self.bot.townhalls.ready.amount:
+        #     self.queens.append(queen)
 
     # def assign_queen(self, max_amount_inject_queens=3):
     #     # # list of all alive queens and bases, will be used for injecting

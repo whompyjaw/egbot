@@ -102,6 +102,8 @@ class MacroManager:
 
     def update_townhalls(self):
         # From Glenn: Is this too confusing?
+        # From Eric: was having issue in unit.py self.mm.hatches would always throw NoneType Error.  It's like it's getting
+        #reinstantiated in unit.py and not getting updated.  Used self.bot.townhalls instead for now.
         self.hatches = self.bot.townhalls
         self.n_hatches = self.bot.townhalls.ready
         self.n_rdy_hatches = self.bot.townhalls.ready.amount
