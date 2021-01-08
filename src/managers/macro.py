@@ -12,8 +12,12 @@ class MacroManager:
         self.hq = None
         self.structures = []
         self.pool_name = "SpawningPool"
+        self.townhalls = None
+        self.hatches = None
+        self.n_hatches = None
+        self.n_rdy_hatches = None
         self.extractor_name = "Extractor"
-        self.hatch_name = ("Hatchery" or "Hive" or "Lair")
+        self.hatch_name = ("Hatchery" or "Hive" or "Lair") 
         # self.larva: Units = Units([], self)
         # dk why you need to typecast this as a unit
         # self.hq: Unit = self.bot.townhalls.first
@@ -40,7 +44,6 @@ class MacroManager:
 
     async def build_gas(self):
         extractors = len(self.get_structure_number(self.extractor_name))
-
         if self.townhalls.ready.amount == 1 and self.bot.already_pending(UnitTypeId.SPAWNINGPOOL):
             if self.bot.can_afford(UnitTypeId.EXTRACTOR) and not self.bot.already_pending(UnitTypeId.EXTRACTOR):
                 if extractors == 0:
@@ -98,8 +101,11 @@ class MacroManager:
         ):
             larvae.random.train(overlord)
 
-    def update_townhalls(self, townhalls):
-        self.townhalls = townhalls
+    def update_townhalls(self):
+        # From Glenn: Is this too confusing?
+        self.hatches = self.bot.townhalls
+        self.n_hatches = self.bot.townhalls.ready
+        self.n_rdy_hatches = self.bot.townhalls.ready.amount
 
     async def build_queens(self, queens: []):
         if (len(self.get_structure_number(self.pool_name)) == 1

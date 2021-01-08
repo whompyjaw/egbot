@@ -32,8 +32,8 @@ class EGbot(sc2.BotAI):
     async def on_step(self, iteration):
         self.iteration = iteration
 
-        self.um.update_larva()
-        self.mm.update_townhalls(self.townhalls)
+        self.um.update_units()
+        self.mm.update_townhalls()
         # await self.um.update_larva(self.larva)
         # Send workers across bases
         await self.mm.build_drone(self.um.larvae, self.um.drone, self.um.overlord)

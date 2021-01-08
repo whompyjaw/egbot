@@ -496,3 +496,5 @@ DEBUG-on_building_construction_complete-157:SpawningPool has completed.
 07-01-21 21:12:07 | DEBUG | on_building_construction_complete | ln:64 | Hatchery has completed.
 07-01-21 21:12:21 | DEBUG | on_building_construction_complete | ln:64 | Extractor has completed.
 07-01-21 21:12:26 | DEBUG | on_building_construction_complete | ln:64 | SpawningPool has completed.
+07-01-21 23:08:18 | DEBUG | __init__ | ln:59 | Using selector: KqueueSelector
+07-01-21 23:08:54 | DEBUG | on_building_construction_complete | ln:64 | Hatchery has completed.
