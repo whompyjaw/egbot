@@ -53,7 +53,7 @@ class UnitManager:
         is the value.  However, when the third queen pops, queens_no_inject_partner still contains the previous .is_hatch 
         queen and thus the loop happens and hits the break with no action as that queen is already assigned.  Need to figure out
         how to remove queens already tagged to a hatch, thus I know my list comprehension is failing.'''
-        queens_no_inject_partner = [q for q in self.queens if q.tag not in queen.hatch_home.keys()]
+        queens_no_inject_partner = [q for q.tag in self.queens if q.tag not in queen.hatch_home.keys()]
         bases_no_inject_partner = self.bot.townhalls.filter(lambda h: h.tag not in queen.hatch_home.values())
 
         if len(self.queens) == 1:
