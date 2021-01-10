@@ -30,29 +30,33 @@ class MacroManager:
         return y
        
     def add_structure(self, structure: Unit):
+        '''Adds a new structure to self.structures.  Called in on_building_construction_complete''' 
         self.structures.append(structure)
 
-    async def build_pool(self):  # Build spawning pool
+    async def build_pool(self):
+        '''Builds a Spawning Pool near starting Hatchery location '''
         if not len(self.get_structure_number(self.pool_name)) == 1: 
             if not self.bot.already_pending(UnitTypeId.SPAWNINGPOOL):
                 if self.bot.can_afford(UnitTypeId.SPAWNINGPOOL):
                     await self.bot.build(
                         UnitTypeId.SPAWNINGPOOL,
-                        near=self.bot.townhalls.first.position.towards(self.bot.game_info.map_center, 5),
+                        near=self.hq.position.towards(self.bot.game_info.map_center, 5),
                     )
 
     async def build_gas(self):
+        '''Build Extractors at Vespene Gas locations near Hatchery.  Some Logic is implemented, if only one
+        hatch is up, build one gas, once hatches.amount > 1 then begin building gas at all locations. '''
         extractors = len(self.get_structure_number(self.extractor_name))
-        if self.bot.townhalls.ready.amount == 1 and self.bot.already_pending(UnitTypeId.SPAWNINGPOOL):
+        if self.n_rdy_hatches == 1 and self.bot.already_pending(UnitTypeId.SPAWNINGPOOL):
             if self.bot.can_afford(UnitTypeId.EXTRACTOR) and not self.bot.already_pending(UnitTypeId.EXTRACTOR):
                 if extractors == 0:
-                    for vg in self.bot.vespene_geyser.closer_than(10, self.bot.townhalls.first):
+                    for vg in self.bot.vespene_geyser.closer_than(10, self.hq):
                         await self.bot.build(UnitTypeId.EXTRACTOR, vg)
                         break
 
-        elif self.bot.townhalls.ready.amount > 1:            
+        elif self.n_rdy_hatches > 1:            
             if self.bot.can_afford(UnitTypeId.EXTRACTOR):
-                for hatch in self.bot.townhalls.ready:
+                for hatch in self.n_hatches:
                     for vg in self.bot.vespene_geyser.closer_than(10, hatch):
                         if not self.bot.worker_en_route_to_build(UnitTypeId.EXTRACTOR):
                             await self.bot.build(UnitTypeId.EXTRACTOR, vg)
@@ -60,24 +64,20 @@ class MacroManager:
 
     async def expand(self):       
         # Expands to nearest location when 300 minerals are available up to maximum 5 hatcheries
-        if (len(self.bot.townhalls.ready) + self.bot.already_pending(UnitTypeId.HATCHERY) < 5):
+        if (self.n_rdy_hatches + self.bot.already_pending(UnitTypeId.HATCHERY) < 5):
             if self.bot.can_afford(UnitTypeId.HATCHERY):
                 await self.bot.expand_now()
 
     async def build_drone(self, larvae: UnitTypeId, drone: UnitTypeId, overlord: UnitTypeId):
         # corrects game opening ->12:drone, 13:overlord, 14:drone, then 3 drones when OL pop
-        if (
-            larvae
-            and self.bot.can_afford(drone)
-            and (self.bot.supply_left > 1 or self.bot.already_pending(overlord))
-            >= 1
-        ):
+        if (larvae and self.bot.can_afford(drone)
+            and (self.bot.supply_left > 1 or self.bot.already_pending(overlord))>= 1):
             if (
                 self.bot.supply_workers
                 - self.bot.worker_en_route_to_build(UnitTypeId.HATCHERY)
                 + self.bot.already_pending(drone)
             ) < (
-                self.bot.townhalls.amount
+                self.n_rdy_hatches
                 + self.bot.placeholders(UnitTypeId.HATCHERY).amount
             ) * 22:
                 larvae.random.train(drone)
@@ -104,6 +104,8 @@ class MacroManager:
         # From Glenn: Is this too confusing?
         # From Eric: was having issue in unit.py self.mm.hatches would always throw NoneType Error.  It's like it's getting
         #reinstantiated in unit.py and not getting updated.  Used self.bot.townhalls instead for now.
+        #Eric Update: used these above in build_gas and build_drone, works great!
+        self.hq = self.bot.townhalls.first
         self.hatches = self.bot.townhalls
         self.n_hatches = self.bot.townhalls.ready
         self.n_rdy_hatches = self.bot.townhalls.ready.amount
