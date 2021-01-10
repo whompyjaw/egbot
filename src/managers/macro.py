@@ -12,45 +12,52 @@ class MacroManager:
         self.hq = None
         self.structures = []
         self.pool_name = "SpawningPool"
-        self.hatches = None
-        self.n_hatches = None
-        self.n_rdy_hatches = None
+        self.all_hatches = None
+        self.rdy_hatches = None
+        self.num_rdy_hatches = None
         self.extractor_name = "Extractor"
-        self.hatch_name = ("Hatchery" or "Hive" or "Lair") 
-        # self.larva: Units = Units([], self)
-        # dk why you need to typecast this as a unit
+        self.hatch_name = "Hatchery" or "Hive" or "Lair"
         # self.hq: Unit = self.bot.townhalls.first
-
         # self.hq = structures.firstexpansion
         #        self.used_tumors: Set[int] = set()
         self.inject_interval = 100
 
     def get_structure_number(self, struct_name):
+        # What is this doing? Getting the i'th structure or getting total number of structures?
+        # could it be "get_num_structures" or "get_structure_count"?
         y = [x for x in self.structures if x.name == struct_name]
         return y
-       
+
     def add_structure(self, structure: Unit):
         self.structures.append(structure)
 
     async def build_pool(self):  # Build spawning pool
-        if not len(self.get_structure_number(self.pool_name)) == 1: 
+        if not len(self.get_structure_number(self.pool_name)) == 1:
             if not self.bot.already_pending(UnitTypeId.SPAWNINGPOOL):
                 if self.bot.can_afford(UnitTypeId.SPAWNINGPOOL):
                     await self.bot.build(
                         UnitTypeId.SPAWNINGPOOL,
-                        near=self.bot.townhalls.first.position.towards(self.bot.game_info.map_center, 5),
+                        near=self.bot.townhalls.first.position.towards(
+                            self.bot.game_info.map_center, 5
+                        ),
                     )
 
     async def build_gas(self):
         extractors = len(self.get_structure_number(self.extractor_name))
-        if self.bot.townhalls.ready.amount == 1 and self.bot.already_pending(UnitTypeId.SPAWNINGPOOL):
-            if self.bot.can_afford(UnitTypeId.EXTRACTOR) and not self.bot.already_pending(UnitTypeId.EXTRACTOR):
+        if self.bot.townhalls.ready.amount == 1 and self.bot.already_pending(
+            UnitTypeId.SPAWNINGPOOL
+        ):
+            if self.bot.can_afford(
+                UnitTypeId.EXTRACTOR
+            ) and not self.bot.already_pending(UnitTypeId.EXTRACTOR):
                 if extractors == 0:
-                    for vg in self.bot.vespene_geyser.closer_than(10, self.bot.townhalls.first):
+                    for vg in self.bot.vespene_geyser.closer_than(
+                        10, self.bot.townhalls.first
+                    ):
                         await self.bot.build(UnitTypeId.EXTRACTOR, vg)
                         break
 
-        elif self.bot.townhalls.ready.amount > 1:            
+        elif self.bot.townhalls.ready.amount > 1:
             if self.bot.can_afford(UnitTypeId.EXTRACTOR):
                 for hatch in self.bot.townhalls.ready:
                     for vg in self.bot.vespene_geyser.closer_than(10, hatch):
@@ -58,19 +65,34 @@ class MacroManager:
                             await self.bot.build(UnitTypeId.EXTRACTOR, vg)
                             break
 
-    async def expand(self):       
+    async def expand(self):
         # Expands to nearest location when 300 minerals are available up to maximum 5 hatcheries
-        if (len(self.bot.townhalls.ready) + self.bot.already_pending(UnitTypeId.HATCHERY) < 5):
+        """
+        Currently this doesn't account for if enemies are in the way I guess (per a note from the sc2 lib)
+        """
+        test = [1, 2, 3]
+        res = len(test)
+        if (self.num_rdy_hatches
+            + self.bot.already_pending(UnitTypeId.HATCHERY)
+            < 5
+        ):
             if self.bot.can_afford(UnitTypeId.HATCHERY):
-                await self.bot.expand_now()
+                pass
 
-    async def build_drone(self, larvae: UnitTypeId, drone: UnitTypeId, overlord: UnitTypeId):
+        # get list of all expansions
+        possible_expax = self.bot.expansion_locations()
+        # get list of enemy expansions
+        # 
+            
+    
+    async def build_drone(
+        self, larvae: UnitTypeId, drone: UnitTypeId, overlord: UnitTypeId
+    ):
         # corrects game opening ->12:drone, 13:overlord, 14:drone, then 3 drones when OL pop
         if (
             larvae
             and self.bot.can_afford(drone)
-            and (self.bot.supply_left > 1 or self.bot.already_pending(overlord))
-            >= 1
+            and (self.bot.supply_left > 1 or self.bot.already_pending(overlord)) >= 1
         ):
             if (
                 self.bot.supply_workers
@@ -102,25 +124,24 @@ class MacroManager:
 
     def update_townhalls(self):
         # From Glenn: Is this too confusing?
-        self.hatches = self.bot.townhalls
-        self.n_hatches = self.bot.townhalls.ready
-        self.n_rdy_hatches = self.bot.townhalls.ready.amount
+        self.all_hatches = self.bot.townhalls
+        self.rdy_hatches = self.bot.townhalls.ready
+        self.num_rdy_hatches = self.bot.townhalls.ready.amount
 
     async def build_queens(self, queens: []):
-        if (len(self.get_structure_number(self.pool_name)) == 1
-            and len(queens) + self.bot.already_pending(UnitTypeId.QUEEN) < 6):
+        if (
+            len(self.get_structure_number(self.pool_name)) == 1
+            and len(queens) + self.bot.already_pending(UnitTypeId.QUEEN) < 6
+        ):
             if self.bot.can_afford(UnitTypeId.QUEEN):
                 for hatchery in self.bot.townhalls:
                     if hatchery.is_idle:
                         hatchery.train(UnitTypeId.QUEEN)
 
-    
- 
 
-        
-    
 
-    # def _position_blocks_expansion(self, pos):
+
+        # def _position_blocks_expansion(self, pos):
     #     """
     #     TODO: figure out why Union and self.expansion_locations_list say they have an error yet no issues arise in the code.  Suspect Pylint is goofed.
     #     Note: used pos: Union[Point2, Unit] instead of just pos: Point2 in attempt to fix a y is -1, self.height is 176 error.  Seems to work...
