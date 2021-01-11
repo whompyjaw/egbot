@@ -58,9 +58,13 @@ class UnitManager:
                 if not queen.is_creep: 
                     closest_base = bases_no_inject_partner.closest_to(queen.position)
                     self.queen_home[queen.tag] = closest_base.tag #dict of queens and their hatches
+                    # self.hatch.assigned_queen could be one option option or
+                    # why does a queen have multiple hatcheries? An injecting queen should be a 1:1 relationship with hatcherY
                     queen.hatch_home[queen.tag] = closest_base.tag #Queen object attribute
                     bases_no_inject_partner = bases_no_inject_partner - [closest_base]
                     queen.is_hatch = True
+                    queen.assigned_hatch = closest_base.tag # this or
+                    queen.assign_hatch(closest_base.tag) # this.. not sure which would be better. For C++ this could be the better method if assigned_hatch was private.
                     break
         else:
             queen.is_creep = True
@@ -68,11 +72,24 @@ class UnitManager:
     async def do_queen_injects(self):
         '''TODO: Need to further work below.  Works great BUT I want to use a Queen Object instead of
         Unit Object in queen'''
+        
+        # From Glenn: Example of what i meant 
+        for queen in self.queens:
+            if queen.is_hatch:
+                if queen.unit.energy >= 25 and queen.unit.is_idle:
+                    queen.inject_larva() # could do this
+                    queen.unit(AbilityId.EFFECT_INJECTLARVA, queen.assigned_hatch) # or this, the first one is better imo
+
+        # For this method above, you don't need to "find the hatchery" that is associated with that same queen,
+        # because it would already be saved in that instance of that Queen object. 
+        # See line 66 of this file
+
+
         for queen_tag, hatch_tag in self.queen_home.items():
             queen = self.bot.units(UnitTypeId.QUEEN).find_by_tag(queen_tag)
             hatch = self.bot.townhalls.find_by_tag(hatch_tag)
 
-            if hatch.is_ready:
+            if hatch.is_ready: # idk what "is_ready" is for here? you can inject more than once.
                 if (queen.energy >= 25 and queen.is_idle
                     and not hatch.has_buff(BuffId.QUEENSPAWNLARVATIMER)):
                     queen(AbilityId.EFFECT_INJECTLARVA, hatch)
