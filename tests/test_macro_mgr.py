@@ -8,11 +8,4 @@ from src.queen import Queen
 from sc2.ids.unit_typeid import UnitTypeId
 from src.managers.macro import MacroManager
 
-class TestUnitManager(unittest.TestCase):
-    def setUp(self):
-        self.bot = BotAI()
-        self.um = UnitManager()
-
-    def test_expand(self):
-        
-        pass
+# TODO: use pytest here
