@@ -66,24 +66,44 @@ class MacroManager:
                             break
 
     async def expand(self):
-        # Expands to nearest location when 300 minerals are available up to maximum 5 hatcheries
+        
+        """
+        Expands to nearest location when 300 minerals are available up to maximum 5 hatcheries
+        1. get list of all expansions
+        2. get enemy expansion location
+          a. enemy_start_locations
+          b. 
+        3. select a drone that is pending > idle > mineral line
+          a. select_bulid_worker
+        4. check if can afford
+        5. check if enemy is in location
+          a. can_place
+          b. find_placement
+          c. in_pathing_grid? also in_placement_grid
+        possible_expax = self.bot.expansion_locations()
+        # get list of enemy expansions
+        # 
+         """
+        # get list of all expansions
+        possible_expansions = self.bot.expansion_locations_list
+        owned_expansions = self.bot.owned_expansions()
+        enemy_expansions = self.bot.enemy_start_locations()
+        # get_next_expansion() will be of use
+
         """
         Currently this doesn't account for if enemies are in the way I guess (per a note from the sc2 lib)
         """
-        test = [1, 2, 3]
-        res = len(test)
         if (self.num_rdy_hatches
             + self.bot.already_pending(UnitTypeId.HATCHERY)
             < 5
         ):
             if self.bot.can_afford(UnitTypeId.HATCHERY):
-                pass
-
-        # get list of all expansions
-        possible_expax = self.bot.expansion_locations()
-        # get list of enemy expansions
-        # 
-            
+                next_expac = self.bot.get_next_expansion()
+                # select drone
+                worker = self.bot.select_build_worker(next_expac)
+                if worker:
+                    worker.build(UnitTypeId.HATCHERY, next_expac)
+                
     
     async def build_drone(
         self, larvae: UnitTypeId, drone: UnitTypeId, overlord: UnitTypeId
