@@ -17,6 +17,7 @@ class MacroManager:
         self.n_rdy_hatches = None
         self.extractor_name = "Extractor"
         self.hatch_name = ("Hatchery" or "Hive" or "Lair") 
+
         # self.larva: Units = Units([], self)
         # dk why you need to typecast this as a unit
         # self.hq: Unit = self.bot.townhalls.first

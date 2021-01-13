@@ -9,7 +9,6 @@ class Queen:
         self.is_creep = False
         self.is_hatch = False
         self.energy = unit.energy
-        self.hatch_home = {}
         self.assigned_hatch = None
 
     def larva_inject(self):

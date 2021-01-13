@@ -22,7 +22,6 @@ class UnitManager:
         self.drone_name = "Drone"
         self.queen_name = "Queen"
         self.queen_home = {}
-        self.hatcheries = None
         self.mm = MacroManager(self.bot)
         self.drones = []
         # self.creep_queens = []
@@ -48,23 +47,20 @@ class UnitManager:
 
     def assign_queen(self, queen: Queen):
         '''Assigns a queen as a Creep Queen or a Hatch Queen.  If Hatch Queen, assigns the queen to a specific hatchery for future larva injects '''
-        queens_no_inject_partner = [q for q in self.queens if q.tag not in self.queen_home.keys()]
-        bases_no_inject_partner = self.bot.townhalls.filter(lambda h: h.tag not in self.queen_home.values())
+        queens_no_inject_partner = [q for q in self.queens if queen.assigned_hatch == None]
+        #bases_no_inject_partner = self.bot.townhalls.filter(lambda h: h.tag not in self.queen_home.values())
+        bases_without_queens = [h for h in self.bot.townhalls if not queen.assigned_hatch == h.tag]
 
         if len(self.queens) == 1:
             queen.is_creep = True
-        if len(self.queens) > 1 and bases_no_inject_partner.amount >= 1:
+        if len(self.queens) > 1 and bases_without_queens.amount >= 1:
             for queen in queens_no_inject_partner:
                 if not queen.is_creep: 
-                    closest_base = bases_no_inject_partner.closest_to(queen.position)
-                    self.queen_home[queen.tag] = closest_base.tag #dict of queens and their hatches
-                    # self.hatch.assigned_queen could be one option option or
-                    # why does a queen have multiple hatcheries? An injecting queen should be a 1:1 relationship with hatcherY
-                    queen.hatch_home[queen.tag] = closest_base.tag #Queen object attribute
-                    bases_no_inject_partner = bases_no_inject_partner - [closest_base]
+                    closest_base = bases_without_queens.closest_to(queen.position)
+                    #self.queen_home[queen.tag] = closest_base.tag #dict of queens and their hatches
+                    # bases_without_queens = bases_without_queens - [closest_base]
                     queen.is_hatch = True
                     queen.assigned_hatch = closest_base.tag # this or
-                    queen.assign_hatch(closest_base.tag) # this.. not sure which would be better. For C++ this could be the better method if assigned_hatch was private.
                     break
         else:
             queen.is_creep = True
