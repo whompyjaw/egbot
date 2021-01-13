@@ -100,6 +100,7 @@ class MacroManager:
             if self.bot.can_afford(UnitTypeId.HATCHERY):
                 next_expac = self.bot.get_next_expansion()
                 # select drone
+                # TODO: Try to select drone that is pending or is in egg form
                 worker = self.bot.select_build_worker(next_expac)
                 if worker:
                     worker.build(UnitTypeId.HATCHERY, next_expac)
@@ -158,26 +159,3 @@ class MacroManager:
                     if hatchery.is_idle:
                         hatchery.train(UnitTypeId.QUEEN)
 
-
-
-
-        # def _position_blocks_expansion(self, pos):
-    #     """
-    #     TODO: figure out why Union and self.expansion_locations_list say they have an error yet no issues arise in the code.  Suspect Pylint is goofed.
-    #     Note: used pos: Union[Point2, Unit] instead of just pos: Point2 in attempt to fix a y is -1, self.height is 176 error.  Seems to work...
-
-    #     From Glenn: You don't need to instantiate pos in this function because you're passing a position to this function. Python already knows what it is.
-    #                 Also, put these docstring inside the function you are referring to.
-    #                 we should do that for future TODO's as well.
-    #     """
-
-    #     blocks_expansion = False
-    #     for expansion in self.bot.expansion_locations_list:
-    #         if pos.distance_to(expansion) < 6:
-    #             blocks_expansion = True
-    #             break
-    #     return blocks_expansion
-
-    # # Glenn: Idk where this belongs
-    # # TODO: Will need to add an array or vector of buildings for "worker_en_route_to_build" to check instead of only HATCHERY
-    # # TODO: Check for max number of hatcheries
