@@ -64,15 +64,10 @@ class EGbot(sc2.BotAI):
         """ Set rally point of new hatcheries. """
         if unit.type_id == UnitTypeId.HATCHERY and self.mineral_field:
             mf = self.mineral_field.closest_to(unit)
-<<<<<<< HEAD
-            unit.smart(mf)  # sets gathering location to mineral patch near recently built hatch
-        logging.debug(f"{unit.name} has completed.")
-=======
             unit.smart(
                 mf
             )  # sets gathering location to mineral patch near recently built hatch
         # logging.debug(f"{unit.name} has completed.")
->>>>>>> expanding
         self.mm.add_structure(unit)
 
     async def on_unit_created(self, unit):
