@@ -11,8 +11,8 @@ class Queen:
         self.energy = unit.energy
         self.assigned_hatch = None
 
-    def larva_inject(self):
-        self.unit(AbilityId.EFFECT_INJECTLARVA, self.assigned_hatch)
+    def inject_larva(self, hatch):
+        self.unit(AbilityId.EFFECT_INJECTLARVA, hatch)
 
     def assign_hatch(self, hatch_tag):
         self.assigned_hatch = hatch_tag
