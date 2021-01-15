@@ -12,24 +12,25 @@ class MacroManager:
         self.hq = None
         self.structures = []
         self.pool_name = "SpawningPool"
-        self.hatches = None
-        self.n_hatches = None
-        self.n_rdy_hatches = None
+        self.all_hatches = None
+        self.rdy_hatches = None
+        self.num_rdy_hatches = None
         self.extractor_name = "Extractor"
         self.hatch_name = ("Hatchery" or "Hive" or "Lair") 
 
         # self.larva: Units = Units([], self)
         # dk why you need to typecast this as a unit
         # self.hq: Unit = self.bot.townhalls.first
-
         # self.hq = structures.firstexpansion
         #        self.used_tumors: Set[int] = set()
         self.inject_interval = 100
 
     def get_structure_number(self, struct_name):
+        # What is this doing? Getting the i'th structure or getting total number of structures?
+        # could it be "get_num_structures" or "get_structure_count"?
         y = [x for x in self.structures if x.name == struct_name]
         return y
-       
+
     def add_structure(self, structure: Unit):
         '''Adds a new structure to self.structures.  Called in on_building_construction_complete''' 
         self.structures.append(structure)
@@ -63,13 +64,50 @@ class MacroManager:
                             await self.bot.build(UnitTypeId.EXTRACTOR, vg)
                             break
 
-    async def expand(self):       
-        # Expands to nearest location when 300 minerals are available up to maximum 5 hatcheries
-        if (self.n_rdy_hatches + self.bot.already_pending(UnitTypeId.HATCHERY) < 5):
-            if self.bot.can_afford(UnitTypeId.HATCHERY):
-                await self.bot.expand_now()
+    async def expand(self):
+        
+        """
+        Expands to nearest location when 300 minerals are available up to maximum 5 hatcheries
+        1. get list of all expansions
+        2. get enemy expansion location
+          a. enemy_start_locations
+          b. 
+        3. select a drone that is pending > idle > mineral line
+          a. select_bulid_worker
+        4. check if can afford
+        5. check if enemy is in location
+          a. can_place
+          b. find_placement
+          c. in_pathing_grid? also in_placement_grid
+        possible_expax = self.bot.expansion_locations()
+        # get list of enemy expansions
+        # 
+         """
+        # get list of all expansions
+        # possible_expansions = self.bot.expansion_locations_list
+        # owned_expansions = self.bot.owned_expansions()
+        # enemy_expansions = self.bot.enemy_start_locations()
+        # get_next_expansion() will be of use
 
-    async def build_drone(self, larvae: UnitTypeId, drone: UnitTypeId, overlord: UnitTypeId):
+        """
+        Currently this doesn't account for if enemies are in the way I guess (per a note from the sc2 lib)
+        """
+        if (self.num_rdy_hatches
+            + self.bot.already_pending(UnitTypeId.HATCHERY)
+            < 5
+        ):
+            if self.bot.can_afford(UnitTypeId.HATCHERY):
+                next_expac = await self.bot.get_next_expansion()
+                # select drone
+                # TODO: Try to select drone that is pending or is in egg form
+                worker = self.bot.select_build_worker(next_expac)
+                if worker:
+                    worker.build(UnitTypeId.HATCHERY, next_expac)
+                
+    
+    async def build_drone(
+        self, larvae: UnitTypeId, drone: UnitTypeId, overlord: UnitTypeId
+    ):
         # corrects game opening ->12:drone, 13:overlord, 14:drone, then 3 drones when OL pop
         if (larvae and self.bot.can_afford(drone)
             and (self.bot.supply_left > 1 or self.bot.already_pending(overlord))>= 1):
@@ -112,36 +150,12 @@ class MacroManager:
         self.n_rdy_hatches = self.bot.townhalls.ready.amount
 
     async def build_queens(self, queens: []):
-        if (len(self.get_structure_number(self.pool_name)) == 1
-            and len(queens) + self.bot.already_pending(UnitTypeId.QUEEN) < 6):
+        if (
+            len(self.get_structure_number(self.pool_name)) == 1
+            and len(queens) + self.bot.already_pending(UnitTypeId.QUEEN) < 6
+        ):
             if self.bot.can_afford(UnitTypeId.QUEEN):
                 for hatchery in self.bot.townhalls:
                     if hatchery.is_idle:
                         hatchery.train(UnitTypeId.QUEEN)
 
-    
- 
-
-        
-    
-
-    # def _position_blocks_expansion(self, pos):
-    #     """
-    #     TODO: figure out why Union and self.expansion_locations_list say they have an error yet no issues arise in the code.  Suspect Pylint is goofed.
-    #     Note: used pos: Union[Point2, Unit] instead of just pos: Point2 in attempt to fix a y is -1, self.height is 176 error.  Seems to work...
-
-    #     From Glenn: You don't need to instantiate pos in this function because you're passing a position to this function. Python already knows what it is.
-    #                 Also, put these docstring inside the function you are referring to.
-    #                 we should do that for future TODO's as well.
-    #     """
-
-    #     blocks_expansion = False
-    #     for expansion in self.bot.expansion_locations_list:
-    #         if pos.distance_to(expansion) < 6:
-    #             blocks_expansion = True
-    #             break
-    #     return blocks_expansion
-
-    # # Glenn: Idk where this belongs
-    # # TODO: Will need to add an array or vector of buildings for "worker_en_route_to_build" to check instead of only HATCHERY
-    # # TODO: Check for max number of hatcheries

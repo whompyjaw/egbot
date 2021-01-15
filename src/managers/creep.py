@@ -50,3 +50,21 @@
             #             pos = random.randrange(0, len(filtered_locations))
             #             # build that tumor!
             #             tumor(AbilityId.BUILD_CREEPTUMOR_TUMOR, filtered_locations[pos])
+
+
+                    # def _position_blocks_expansion(self, pos):
+    #     """
+    #     TODO: figure out why Union and self.expansion_locations_list say they have an error yet no issues arise in the code.  Suspect Pylint is goofed.
+    #     Note: used pos: Union[Point2, Unit] instead of just pos: Point2 in attempt to fix a y is -1, self.height is 176 error.  Seems to work...
+
+    #     From Glenn: You don't need to instantiate pos in this function because you're passing a position to this function. Python already knows what it is.
+    #                 Also, put these docstring inside the function you are referring to.
+    #                 we should do that for future TODO's as well.
+    #     """
+
+    #     blocks_expansion = False
+    #     for expansion in self.bot.expansion_locations_list:
+    #         if pos.distance_to(expansion) < 6:
+    #             blocks_expansion = True
+    #             break
+    #     return blocks_expansion
