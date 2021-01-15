@@ -115,7 +115,7 @@ class MacroManager:
                 self.bot.supply_workers
                 - self.bot.worker_en_route_to_build(UnitTypeId.HATCHERY)
                 + self.bot.already_pending(drone)
-            ) < (self.bot.supply_workers < 85):
+            ) < 85:
                 larvae.random.train(drone)
 
     async def build_overlords(self, larvae: UnitTypeId, overlord: UnitTypeId):
