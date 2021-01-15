@@ -85,9 +85,9 @@ class MacroManager:
         # 
          """
         # get list of all expansions
-        possible_expansions = self.bot.expansion_locations_list
-        owned_expansions = self.bot.owned_expansions()
-        enemy_expansions = self.bot.enemy_start_locations()
+        # possible_expansions = self.bot.expansion_locations_list
+        # owned_expansions = self.bot.owned_expansions()
+        # enemy_expansions = self.bot.enemy_start_locations()
         # get_next_expansion() will be of use
 
         """
@@ -98,7 +98,7 @@ class MacroManager:
             < 5
         ):
             if self.bot.can_afford(UnitTypeId.HATCHERY):
-                next_expac = self.bot.get_next_expansion()
+                next_expac = await self.bot.get_next_expansion()
                 # select drone
                 # TODO: Try to select drone that is pending or is in egg form
                 worker = self.bot.select_build_worker(next_expac)

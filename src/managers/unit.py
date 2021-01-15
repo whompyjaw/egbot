@@ -47,15 +47,16 @@ class UnitManager:
             self.assign_queen(new_queen)
 
     def assign_queen(self, queen: Queen):
-        if len(self.queens) == 1:
-            queen.is_creep = True
-        if len(self.queens) == 2:
-            queen.is_hatch = True
-            # queen.hatch_home = 'hatch location'
-        if self.mm.n_rdy_hatches > 2:
-            print("more than 2 hatches yo!")
-        if len(self.queens) > self.bot.townhalls.ready.amount:
-            self.queens.append(queen)
+        pass
+        # if len(self.queens) == 1:
+        #     queen.is_creep = True
+        # if len(self.queens) == 2:
+        #     queen.is_hatch = True
+        #     # queen.hatch_home = 'hatch location'
+        # if self.mm.n_rdy_hatches > 2:
+        #     print("more than 2 hatches yo!")
+        # if len(self.queens) > self.bot.townhalls.ready.amount:
+        #     self.queens.append(queen)
 
     # def assign_queen(self, max_amount_inject_queens=3):
     #     # # list of all alive queens and bases, will be used for injecting
