@@ -16,28 +16,26 @@ class MacroManager:
         self.rdy_hatches = None
         self.num_rdy_hatches = None
         self.extractor_name = "Extractor"
-        self.hatch_name = ("Hatchery" or "Hive" or "Lair") 
-
-        # self.larva: Units = Units([], self)
-        # dk why you need to typecast this as a unit
-        # self.hq: Unit = self.bot.townhalls.first
-        # self.hq = structures.firstexpansion
-        #        self.used_tumors: Set[int] = set()
+        # self.hatch_name = ("Hatchery" or "Hive" or "Lair") 
+        # self.used_tumors: Set[int] = set()
         self.inject_interval = 100
 
-    def get_structure_number(self, struct_name):
-        # What is this doing? Getting the i'th structure or getting total number of structures?
-        # could it be "get_num_structures" or "get_structure_count"?
+    def get_structure_count(self, struct_name: str):
+        """Iterates through self.structures, returns int of specific structure name"""
         y = [x for x in self.structures if x.name == struct_name]
         return y
 
     def add_structure(self, structure: Unit):
-        '''Adds a new structure to self.structures.  Called in on_building_construction_complete''' 
+        """
+        Adds a new structure to self.structures.  Called in on_building_construction_completed
+        
+        :params Unit:
+        """
         self.structures.append(structure)
 
     async def build_pool(self):
-        '''Builds a Spawning Pool near starting Hatchery location '''
-        if not len(self.get_structure_number(self.pool_name)) == 1: 
+        """Builds a Spawning Pool near starting Hatchery location"""
+        if not len(self.get_structure_count(self.pool_name)) == 1: 
             if not self.bot.already_pending(UnitTypeId.SPAWNINGPOOL):
                 if self.bot.can_afford(UnitTypeId.SPAWNINGPOOL):
                     await self.bot.build(
@@ -46,9 +44,11 @@ class MacroManager:
                     )
 
     async def build_gas(self):
-        '''Build Extractors at Vespene Gas locations near Hatchery.  Some Logic is implemented, if only one
-        hatch is up, build one gas, once hatches.amount > 1 then begin building gas at all locations. '''
-        extractors = len(self.get_structure_number(self.extractor_name))
+        """
+        Build Extractors at Vespene Gas locations near Hatchery. If only one
+        hatch is up, build one gas, once hatches.amount > 1 then begin building gas at all locations. 
+        """
+        extractors = len(self.get_structure_count(self.extractor_name))
         if self.n_rdy_hatches == 1 and self.bot.already_pending(UnitTypeId.SPAWNINGPOOL):
             if self.bot.can_afford(UnitTypeId.EXTRACTOR) and not self.bot.already_pending(UnitTypeId.EXTRACTOR):
                 if extractors == 0:
@@ -65,7 +65,6 @@ class MacroManager:
                             break
 
     async def expand(self):
-        
         """
         Expands to nearest location when 300 minerals are available up to maximum 5 hatcheries
         1. get list of all expansions
@@ -80,8 +79,7 @@ class MacroManager:
           b. find_placement
           c. in_pathing_grid? also in_placement_grid
         possible_expax = self.bot.expansion_locations()
-        # get list of enemy expansions
-        # 
+        get list of enemy expansions
          """
         # get list of all expansions
         # possible_expansions = self.bot.expansion_locations_list
@@ -92,7 +90,7 @@ class MacroManager:
         """
         Currently this doesn't account for if enemies are in the way I guess (per a note from the sc2 lib)
         """
-        if (self.num_rdy_hatches
+        if (self.n_rdy_hatches
             + self.bot.already_pending(UnitTypeId.HATCHERY)
             < 5
         ):
@@ -105,26 +103,24 @@ class MacroManager:
                     worker.build(UnitTypeId.HATCHERY, next_expac)
                 
     
-    async def build_drone(
-        self, larvae: UnitTypeId, drone: UnitTypeId, overlord: UnitTypeId
-    ):
-        # corrects game opening ->12:drone, 13:overlord, 14:drone, then 3 drones when OL pop
+    async def build_drone(self, larvae: UnitTypeId, drone: UnitTypeId, overlord: UnitTypeId):
+        """
+        Builds drones; drone limit based on # of hatcheries; 22 drones per hatchery 
+        TODO: Need to change for late game to limit drone production when > 4 hatcheries
+        TODO: Change 'en_route_to_build' to include all buildings
+        """
         if (larvae and self.bot.can_afford(drone)
             and (self.bot.supply_left > 1 or self.bot.already_pending(overlord))>= 1):
             if (
                 self.bot.supply_workers
                 - self.bot.worker_en_route_to_build(UnitTypeId.HATCHERY)
                 + self.bot.already_pending(drone)
-            ) < (
-                self.n_rdy_hatches
-                + self.bot.placeholders(UnitTypeId.HATCHERY).amount
-            ) * 22:
+            ) < (self.bot.supply_workers < 85):
                 larvae.random.train(drone)
 
     async def build_overlords(self, larvae: UnitTypeId, overlord: UnitTypeId):
         """
         TODO: Will need to figure out if we need to create more than 200 supply OLs
-
         """
         # works with build_drones, ensures at game opening, only one OL is pending
         if self.bot.supply_used <= 13 and self.bot.already_pending(overlord) < 1:
@@ -140,18 +136,19 @@ class MacroManager:
             larvae.random.train(overlord)
 
     def update_townhalls(self):
-        # From Glenn: Is this too confusing?
-        # From Eric: was having issue in unit.py self.mm.hatches would always throw NoneType Error.  It's like it's getting
-        #reinstantiated in unit.py and not getting updated.  Used self.bot.townhalls instead for now.
-        #Eric Update: used these above in build_gas and build_drone, works great!
         self.hq = self.bot.townhalls.first
         self.hatches = self.bot.townhalls
         self.n_hatches = self.bot.townhalls.ready
         self.n_rdy_hatches = self.bot.townhalls.ready.amount
 
     async def build_queens(self, queens: []):
+        """
+        If a pool exists and bot can afford build a queen.
+
+        :params: list of Queens
+        """
         if (
-            len(self.get_structure_number(self.pool_name)) == 1
+            len(self.get_structure_count(self.pool_name)) == 1
             and len(queens) + self.bot.already_pending(UnitTypeId.QUEEN) < 6
         ):
             if self.bot.can_afford(UnitTypeId.QUEEN):

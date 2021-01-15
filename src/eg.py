@@ -34,7 +34,6 @@ class EGbot(sc2.BotAI):
 
         self.um.update_units()
         self.mm.update_townhalls()
-        # await self.um.update_larva(self.larva)
         # Send workers across bases
         await self.mm.build_drone(self.um.larvae, self.um.drone, self.um.overlord)
         await self.mm.build_overlords(self.um.larvae, self.um.overlord)
@@ -44,23 +43,14 @@ class EGbot(sc2.BotAI):
         await self.mm.build_queens(self.um.queens)
         await self.um.do_queen_injects()
         await self.distribute_workers(1.0)
-        #        await self.opening_strats()
-        #       await self.build_queens()
-        #      await self.do_queen_injects(iteration)
-        # await self.larva_inject()
-        #     await self.spread_creep()
-
-        """TODO: Think we should add in an early game tag, that once we're above X supply we move to mid game tag.  Early game tag has different
-        parameters.  Example: if early_game: only build one gas geyser per hatchery, elif mid_game, build two.
-        """
-    #Splits drones before start - minor efficiency
+        # await self.spread_creep()
+    
     async def on_before_start(self):
         mfs = self.mineral_field.closer_than(10, self.townhalls.random)
         for drone in self.units(UnitTypeId.DRONE):
             drone.gather(mfs.closest_to(drone))
 
     async def on_building_construction_complete(self, unit: Unit):
-        # TODO: Possibly where we can create Queens upon building completion.
         """ Set rally point of new hatcheries. """
         if unit.type_id == UnitTypeId.HATCHERY and self.mineral_field:
             mf = self.mineral_field.closest_to(unit)

@@ -14,7 +14,6 @@ from managers.macro import MacroManager
 class UnitManager:
     def __init__(self, bot):
         self.bot = bot
-
         self.drone = UnitTypeId.DRONE
         self.larva = UnitTypeId.LARVA
         self.overlord = UnitTypeId.OVERLORD
@@ -24,19 +23,18 @@ class UnitManager:
         self.queen_home = {}
         self.mm = MacroManager(self.bot)
         self.drones = []
-        # self.creep_queens = []
-        # self.hatch_queens = []
         self.overlords = []
         self.queens = []
-        # self.queens_assigned_hatcheries = {}
         self.larvae = []
 
     def update_units(self):
         self.larvae = self.bot.larva
 
     def add_unit(self, unit: Unit):
-        """TODO: got to run, but found error: unit.name = 'Drone' or 'Queen' while self.drone.name = 'QUEEN'
-        when we compare the two strings they will not be equal and therefore no drones or queens get appended.
+        """
+        Adds the unit to specific list
+
+        :params: Unit
         """
         if unit.name == self.drone_name:
             self.drones.append(unit)
@@ -46,7 +44,11 @@ class UnitManager:
             self.assign_queen(new_queen)
 
     def assign_queen(self, queen: Queen):
-        '''Assigns a queen as a Creep Queen or a Hatch Queen.  If Hatch Queen, assigns the queen to a specific hatchery for future larva injects '''               
+        """
+        Assigns a queen as a Creep Queen or a Hatch Queen.  If Hatch Queen, assigns the queen to a specific hatchery for future larva injects
+        
+        :params Queen object:
+        """        
         queens_without_bases = [q for q in self.queens if not q.is_hatch]
         bases_without_queens = self.bot.townhalls.filter(lambda h: h.tag not in self.queen_home.values())
 
@@ -63,11 +65,14 @@ class UnitManager:
             queen.is_creep = True
 
     async def do_queen_injects(self):
+        """
+        Selects queen assign to specific and injects its assigned hatchery
+        """
         for queen in self.queens:
             if queen.is_hatch and queen.energy >= 25 and queen.unit.is_idle:
                 hatch = self.bot.townhalls.find_by_tag(self.queen_home.get(queen.tag))
-                queen.inject_larva(hatch) # could do this 
-                #queen.unit(AbilityId.EFFECT_INJECTLARVA, hatch) # or this, the first one is better imo
+                queen.inject_larva(hatch)
+            
 
 
 
