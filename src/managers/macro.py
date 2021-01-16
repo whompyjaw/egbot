@@ -10,7 +10,7 @@ class MacroManager:
     def __init__(self, bot):
         self.bot = bot
         self.hq = None
-        self.structures = []
+        self.structures = {}
         self.pool_name = "SpawningPool"
         self.all_hatches = None
         self.rdy_hatches = None
@@ -49,16 +49,16 @@ class MacroManager:
         hatch is up, build one gas, once hatches.amount > 1 then begin building gas at all locations. 
         """
         extractors = len(self.get_structure_count(self.extractor_name))
-        if self.n_rdy_hatches == 1 and self.bot.already_pending(UnitTypeId.SPAWNINGPOOL):
+        if self.num_rdy_hatches == 1 and self.bot.already_pending(UnitTypeId.SPAWNINGPOOL):
             if self.bot.can_afford(UnitTypeId.EXTRACTOR) and not self.bot.already_pending(UnitTypeId.EXTRACTOR):
                 if extractors == 0:
                     for vg in self.bot.vespene_geyser.closer_than(10, self.hq):
                         await self.bot.build(UnitTypeId.EXTRACTOR, vg)
                         break
 
-        elif self.n_rdy_hatches > 1:            
+        elif self.num_rdy_hatches > 1:            
             if self.bot.can_afford(UnitTypeId.EXTRACTOR):
-                for hatch in self.n_hatches:
+                for hatch in self.all_hatches:
                     for vg in self.bot.vespene_geyser.closer_than(10, hatch):
                         if not self.bot.worker_en_route_to_build(UnitTypeId.EXTRACTOR):
                             await self.bot.build(UnitTypeId.EXTRACTOR, vg)
@@ -90,7 +90,7 @@ class MacroManager:
         """
         Currently this doesn't account for if enemies are in the way I guess (per a note from the sc2 lib)
         """
-        if (self.n_rdy_hatches
+        if (self.num_rdy_hatches
             + self.bot.already_pending(UnitTypeId.HATCHERY)
             < 5
         ):
@@ -137,9 +137,9 @@ class MacroManager:
 
     def update_townhalls(self):
         self.hq = self.bot.townhalls.first
-        self.hatches = self.bot.townhalls
-        self.n_hatches = self.bot.townhalls.ready
-        self.n_rdy_hatches = self.bot.townhalls.ready.amount
+        self.all_hatches = self.bot.townhalls
+        self.rdy_hatches = self.bot.townhalls.ready
+        self.num_rdy_hatches = self.bot.townhalls.ready.amount
 
     async def build_queens(self, queens: []):
         """
@@ -152,7 +152,7 @@ class MacroManager:
             and len(queens) + self.bot.already_pending(UnitTypeId.QUEEN) < 6
         ):
             if self.bot.can_afford(UnitTypeId.QUEEN):
-                for hatchery in self.bot.townhalls:
+                for hatchery in self.rdy_hatches:
                     if hatchery.is_idle:
                         hatchery.train(UnitTypeId.QUEEN)
 

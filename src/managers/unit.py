@@ -21,10 +21,11 @@ class UnitManager:
         self.drone_name = "Drone"
         self.queen_name = "Queen"
         self.queen_home = {}
-        self.mm = MacroManager(self.bot)
-        self.drones = []
-        self.overlords = []
-        self.queens = []
+        self.mm = self.bot.mm
+        self.drones = {}
+        self.overlords = {}
+        self.queens = {}
+        self.units_list = {}
         self.larvae = []
 
     def update_units(self):
@@ -50,7 +51,7 @@ class UnitManager:
         :params Queen object:
         """        
         queens_without_bases = [q for q in self.queens if not q.is_hatch]
-        bases_without_queens = self.bot.townhalls.filter(lambda h: h.tag not in self.queen_home.values())
+        bases_without_queens = self.mm.all_hatches.filter(lambda h: h.tag not in self.queen_home.values())
 
         if len(self.queens) == 1:
             queen.is_creep = True
@@ -70,7 +71,7 @@ class UnitManager:
         """
         for queen in self.queens:
             if queen.is_hatch and queen.energy >= 25 and queen.unit.is_idle:
-                hatch = self.bot.townhalls.find_by_tag(self.queen_home.get(queen.tag))
+                hatch = self.mm.all_hatches.find_by_tag(self.queen_home.get(queen.tag))
                 queen.inject_larva(hatch)
             
 

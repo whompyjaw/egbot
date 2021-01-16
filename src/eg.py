@@ -28,12 +28,9 @@ class EGbot(sc2.BotAI):
         self.um = UnitManager(self)
         self.iteration = 0
 
-
     async def on_step(self, iteration):
         self.iteration = iteration
-
         self.um.update_units()
-        self.mm.update_townhalls()
         # Send workers across bases
         await self.mm.build_drone(self.um.larvae, self.um.drone, self.um.overlord)
         await self.mm.build_overlords(self.um.larvae, self.um.overlord)
@@ -52,16 +49,53 @@ class EGbot(sc2.BotAI):
 
     async def on_building_construction_complete(self, unit: Unit):
         """ Set rally point of new hatcheries. """
-        if unit.type_id == UnitTypeId.HATCHERY and self.mineral_field:
-            mf = self.mineral_field.closest_to(unit)
-            unit.smart(
-                mf
-            )  # sets gathering location to mineral patch near recently built hatch
-        # logging.debug(f"{unit.name} has completed.")
+        if unit.type_id == UnitTypeId.HATCHERY:
+            self.mm.update_townhalls()
+            if self.mineral_field:
+                mf = self.mineral_field.closest_to(unit)
+                unit.smart(mf)
+               # sets gathering location to mineral patch near recently built hatch
+          #logging.debug(f"{unit.name} has completed.")
         self.mm.add_structure(unit)
 
     async def on_unit_created(self, unit):
         self.um.add_unit(unit)
+
+    async def on_unit_destroyed(self, unit_tag: int): 
+        self.um.remove_unit()
+        self.um.queens is a list of queen objects
+        Queen holds 
+        
+        self.units(filter unit_tag == parsing_tag)
+        remove tag
+
+        {unit.tag:obj}
+        unit_objects = {
+            {unit_tag: obj},
+            {unit_tag: obj},
+        }
+
+        unit_objects.get(unit_tag)
+
+
+        Queen1
+            # before destroy
+            self.tag = unit.tag
+            self.unit = unit
+            self.is_hatch = True
+
+        # after destroy
+        Queen1
+            self.tag = 12345
+            self.unit = None
+            self.is_hatch = True
+
+        self.um.queens.remove(unit.tag == unit_tag)
+        list.remove
+        
+        pass
+
+    async def on_unit_type_changed(self, unit: Unit, previous_type: UnitTypeId):
 
 """Setting realtime=False makes the game/bot play as fast as possible"""
 run_game(
