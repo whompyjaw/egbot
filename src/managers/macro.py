@@ -1,6 +1,7 @@
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.unit import Unit
 from sc2.units import Units
+from structures import SpawningPool, Hatchery, Extractor
 
 
 class MacroManager:
@@ -11,11 +12,9 @@ class MacroManager:
         self.bot = bot
         self.hq = None
         self.structures = {}
-        self.pool_name = "SpawningPool"
         self.all_hatches = None
         self.rdy_hatches = None
         self.num_rdy_hatches = None
-        self.extractor_name = "Extractor"
         # self.hatch_name = ("Hatchery" or "Hive" or "Lair") 
         # self.used_tumors: Set[int] = set()
         self.inject_interval = 100
@@ -31,7 +30,19 @@ class MacroManager:
         
         :params Unit:
         """
-        self.structures.append(structure)
+        #Hatchery
+        if structure.name == 'Hatchery':
+            hatch = Hatchery(structure)
+            self.structures[structure.name][structure.tag] = hatch
+        #Spawning Pool
+        if structure.name == 'SpawningPool':
+            pool = SpawningPool(structure)
+            self.structures[structure.name][structure.tag] = pool
+        #Extractor
+        if structure.name == 'Extractor':
+            extractor = Extractor(structure)
+            self.structures[structure.name][structure.tag] = extractor
+
 
     async def build_pool(self):
         """Builds a Spawning Pool near starting Hatchery location"""
@@ -67,27 +78,6 @@ class MacroManager:
     async def expand(self):
         """
         Expands to nearest location when 300 minerals are available up to maximum 5 hatcheries
-        1. get list of all expansions
-        2. get enemy expansion location
-          a. enemy_start_locations
-          b. 
-        3. select a drone that is pending > idle > mineral line
-          a. select_bulid_worker
-        4. check if can afford
-        5. check if enemy is in location
-          a. can_place
-          b. find_placement
-          c. in_pathing_grid? also in_placement_grid
-        possible_expax = self.bot.expansion_locations()
-        get list of enemy expansions
-         """
-        # get list of all expansions
-        # possible_expansions = self.bot.expansion_locations_list
-        # owned_expansions = self.bot.owned_expansions()
-        # enemy_expansions = self.bot.enemy_start_locations()
-        # get_next_expansion() will be of use
-
-        """
         Currently this doesn't account for if enemies are in the way I guess (per a note from the sc2 lib)
         """
         if (self.num_rdy_hatches
@@ -106,8 +96,6 @@ class MacroManager:
     async def build_drone(self, larvae: UnitTypeId, drone: UnitTypeId, overlord: UnitTypeId):
         """
         Builds drones; drone limit based on # of hatcheries; 22 drones per hatchery 
-        TODO: Need to change for late game to limit drone production when > 4 hatcheries
-        TODO: Change 'en_route_to_build' to include all buildings
         """
         if (larvae and self.bot.can_afford(drone)
             and (self.bot.supply_left > 1 or self.bot.already_pending(overlord))>= 1):
