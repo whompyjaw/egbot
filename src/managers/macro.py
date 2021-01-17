@@ -1,6 +1,7 @@
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.unit import Unit
 from sc2.units import Units
+from dicts import NestedDefaultDict
 from structures import SpawningPool, Hatchery, Extractor
 
 
@@ -11,7 +12,7 @@ class MacroManager:
     def __init__(self, bot):
         self.bot = bot
         self.hq = None
-        self.structures = {}
+        self.structures = NestedDefaultDict()
         self.all_hatches = None
         self.rdy_hatches = None
         self.num_rdy_hatches = None
@@ -21,8 +22,8 @@ class MacroManager:
 
     def get_structure_count(self, struct_name: str):
         """Iterates through self.structures, returns int of specific structure name"""
-        y = [x for x in self.structures if x.name == struct_name]
-        return y
+        return [n for n in self.structures[struct_name].keys()]
+    
 
     def add_structure(self, structure: Unit):
         """
@@ -33,20 +34,27 @@ class MacroManager:
         #Hatchery
         if structure.name == 'Hatchery':
             hatch = Hatchery(structure)
-            self.structures[structure.name][structure.tag] = hatch
+            self.structures[hatch.name][hatch.tag] = hatch
         #Spawning Pool
         if structure.name == 'SpawningPool':
             pool = SpawningPool(structure)
-            self.structures[structure.name][structure.tag] = pool
+            self.structures[pool.name][pool.tag] = pool
         #Extractor
         if structure.name == 'Extractor':
             extractor = Extractor(structure)
-            self.structures[structure.name][structure.tag] = extractor
+            self.structures[extractor.name][extractor.tag] = extractor
+
+    def remove_structure(self, struct_tag: int):
+        for struct_name in self.structures.keys():
+            for tag in self.structures[struct_name].keys():
+                if tag == struct_tag:
+                    del self.structures[struct_name][struct_tag]
+                    break
 
 
     async def build_pool(self):
         """Builds a Spawning Pool near starting Hatchery location"""
-        if not len(self.get_structure_count(self.pool_name)) == 1: 
+        if not self.structures['SpawningPool']: 
             if not self.bot.already_pending(UnitTypeId.SPAWNINGPOOL):
                 if self.bot.can_afford(UnitTypeId.SPAWNINGPOOL):
                     await self.bot.build(
@@ -59,10 +67,9 @@ class MacroManager:
         Build Extractors at Vespene Gas locations near Hatchery. If only one
         hatch is up, build one gas, once hatches.amount > 1 then begin building gas at all locations. 
         """
-        extractors = len(self.get_structure_count(self.extractor_name))
         if self.num_rdy_hatches == 1 and self.bot.already_pending(UnitTypeId.SPAWNINGPOOL):
             if self.bot.can_afford(UnitTypeId.EXTRACTOR) and not self.bot.already_pending(UnitTypeId.EXTRACTOR):
-                if extractors == 0:
+                if not self.structures['Extractor']:
                     for vg in self.bot.vespene_geyser.closer_than(10, self.hq):
                         await self.bot.build(UnitTypeId.EXTRACTOR, vg)
                         break
@@ -136,7 +143,7 @@ class MacroManager:
         :params: list of Queens
         """
         if (
-            len(self.get_structure_count(self.pool_name)) == 1
+            self.structures['SpawningPool']
             and len(queens) + self.bot.already_pending(UnitTypeId.QUEEN) < 6
         ):
             if self.bot.can_afford(UnitTypeId.QUEEN):

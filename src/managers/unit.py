@@ -22,9 +22,9 @@ class UnitManager:
         self.queen_name = "Queen"
         self.queen_home = {}
         self.mm = self.bot.mm
-        self.drones = {}
-        self.overlords = {}
-        self.queens = {}
+        self.drones = []
+        self.overlords = []
+        self.queens = []
         self.units_list = {}
         self.larvae = []
 

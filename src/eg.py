@@ -61,45 +61,11 @@ class EGbot(sc2.BotAI):
     async def on_unit_created(self, unit):
         self.um.add_unit(unit)
 
-    async def on_unit_destroyed(self, unit_tag: int): 
-        self.um.remove_unit()
-        self.um.queens is a list of queen objects
-        Queen holds 
-        
-        self.units(filter unit_tag == parsing_tag)
-        remove tag
-
-        {unit.tag:obj}
-        unit_objects = {
-            {unit_tag: obj},
-            {unit_tag: obj},
-        }
-
-        unit_objects.get(unit_tag)
-
-
-        Queen1
-            # before destroy
-            self.tag = unit.tag
-            self.unit = unit
-            self.is_hatch = True
-
-        # after destroy
-        Queen1
-            self.tag = 12345
-            self.unit = None
-            self.is_hatch = True
-
-        self.um.queens.remove(unit.tag == unit_tag)
-        list.remove
-        
-        pass
+    async def on_unit_destroyed(self, unit_tag: int):  
+        self.mm.remove_structure(unit_tag)
 
     async def on_unit_type_changed(self, unit: Unit, previous_type: UnitTypeId):
+        pass
 
 """Setting realtime=False makes the game/bot play as fast as possible"""
-run_game(
-    maps.get("AbyssalReefLE"),
-    [Bot(Race.Zerg, EGbot()), Computer(Race.Terran, Difficulty.Easy)],
-    realtime=False,
-)
+run_game(maps.get("AbyssalReefLE"), [Bot(Race.Zerg, EGbot()), Computer(Race.Terran, Difficulty.Easy)], realtime=False)

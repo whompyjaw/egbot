@@ -842,3 +842,9 @@ DEBUG-on_building_construction_complete-157:SpawningPool has completed.
 16-01-21 13:29:25 | DEBUG | __init__ | ln:623 | Using proactor: IocpProactor
 16-01-21 13:42:52 | DEBUG | __init__ | ln:623 | Using proactor: IocpProactor
 16-01-21 14:05:13 | DEBUG | __init__ | ln:623 | Using proactor: IocpProactor
+17-01-21 11:52:09 | DEBUG | __init__ | ln:623 | Using proactor: IocpProactor
+17-01-21 11:55:12 | DEBUG | __init__ | ln:623 | Using proactor: IocpProactor
+17-01-21 12:30:00 | DEBUG | __init__ | ln:623 | Using proactor: IocpProactor
+17-01-21 13:18:47 | DEBUG | __init__ | ln:623 | Using proactor: IocpProactor
+17-01-21 13:20:54 | DEBUG | __init__ | ln:623 | Using proactor: IocpProactor
+17-01-21 13:38:13 | DEBUG | __init__ | ln:623 | Using proactor: IocpProactor
