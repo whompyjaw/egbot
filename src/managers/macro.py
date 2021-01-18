@@ -33,23 +33,15 @@ class MacroManager:
         """
         #Hatchery
         if structure.name == 'Hatchery':
-            hatch = Hatchery(structure)
-            self.structures[hatch.name][hatch.tag] = hatch
+            new_struct = Hatchery(structure)
         #Spawning Pool
         if structure.name == 'SpawningPool':
-            pool = SpawningPool(structure)
-            self.structures[pool.name][pool.tag] = pool
+            new_struct = SpawningPool(structure)
         #Extractor
         if structure.name == 'Extractor':
-            extractor = Extractor(structure)
-            self.structures[extractor.name][extractor.tag] = extractor
+            new_struct = Extractor(structure)
 
-    def remove_structure(self, struct_tag: int):
-        for struct_name in self.structures.keys():
-            for tag in self.structures[struct_name].keys():
-                if tag == struct_tag:
-                    del self.structures[struct_name][struct_tag]
-                    break
+        self.structures[new_struct.name][new_struct.tag] = new_struct
 
 
     async def build_pool(self):

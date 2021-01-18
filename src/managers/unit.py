@@ -9,6 +9,8 @@ from sc2.unit import Unit
 from sc2.units import Units
 from queen import Queen
 from managers.macro import MacroManager
+from dicts import NestedDefaultDict
+from units import Drone, Overlord
 
 
 class UnitManager:
@@ -22,10 +24,8 @@ class UnitManager:
         self.queen_name = "Queen"
         self.queen_home = {}
         self.mm = self.bot.mm
-        self.drones = []
-        self.overlords = []
         self.queens = []
-        self.units_list = {}
+        self.units = NestedDefaultDict
         self.larvae = []
 
     def update_units(self):
@@ -37,12 +37,22 @@ class UnitManager:
 
         :params: Unit
         """
-        if unit.name == self.drone_name:
-            self.drones.append(unit)
-        if unit.name == self.queen_name:
-            new_queen = Queen(unit)
-            self.queens.append(new_queen)
-            self.assign_queen(new_queen)
+        #Hatchery
+        if unit.name == 'Drone':
+            new_unit = Drone(unit)
+        #Spawning Pool
+        if unit.name == 'Overlord':
+            new_unit = Overlord(unit)
+
+         #assign queen after
+        if unit.name == 'Queen':
+            new_unit = Queen(unit)
+            
+        self.units[new_unit.name][new_unit.tag] = new_unit
+        if new_unit.name == self.queen_name:
+            self.assign_queen(new_unit)
+       
+
 
     def assign_queen(self, queen: Queen):
         """
@@ -50,26 +60,33 @@ class UnitManager:
         
         :params Queen object:
         """        
-        queens_without_bases = [q for q in self.queens if not q.is_hatch]
-        bases_without_queens = self.mm.all_hatches.filter(lambda h: h.tag not in self.queen_home.values())
+        queens = self.units['Queen'].values()
+        hatches = self.mm.structures['Hatchery'].values()
+        # double check this
+        bases_without_queens = Units([h for h in hatches if not h.queen_assigned], self.bot)
 
-        if len(self.queens) == 1:
+        if len(queens) == 1:
             queen.is_creep = True
-        if len(self.queens) > 1 and len(bases_without_queens) >= 1:
-            for queen in queens_without_bases:
-                if not queen.is_creep: 
-                    closest_base = bases_without_queens.closest_to(queen.position)
-                    self.queen_home[queen.tag] = closest_base.tag #dict of queens and their hatches
-                    queen.is_hatch = True
-                    break
+        if len(queens) > 1 and bases_without_queens >= 1:
+            hatch_tag = bases_without_queens.closest_to(queen.position).tag
+            closest_hatch = self.mm.structures['Hatchery'][hatch_tag]
+            
+            # Assign queen to hatch
+            closest_hatch.assigned_queen_tag = queen.tag
+            
+            # assign 
+            queen.assigned_hatch_tag = hatch_tag
+            queen.is_hatch = True
         else:
             queen.is_creep = True
+
 
     async def do_queen_injects(self):
         """
         Selects queen assign to specific and injects its assigned hatchery
         """
-        for queen in self.queens:
+        queens = self.units['Queen'].values()
+        for queen in queens:
             if queen.is_hatch and queen.energy >= 25 and queen.unit.is_idle:
                 hatch = self.mm.all_hatches.find_by_tag(self.queen_home.get(queen.tag))
                 queen.inject_larva(hatch)
