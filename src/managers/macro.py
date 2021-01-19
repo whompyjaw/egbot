@@ -21,6 +21,7 @@ class MacroManager:
         self.inject_interval = 100
 
     def get_structure_count(self, struct_name: str):
+        # TODO: We don't need this. len() would work if we ever need the count of something
         """Iterates through self.structures, returns int of specific structure name"""
         return [n for n in self.structures[struct_name].keys()]
     
@@ -46,7 +47,8 @@ class MacroManager:
 
     async def build_pool(self):
         """Builds a Spawning Pool near starting Hatchery location"""
-        if not self.structures['SpawningPool']: 
+        # if not self.structures.get('SpawningPool'):
+        if not self.structures.get('SpawningPool'):
             if not self.bot.already_pending(UnitTypeId.SPAWNINGPOOL):
                 if self.bot.can_afford(UnitTypeId.SPAWNINGPOOL):
                     await self.bot.build(

@@ -1,3 +1,10 @@
+
+
+class GeneralManager:
+    pass 
+
+
+
 def get_pos_around_unit(
     self, unit, min_range=0, max_range=500, step_size=1, loc_amt=32
 ):

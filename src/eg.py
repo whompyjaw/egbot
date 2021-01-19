@@ -62,19 +62,23 @@ class EGbot(sc2.BotAI):
         self.um.add_unit(unit)
 
     async def on_unit_destroyed(self, unit_tag: int):  
-        self._remove_unit(unit_tag)
+        await self._remove_unit(unit_tag)
 
     async def on_unit_type_changed(self, unit: Unit, previous_type: UnitTypeId):
         pass
 
 
-    def _remove_unit(self, unit_tag: int):
-        for unit_name, struct_name in zip(self.um.units.keys(), self.mm.structures.keys()):
-            for unit_tag, struct_tag in zip(self.um.units[unit_name].keys(), self.mm.structures[struct_name].keys()):
-                if unit_tag == tag:
-                    del self.um.units[unit_name][tag]
-                elif struct_tag == tag:
-                    del self.mm.structures[struct_name][tag]
+    async def _remove_unit(self, tag: int):
+        units = self.um.units.items()
+        structures = self.mm.structures.items()
+        for unit, structure in zip(units, structures):
+            for unit_tag, struct_tag in zip(unit, structure):
+                if unit_tag.keys() == tag:
+                    del unit[tag]
+                elif struct_tag.keys() == tag:
+                    del structure[tag]
+
+        # for unit_names, unit_tag
 
 
 

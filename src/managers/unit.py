@@ -10,7 +10,7 @@ from sc2.units import Units
 from queen import Queen
 from managers.macro import MacroManager
 from dicts import NestedDefaultDict
-from units import Drone, Overlord
+from units import Drone, Overlord, NewUnit
 
 
 class UnitManager:
@@ -25,7 +25,7 @@ class UnitManager:
         self.queen_home = {}
         self.mm = self.bot.mm
         self.queens = []
-        self.units = NestedDefaultDict
+        self.units = NestedDefaultDict()
         self.larvae = []
 
     def update_units(self):
@@ -41,14 +41,16 @@ class UnitManager:
         if unit.name == 'Drone':
             new_unit = Drone(unit)
         #Spawning Pool
-        if unit.name == 'Overlord':
+        elif unit.name == 'Overlord':
             new_unit = Overlord(unit)
-
          #assign queen after
-        if unit.name == 'Queen':
+        elif unit.name == 'Queen':
             new_unit = Queen(unit)
-            
+        else:
+            new_unit = NewUnit(unit, 'Larva')
+        
         self.units[new_unit.name][new_unit.tag] = new_unit
+
         if new_unit.name == self.queen_name:
             self.assign_queen(new_unit)
        
@@ -74,7 +76,7 @@ class UnitManager:
             # Assign queen to hatch
             closest_hatch.assigned_queen_tag = queen.tag
             
-            # assign 
+            # assign hatch to queen
             queen.assigned_hatch_tag = hatch_tag
             queen.is_hatch = True
         else:
@@ -88,8 +90,8 @@ class UnitManager:
         queens = self.units['Queen'].values()
         for queen in queens:
             if queen.is_hatch and queen.energy >= 25 and queen.unit.is_idle:
-                hatch = self.mm.all_hatches.find_by_tag(self.queen_home.get(queen.tag))
-                queen.inject_larva(hatch)
+                hatch = self.mm.structures['Hatchery'][queen.assigned_hatch_tag]
+                queen.inject_larva(hatch.position)
             
 
 

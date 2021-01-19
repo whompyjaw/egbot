@@ -1,4 +1,4 @@
-import unittest
+import
 import sc2
 from sc2 import BotAI
 from sc2.units import Units
@@ -22,3 +22,5 @@ class TestUnitManager(unittest.TestCase):
         unit = self.bot.units(UnitTypeId.QUEEN)
         self.um.add_unit(unit)
         pass
+
+    def test_remove_unit
