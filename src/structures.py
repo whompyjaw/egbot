@@ -1,3 +1,5 @@
+from sc2.unit import Unit
+
 class NewStructure:
     def __init__(self, unit, name):
         self.tag = unit.tag
@@ -15,6 +17,7 @@ class Hatchery(NewStructure):
         self.hq = False
         self.is_lair = False
         self.is_hive = False
+        self.position_tuple = unit.position
         self.assigned_queen_tag = None
         
 class Extractor(NewStructure):

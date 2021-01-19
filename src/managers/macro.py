@@ -48,7 +48,7 @@ class MacroManager:
     async def build_pool(self):
         """Builds a Spawning Pool near starting Hatchery location"""
         # if not self.structures.get('SpawningPool'):
-        if not self.structures.get('SpawningPool'):
+        if self.structures.get('SpawningPool') == None:
             if not self.bot.already_pending(UnitTypeId.SPAWNINGPOOL):
                 if self.bot.can_afford(UnitTypeId.SPAWNINGPOOL):
                     await self.bot.build(
@@ -137,8 +137,8 @@ class MacroManager:
         :params: list of Queens
         """
         if (
-            self.structures['SpawningPool']
-            and len(queens) + self.bot.already_pending(UnitTypeId.QUEEN) < 6
+            self.structures.get('SpawningPool') != None
+            and (len(queens) + self.bot.already_pending(UnitTypeId.QUEEN)) < 6
         ):
             if self.bot.can_afford(UnitTypeId.QUEEN):
                 for hatchery in self.rdy_hatches:

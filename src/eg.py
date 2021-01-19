@@ -6,6 +6,7 @@ from sc2.unit import Unit
 from sc2.units import Units
 import logging
 import random
+import itertools
 
 from managers.macro import MacroManager
 from managers.unit import UnitManager
@@ -72,11 +73,13 @@ class EGbot(sc2.BotAI):
         units = self.um.units.items()
         structures = self.mm.structures.items()
         for unit, structure in zip(units, structures):
-            for unit_tag, struct_tag in zip(unit, structure):
-                if unit_tag.keys() == tag:
-                    del unit[tag]
-                elif struct_tag.keys() == tag:
-                    del structure[tag]
+            for unit_tag, struct_tag in itertools.zip_longest(unit[1].keys(), structure[1].keys()):
+                if unit_tag == tag:
+                    del unit[1][tag]
+                    break
+                elif struct_tag == tag:
+                    del structure[1][tag]
+                    break
 
         # for unit_names, unit_tag
 
