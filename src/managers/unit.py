@@ -85,6 +85,7 @@ class UnitManager:
     async def do_queen_injects(self):
         """
         Selects queen assign to specific and injects its assigned hatchery
+        TODO: After hatch was destroyed, queen attempted to larva inject None hatch
         """
         queens = self.units['Queen'].values()
         for queen in queens:
