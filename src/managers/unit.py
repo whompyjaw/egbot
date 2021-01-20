@@ -37,13 +37,10 @@ class UnitManager:
 
         :params: Unit
         """
-        #Hatchery
         if unit.name == 'Drone':
             new_unit = Drone(unit)
-        #Spawning Pool
         elif unit.name == 'Overlord':
             new_unit = Overlord(unit)
-         #assign queen after
         elif unit.name == 'Queen':
             new_unit = Queen(unit)
         else:

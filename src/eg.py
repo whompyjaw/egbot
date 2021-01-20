@@ -69,7 +69,7 @@ class EGbot(sc2.BotAI):
         pass
 
 
-    async def _remove_unit(self, tag: int):
+    async def _remove_unit(self, tag: int, units):
         units = self.um.units.items()
         structures = self.mm.structures.items()
         for unit, structure in zip(units, structures):
@@ -81,6 +81,10 @@ class EGbot(sc2.BotAI):
                     del structure[1][tag]
                     break
 
+    def remove_structure(self, tag: int, structs: dict):
+        pass
+
+    
         # for unit_names, unit_tag
 
 
