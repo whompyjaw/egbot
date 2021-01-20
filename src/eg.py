@@ -33,12 +33,12 @@ class EGbot(sc2.BotAI):
         self.iteration = iteration
         self.um.update_units()
         # Send workers across bases
-        await self.mm.build_drone(self.um.larvae, self.um.drone, self.um.overlord)
-        await self.mm.build_overlords(self.um.larvae, self.um.overlord)
+        await self.mm.build_drone(self.um.units, self.um.drone, self.um.overlord)
+        await self.mm.build_overlords(self.um.units, self.um.overlord)
         await self.mm.build_pool()
         await self.mm.build_gas()
         await self.mm.expand()
-        await self.mm.build_queens(self.um.queens)
+        await self.mm.build_queens(self.um.units)
         await self.um.do_queen_injects()
         await self.distribute_workers(1.0)
         # await self.spread_creep()

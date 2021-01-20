@@ -24,7 +24,6 @@ class UnitManager:
         self.queen_name = "Queen"
         self.queen_home = {}
         self.mm = self.bot.mm
-        self.queens = []
         self.units = NestedDefaultDict()
         self.larvae = []
 
