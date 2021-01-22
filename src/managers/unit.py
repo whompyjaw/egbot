@@ -9,7 +9,8 @@ from sc2.unit import Unit
 from sc2.units import Units
 from queen import Queen
 from managers.macro import MacroManager
-from dicts import NestedDefaultDict
+# from dicts import NestedDefaultDict
+from collections import defaultdict
 from units import Drone, Overlord, NewUnit
 
 
@@ -24,7 +25,7 @@ class UnitManager:
         self.queen_name = "Queen"
         self.queen_home = {}
         self.mm = self.bot.mm
-        self.units = NestedDefaultDict()
+        self.units = defaultdict(dict)
         self.larvae = []
 
     def update_units(self):

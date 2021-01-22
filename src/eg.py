@@ -72,7 +72,8 @@ class EGbot(sc2.BotAI):
     async def _remove_unit(self, tag: int):
         units = self.um.units
         structures = self.mm.structures
-        for unit_type in units.keys():
+        
+        for unit_type in list(units.keys()):
             for unit_tag in units[unit_type].keys():
                 if unit_tag == tag: 
                     units[unit_type].pop(tag)
@@ -86,7 +87,7 @@ class EGbot(sc2.BotAI):
         something to do with the cacoons that spawn drones, etc.  when they are destroyed
         the dictionary changes size? but at the same time, a Queen: {} is added in the beginning
         and I can't find the code that causes that...'''
-        for struct_type in structures.keys():
+        for struct_type in list(structures.keys()):
             for struct_tag in structures[unit_type].keys():
                 if struct_tag == tag:   
                     structures[struct_type].pop(tag)

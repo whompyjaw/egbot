@@ -41,6 +41,9 @@ def print_dict(units, pp):
 if __name__ == "__main__":
    
     units = NestedDefaultDict()
+    # units = {}
+    # units['New Units'] = {}
+    # units['Old Units'] = {}
     pp = pprint.PrettyPrinter()
     units['New Units'][123] = NewUnit()
     units['New Units'][153] = NewUnit()

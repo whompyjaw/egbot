@@ -1,7 +1,8 @@
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.unit import Unit
 from sc2.units import Units
-from dicts import NestedDefaultDict
+# from dicts import NestedDefaultDict
+from collections import defaultdict
 from structures import SpawningPool, Hatchery, Extractor
 
 
@@ -12,19 +13,13 @@ class MacroManager:
     def __init__(self, bot):
         self.bot = bot
         self.hq = None
-        self.structures = NestedDefaultDict()
+        self.structures = defaultdict(dict)
         self.all_hatches = None
         self.rdy_hatches = None
         self.num_rdy_hatches = None
         # self.hatch_name = ("Hatchery" or "Hive" or "Lair") 
         # self.used_tumors: Set[int] = set()
         self.inject_interval = 100
-
-    def get_structure_count(self, struct_name: str):
-        # TODO: We don't need this. len() would work if we ever need the count of something
-        """Iterates through self.structures, returns int of specific structure name"""
-        return [n for n in self.structures[struct_name].keys()]
-    
 
     def add_structure(self, structure: Unit):
         """
