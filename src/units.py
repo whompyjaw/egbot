@@ -16,3 +16,7 @@ class Overlord(NewUnit):
 class Zergling(NewUnit):
     def __init__(self, unit):
         super().__init__(unit, 'Zergling')
+
+class Broodling(NewUnit):
+    def __init__(self, unit):
+        super().__init__(unit, 'Broodling')

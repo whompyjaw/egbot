@@ -41,21 +41,23 @@ class UnitManager:
         if unit.name == 'Drone':
             new_unit = Drone(unit)
         #Spawning Pool
-        elif unit.name == 'Overlord':
+        if unit.name == 'Overlord':
             new_unit = Overlord(unit)
          #assign queen after
-        elif unit.name == 'Queen':
+        if unit.name == 'Queen':
             new_unit = Queen(unit)
-        else:
+
+        if unit.name == 'Larva':
             new_unit = NewUnit(unit, 'Larva')
+
+        if unit.name == 'Broodling':
+            new_unit = NewUnit(unit, 'Broodling')
         
         self.units[new_unit.name][new_unit.tag] = new_unit
 
         if new_unit.name == self.queen_name:
             self.assign_queen(new_unit)
        
-
-
     def assign_queen(self, queen: Queen):
         """
         Assigns a queen as a Creep Queen or a Hatch Queen.  If Hatch Queen, assigns the queen to a specific hatchery for future larva injects
@@ -64,7 +66,6 @@ class UnitManager:
         """        
         queens = self.units['Queen'].values()
         hatches = self.mm.structures['Hatchery'].values()
-        # double check this
         bases_without_queens = Units([h.unit for h in hatches if h.assigned_queen_tag == None], self.bot)
 
         if len(queens) == 1:
@@ -82,8 +83,6 @@ class UnitManager:
         else:
             queen.is_creep = True
         
-
-
     async def do_queen_injects(self):
         """
         Selects queen assign to specific and injects its assigned hatchery

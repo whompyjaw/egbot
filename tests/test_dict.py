@@ -21,7 +21,7 @@ class NestedDefaultDict(defaultdict):
 def remove_unit(tag: int, units, pp):
     # del_unit = None
     for unit_type in units.keys():   
-           units[unit_type].pop(tag)
+           unit_type.pop(tag)
            
            pp.pprint(units)
            break
