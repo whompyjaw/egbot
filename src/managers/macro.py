@@ -63,7 +63,7 @@ class MacroManager:
         """
         if self.num_rdy_hatches == 1 and self.bot.already_pending(UnitTypeId.SPAWNINGPOOL):
             if self.bot.can_afford(UnitTypeId.EXTRACTOR) and not self.bot.already_pending(UnitTypeId.EXTRACTOR):
-                if not self.structures['Extractor']:
+                if self.structures.get('Extractor') == None:
                     for vg in self.bot.vespene_geyser.closer_than(10, self.hq):
                         await self.bot.build(UnitTypeId.EXTRACTOR, vg)
                         break

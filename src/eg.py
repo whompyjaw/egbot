@@ -70,19 +70,27 @@ class EGbot(sc2.BotAI):
 
 
     async def _remove_unit(self, tag: int):
-        units = self.um.units.items()
-        structures = self.mm.structures.items()
-        for unit, structure in zip(units, structures):
-            for unit_tag, struct_tag in itertools.zip_longest(unit[1].keys(), structure[1].keys()):
-                if unit_tag == tag:
-                    del unit[1][tag]
+        units = self.um.units
+        structures = self.mm.structures
+        for unit_type in units.keys():
+            for unit_tag in units[unit_type].keys():
+                if unit_tag == tag: 
+                    units[unit_type].pop(tag)
                     break
-                elif struct_tag == tag:
-                    del structure[1][tag]
-                    break
+                
 
-        # for unit_names, unit_tag
-
+        # for struct_type in structures.keys():   
+        #     structures[struct_type].pop(tag)
+        #     break
+        '''TODO Error: dictionary changed size during iteration.  I think it has
+        something to do with the cacoons that spawn drones, etc.  when they are destroyed
+        the dictionary changes size? but at the same time, a Queen: {} is added in the beginning
+        and I can't find the code that causes that...'''
+        for struct_type in structures.keys():
+            for struct_tag in structures[unit_type].keys():
+                if struct_tag == tag:   
+                    structures[struct_type].pop(tag)
+                    break  
 
 
 """Setting realtime=False makes the game/bot play as fast as possible"""

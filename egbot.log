@@ -898,3 +898,17 @@ DEBUG-on_building_construction_complete-157:SpawningPool has completed.
 20-01-21 11:52:32 | DEBUG | __init__ | ln:623 | Using proactor: IocpProactor
 20-01-21 11:53:15 | DEBUG | __init__ | ln:623 | Using proactor: IocpProactor
 20-01-21 11:53:50 | DEBUG | __init__ | ln:623 | Using proactor: IocpProactor
+21-01-21 13:10:13 | DEBUG | __init__ | ln:623 | Using proactor: IocpProactor
+21-01-21 20:26:03 | DEBUG | __init__ | ln:623 | Using proactor: IocpProactor
+21-01-21 20:39:03 | DEBUG | __init__ | ln:623 | Using proactor: IocpProactor
+21-01-21 20:51:34 | DEBUG | __init__ | ln:623 | Using proactor: IocpProactor
+21-01-21 21:03:02 | DEBUG | __init__ | ln:623 | Using proactor: IocpProactor
+21-01-21 22:06:32 | DEBUG | __init__ | ln:623 | Using proactor: IocpProactor
+21-01-21 22:07:28 | DEBUG | __init__ | ln:623 | Using proactor: IocpProactor
+21-01-21 22:11:21 | DEBUG | __init__ | ln:623 | Using proactor: IocpProactor
+21-01-21 22:13:34 | DEBUG | __init__ | ln:623 | Using proactor: IocpProactor
+21-01-21 22:16:20 | DEBUG | __init__ | ln:623 | Using proactor: IocpProactor
+21-01-21 22:17:14 | DEBUG | __init__ | ln:623 | Using proactor: IocpProactor
+21-01-21 22:19:51 | DEBUG | __init__ | ln:623 | Using proactor: IocpProactor
+21-01-21 22:24:05 | DEBUG | __init__ | ln:623 | Using proactor: IocpProactor
+21-01-21 22:26:54 | DEBUG | __init__ | ln:623 | Using proactor: IocpProactor
