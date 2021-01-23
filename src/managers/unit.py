@@ -9,7 +9,6 @@ from sc2.unit import Unit
 from sc2.units import Units
 from queen import Queen
 from managers.macro import MacroManager
-# from dicts import NestedDefaultDict
 from collections import defaultdict
 from units import Drone, Overlord, NewUnit
 
