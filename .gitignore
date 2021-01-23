@@ -4,3 +4,5 @@ venv/
 .vscode/
 src/debug/__pychache__/
 src/managers/__pychache__/
+src/__pycache__/
+tests/__pycache__/
