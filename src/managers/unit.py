@@ -9,6 +9,8 @@ from sc2.unit import Unit
 from sc2.units import Units
 from queen import Queen
 from managers.macro import MacroManager
+from collections import defaultdict
+from units import Drone, Overlord, NewUnit
 
 
 class UnitManager:
@@ -21,10 +23,8 @@ class UnitManager:
         self.drone_name = "Drone"
         self.queen_name = "Queen"
         self.queen_home = {}
-        self.mm = MacroManager(self.bot)
-        self.drones = []
-        self.overlords = []
-        self.queens = []
+        self.mm = self.bot.mm
+        self.units = defaultdict(dict)
         self.larvae = []
 
     def update_units(self):
@@ -36,42 +36,64 @@ class UnitManager:
 
         :params: Unit
         """
-        if unit.name == self.drone_name:
-            self.drones.append(unit)
-        if unit.name == self.queen_name:
-            new_queen = Queen(unit)
-            self.queens.append(new_queen)
-            self.assign_queen(new_queen)
+        #Hatchery
+        if unit.name == 'Drone':
+            new_unit = Drone(unit)
+        #Spawning Pool
+        if unit.name == 'Overlord':
+            new_unit = Overlord(unit)
+         #assign queen after
+        if unit.name == 'Queen':
+            new_unit = Queen(unit)
 
+        if unit.name == 'Larva':
+            new_unit = NewUnit(unit, 'Larva')
+
+        if unit.name == 'Broodling':
+            new_unit = NewUnit(unit, 'Broodling')
+        
+        self.units[new_unit.name][new_unit.tag] = new_unit
+
+        if new_unit.name == self.queen_name:
+            self.assign_queen(new_unit)
+       
     def assign_queen(self, queen: Queen):
         """
         Assigns a queen as a Creep Queen or a Hatch Queen.  If Hatch Queen, assigns the queen to a specific hatchery for future larva injects
         
         :params Queen object:
         """        
-        queens_without_bases = [q for q in self.queens if not q.is_hatch]
-        bases_without_queens = self.bot.townhalls.filter(lambda h: h.tag not in self.queen_home.values())
+        queens = self.units['Queen'].values()
+        hatches = self.mm.structures['Hatchery'].values()
+        bases_without_queens = Units([h.unit for h in hatches if h.assigned_queen_tag == None], self.bot)
 
-        if len(self.queens) == 1:
+        if len(queens) == 1:
             queen.is_creep = True
-        if len(self.queens) > 1 and len(bases_without_queens) >= 1:
-            for queen in queens_without_bases:
-                if not queen.is_creep: 
-                    closest_base = bases_without_queens.closest_to(queen.position)
-                    self.queen_home[queen.tag] = closest_base.tag #dict of queens and their hatches
-                    queen.is_hatch = True
-                    break
+        if len(queens) > 1 and bases_without_queens.amount >= 1:
+            hatch_tag = bases_without_queens.closest_to(queen.position).tag
+            closest_hatch = self.mm.structures['Hatchery'].get(hatch_tag)
+            
+            # Assign queen to hatch
+            closest_hatch.assigned_queen_tag = queen.tag
+            
+            # assign hatch to queen
+            queen.assigned_hatch_tag = hatch_tag
+            queen.is_hatch = True
         else:
             queen.is_creep = True
-
+        
     async def do_queen_injects(self):
         """
         Selects queen assign to specific and injects its assigned hatchery
+        TODO: After hatch was destroyed, queen attempted to larva inject None hatch
         """
-        for queen in self.queens:
-            if queen.is_hatch and queen.energy >= 25 and queen.unit.is_idle:
-                hatch = self.bot.townhalls.find_by_tag(self.queen_home.get(queen.tag))
-                queen.inject_larva(hatch)
+        queens = self.units['Queen'].values()
+        if queens:
+            for queen in queens:
+                if queen.is_hatch and queen.energy >= 25 and queen.unit.is_idle:
+                    hatch = self.mm.structures['Hatchery'].get(queen.assigned_hatch_tag)
+                    if hatch:
+                        queen.inject_larva(hatch.unit)
             
 
 
