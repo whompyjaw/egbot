@@ -1,0 +1,11 @@
+setup.py
+src/conftest.py
+src/dicts.py
+src/eg.py
+src/queen.py
+src/structures.py
+src/units.py
+src/EGbot.egg-info/PKG-INFO
+src/EGbot.egg-info/SOURCES.txt
+src/EGbot.egg-info/dependency_links.txt
+src/EGbot.egg-info/top_level.txt

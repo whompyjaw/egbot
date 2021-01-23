@@ -8,8 +8,8 @@ import logging
 import random
 import itertools
 
-from managers.macro import MacroManager
-from managers.unit import UnitManager
+from managers.macro_mgr import MacroManager
+from managers.unit_mgr import UnitManager
 
 # importing from other folders
 # from folder.folder.file import Whatever

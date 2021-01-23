@@ -1,7 +1,8 @@
 
 
 class GeneralManager:
-    pass 
+    def __init__(self, bot):
+        pass
 
 
 
