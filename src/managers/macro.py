@@ -2,7 +2,9 @@ from sc2.ids.unit_typeid import UnitTypeId
 from sc2.unit import Unit
 from sc2.units import Units
 from collections import defaultdict
-from structures import SpawningPool, Hatchery, Extractor
+from structures import NewStructure
+import constants
+import dictops
 
 
 class MacroManager:
@@ -26,22 +28,27 @@ class MacroManager:
         
         :params Unit:
         """
-        #Hatchery
-        if structure.name == 'Hatchery':
-            new_struct = Hatchery(structure)
-        #Spawning Pool
-        if structure.name == 'SpawningPool':
-            new_struct = SpawningPool(structure)
-        #Extractor
-        if structure.name == 'Extractor':
-            new_struct = Extractor(structure)
+
+        for name in constants.struct_name:
+            if name == structure.name:
+                new_struct = NewStructure(structure, name)
+                break
+
+        # #Hatchery
+        # if structure.name == 'Hatchery':
+        #     new_struct = Hatchery(structure)
+        # #Spawning Pool
+        # if structure.name == 'SpawningPool':
+        #     new_struct = SpawningPool(structure)
+        # #Extractor
+        # if structure.name == 'Extractor':
+        #     new_struct = Extractor(structure)
 
         self.structures[new_struct.name][new_struct.tag] = new_struct
 
 
     async def build_pool(self):
         """Builds a Spawning Pool near starting Hatchery location"""
-        # if not self.structures.get('SpawningPool'):
         if self.structures.get('SpawningPool') == None:
             if not self.bot.already_pending(UnitTypeId.SPAWNINGPOOL):
                 if self.bot.can_afford(UnitTypeId.SPAWNINGPOOL):
@@ -55,14 +62,16 @@ class MacroManager:
         Build Extractors at Vespene Gas locations near Hatchery. If only one
         hatch is up, build one gas, once hatches.amount > 1 then begin building gas at all locations. 
         """
-        if self.num_rdy_hatches == 1 and self.bot.already_pending(UnitTypeId.SPAWNINGPOOL):
+        hatch_count = dictops.get_count(self.structures, 'Hatchery')
+
+        if hatch_count == 1 and self.bot.already_pending(UnitTypeId.SPAWNINGPOOL):
             if self.bot.can_afford(UnitTypeId.EXTRACTOR) and not self.bot.already_pending(UnitTypeId.EXTRACTOR):
                 if self.structures.get('Extractor') == None:
                     for vg in self.bot.vespene_geyser.closer_than(10, self.hq):
                         await self.bot.build(UnitTypeId.EXTRACTOR, vg)
                         break
 
-        elif self.num_rdy_hatches > 1:            
+        elif hatch_count > 1:            
             if self.bot.can_afford(UnitTypeId.EXTRACTOR):
                 for hatch in self.all_hatches:
                     for vg in self.bot.vespene_geyser.closer_than(10, hatch):
@@ -75,10 +84,9 @@ class MacroManager:
         Expands to nearest location when 300 minerals are available up to maximum 5 hatcheries
         Currently this doesn't account for if enemies are in the way I guess (per a note from the sc2 lib)
         """
-        if (self.num_rdy_hatches
-            + self.bot.already_pending(UnitTypeId.HATCHERY)
-            < 5
-        ):
+        hatch_count = dictops.get_count(self.structures, 'Hatchery')
+
+        if (hatch_count + self.bot.already_pending(UnitTypeId.HATCHERY)) < 5:
             if self.bot.can_afford(UnitTypeId.HATCHERY):
                 next_expac = await self.bot.get_next_expansion()
                 # select drone
@@ -92,7 +100,8 @@ class MacroManager:
         """
         Builds drones; drone limit based on # of hatcheries; 22 drones per hatchery 
         """
-        larvae = Units(units['Larva'].values(), self.bot)
+        larvae = Units(dictops.get_values(units, 'Larva'), self.bot)
+        #larvae = Units(units['Larva'].values(), self.bot)
         if (larvae and self.bot.can_afford(drone)
             and (self.bot.supply_left > 1 or self.bot.already_pending(overlord))>= 1):
             if (

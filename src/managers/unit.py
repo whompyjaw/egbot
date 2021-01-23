@@ -10,7 +10,9 @@ from sc2.units import Units
 from queen import Queen
 from managers.macro import MacroManager
 from collections import defaultdict
-from units import Drone, Overlord, NewUnit
+from units import NewUnit
+import constants
+import dictops
 
 
 class UnitManager:
@@ -33,24 +35,27 @@ class UnitManager:
     def add_unit(self, unit: Unit):
         """
         Adds the unit to specific list
-
         :params: Unit
         """
-        #Hatchery
-        if unit.name == 'Drone':
-            new_unit = Drone(unit)
-        #Spawning Pool
-        if unit.name == 'Overlord':
-            new_unit = Overlord(unit)
-         #assign queen after
-        if unit.name == 'Queen':
-            new_unit = Queen(unit)
+        for name in constants.unit_name:
+            if name == unit.name:
+                new_unit = NewUnit(unit, name)
+                break
 
-        if unit.name == 'Larva':
-            new_unit = NewUnit(unit, 'Larva')
+        # if unit.name == 'Larva':
+        #     new_unit = NewUnit(unit, 'Larva')
 
-        if unit.name == 'Broodling':
-            new_unit = NewUnit(unit, 'Broodling')
+        # if unit.name == 'Drone':
+        #     new_unit = NewUnit(unit, 'Drone')
+
+        # if unit.name == 'Overlord':
+        #     new_unit = NewUnit(unit, 'Overlord')
+
+        # if unit.name == 'Queen':
+        #     new_unit = NewUnit(unit, 'Queen')
+
+        # if unit.name == 'Broodling':
+        #     new_unit = NewUnit(unit, 'Broodling')
         
         self.units[new_unit.name][new_unit.tag] = new_unit
 
@@ -63,8 +68,8 @@ class UnitManager:
         
         :params Queen object:
         """        
-        queens = self.units['Queen'].values()
-        hatches = self.mm.structures['Hatchery'].values()
+        queens = dictops.get_values(self.units, 'Queen')
+        hatches = dictops.get_values(self.mm.structures, 'Hatchery')
         bases_without_queens = Units([h.unit for h in hatches if h.assigned_queen_tag == None], self.bot)
 
         if len(queens) == 1:
