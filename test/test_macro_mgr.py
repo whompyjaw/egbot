@@ -11,20 +11,5 @@ from src.managers.macro import MacroManager
 from src.managers.unit import UnitManager
 from src.dicts import NestedDefaultDict
 
-@pytest.fixture
-def test_env():
-    
-
-
-@pytest.fixture
-def unit_manager():
-    return UnitManager()
-
-@pytest.fixture
-def units_dict():
-    um = unit_manager()
-    units = NestedDefaultDict()
-    units['Drone'][123] = Drone()
-    units['Drone'][1234] = Drone()
     
 # TODO: use pytest here

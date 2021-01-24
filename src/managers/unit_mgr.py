@@ -9,7 +9,8 @@ from sc2.unit import Unit
 from sc2.units import Units
 from queen import Queen
 from managers.macro import MacroManager
-from dicts import NestedDefaultDict
+# from dicts import NestedDefaultDict
+from collections import defaultdict
 from units import Drone, Overlord, NewUnit
 
 
@@ -24,8 +25,7 @@ class UnitManager:
         self.queen_name = "Queen"
         self.queen_home = {}
         self.mm = self.bot.mm
-        self.queens = []
-        self.units = NestedDefaultDict()
+        self.units = defaultdict(dict)
         self.larvae = []
 
     def update_units(self):
@@ -39,20 +39,20 @@ class UnitManager:
         """
         if unit.name == 'Drone':
             new_unit = Drone(unit)
-        elif unit.name == 'Overlord':
+        if unit.name == 'Overlord':
             new_unit = Overlord(unit)
-        elif unit.name == 'Queen':
+        if unit.name == 'Queen':
             new_unit = Queen(unit)
-        else:
+        if unit.name == 'Larva':
             new_unit = NewUnit(unit, 'Larva')
+        if unit.name == 'Broodling':
+            new_unit = NewUnit(unit, 'Broodling')
         
         self.units[new_unit.name][new_unit.tag] = new_unit
 
         if new_unit.name == self.queen_name:
             self.assign_queen(new_unit)
        
-
-
     def assign_queen(self, queen: Queen):
         """
         Assigns a queen as a Creep Queen or a Hatch Queen.  If Hatch Queen, assigns the queen to a specific hatchery for future larva injects
@@ -61,14 +61,13 @@ class UnitManager:
         """        
         queens = self.units['Queen'].values()
         hatches = self.mm.structures['Hatchery'].values()
-        # double check this
-        bases_without_queens = Units([h for h in hatches if h.assigned_queen_tag == None], self.bot)
+        bases_without_queens = Units([h.unit for h in hatches if h.assigned_queen_tag == None], self.bot)
 
         if len(queens) == 1:
             queen.is_creep = True
         if len(queens) > 1 and bases_without_queens.amount >= 1:
             hatch_tag = bases_without_queens.closest_to(queen.position).tag
-            closest_hatch = self.mm.structures['Hatchery'][hatch_tag]
+            closest_hatch = self.mm.structures['Hatchery'].get(hatch_tag)
             
             # Assign queen to hatch
             closest_hatch.assigned_queen_tag = queen.tag
@@ -78,17 +77,19 @@ class UnitManager:
             queen.is_hatch = True
         else:
             queen.is_creep = True
-
-
+        
     async def do_queen_injects(self):
         """
         Selects queen assign to specific and injects its assigned hatchery
+        TODO: After hatch was destroyed, queen attempted to larva inject None hatch
         """
         queens = self.units['Queen'].values()
-        for queen in queens:
-            if queen.is_hatch and queen.energy >= 25 and queen.unit.is_idle:
-                hatch = self.mm.structures['Hatchery'][queen.assigned_hatch_tag]
-                queen.inject_larva(hatch.unit)
+        if queens:
+            for queen in queens:
+                if queen.is_hatch and queen.energy >= 25 and queen.unit.is_idle:
+                    hatch = self.mm.structures['Hatchery'].get(queen.assigned_hatch_tag)
+                    if hatch:
+                        queen.inject_larva(hatch.unit)
             
 
 
