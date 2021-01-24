@@ -1,5 +1,4 @@
 setup.py
-src/conftest.py
 src/dicts.py
 src/eg.py
 src/queen.py
