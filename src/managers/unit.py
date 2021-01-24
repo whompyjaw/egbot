@@ -10,7 +10,7 @@ from sc2.units import Units
 from queen import Queen
 from managers.macro import MacroManager
 from collections import defaultdict
-from units import NewUnit, Larva, Drone, Overlord, Broodling
+from units import NewUnit, Drone, Overlord, Broodling
 import constants
 import dictops
 
@@ -43,19 +43,19 @@ class UnitManager:
         #         break
 
         if unit.name == 'Larva':
-            new_unit = Larva(unit, 'Larva')
+            new_unit = NewUnit(unit, 'Larva')
 
         if unit.name == 'Drone':
-            new_unit = Drone(unit, 'Drone')
+            new_unit = Drone(unit)
 
         if unit.name == 'Overlord':
-            new_unit = Overlord(unit, 'Overlord')
+            new_unit = Overlord(unit)
 
         if unit.name == 'Queen':
-            new_unit = Queen(unit, 'Queen')
+            new_unit = Queen(unit)
 
         if unit.name == 'Broodling':
-            new_unit = Broodling(unit, 'Broodling')
+            new_unit = Broodling(unit)
         
         self.units[new_unit.name][new_unit.tag] = new_unit
 
