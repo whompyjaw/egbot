@@ -10,7 +10,7 @@ from sc2.units import Units
 from queen import Queen
 from managers.macro import MacroManager
 from collections import defaultdict
-from units import NewUnit
+from units import NewUnit, Larva, Drone, Overlord, Broodling
 import constants
 import dictops
 
@@ -37,25 +37,25 @@ class UnitManager:
         Adds the unit to specific list
         :params: Unit
         """
-        for name in constants.unit_name:
-            if name == unit.name:
-                new_unit = NewUnit(unit, name)
-                break
+        # for name in constants.unit_name:
+        #     if name == unit.name:
+        #         new_unit = NewUnit(unit, name)
+        #         break
 
-        # if unit.name == 'Larva':
-        #     new_unit = NewUnit(unit, 'Larva')
+        if unit.name == 'Larva':
+            new_unit = Larva(unit, 'Larva')
 
-        # if unit.name == 'Drone':
-        #     new_unit = NewUnit(unit, 'Drone')
+        if unit.name == 'Drone':
+            new_unit = Drone(unit, 'Drone')
 
-        # if unit.name == 'Overlord':
-        #     new_unit = NewUnit(unit, 'Overlord')
+        if unit.name == 'Overlord':
+            new_unit = Overlord(unit, 'Overlord')
 
-        # if unit.name == 'Queen':
-        #     new_unit = NewUnit(unit, 'Queen')
+        if unit.name == 'Queen':
+            new_unit = Queen(unit, 'Queen')
 
-        # if unit.name == 'Broodling':
-        #     new_unit = NewUnit(unit, 'Broodling')
+        if unit.name == 'Broodling':
+            new_unit = Broodling(unit, 'Broodling')
         
         self.units[new_unit.name][new_unit.tag] = new_unit
 

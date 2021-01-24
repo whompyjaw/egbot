@@ -2,7 +2,7 @@ from sc2.ids.unit_typeid import UnitTypeId
 from sc2.unit import Unit
 from sc2.units import Units
 from collections import defaultdict
-from structures import NewStructure
+from structures import NewStructure, Hatchery, Extractor, SpawningPool
 import constants
 import dictops
 
@@ -29,20 +29,20 @@ class MacroManager:
         :params Unit:
         """
 
-        for name in constants.struct_name:
-            if name == structure.name:
-                new_struct = NewStructure(structure, name)
-                break
+        # for name in constants.struct_name:
+        #     if name == structure.name:
+        #         new_struct = NewStructure(structure, name)
+        #         break
 
-        # #Hatchery
-        # if structure.name == 'Hatchery':
-        #     new_struct = Hatchery(structure)
-        # #Spawning Pool
-        # if structure.name == 'SpawningPool':
-        #     new_struct = SpawningPool(structure)
-        # #Extractor
-        # if structure.name == 'Extractor':
-        #     new_struct = Extractor(structure)
+        #Hatchery
+        if structure.name == 'Hatchery':
+            new_struct = Hatchery(structure)
+        #Spawning Pool
+        if structure.name == 'SpawningPool':
+            new_struct = SpawningPool(structure)
+        #Extractor
+        if structure.name == 'Extractor':
+            new_struct = Extractor(structure)
 
         self.structures[new_struct.name][new_struct.tag] = new_struct
 
