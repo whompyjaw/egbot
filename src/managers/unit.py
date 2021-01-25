@@ -29,6 +29,7 @@ class UnitManager:
         self.units = defaultdict(dict)
         self.larvae = []
 
+    #do we need?
     def update_units(self):
         self.larvae = self.bot.larva
 
@@ -92,7 +93,7 @@ class UnitManager:
         Selects queen assign to specific and injects its assigned hatchery
         TODO: After hatch was destroyed, queen attempted to larva inject None hatch
         """
-        queens = self.units['Queen'].values()
+        queens = dictops.get_values(self.units, 'Queen')
         if queens:
             for queen in queens:
                 if queen.is_hatch and queen.energy >= 25 and queen.unit.is_idle:

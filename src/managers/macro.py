@@ -115,7 +115,7 @@ class MacroManager:
         """
         TODO: Will need to figure out if we need to create more than 200 supply OLs
         """
-        larvae = Units(units['Larva'].values(), self.bot)
+        larvae = Units(dictops.get_values(units, 'Larva'), self.bot)
         # works with build_drones, ensures at game opening, only one OL is pending
         if self.bot.supply_used <= 13 and self.bot.already_pending(overlord) < 1:
             larvae.random.unit.train(overlord)
@@ -129,6 +129,7 @@ class MacroManager:
         ):
             larvae.random.unit.train(overlord)
 
+    #do we still need? Good for pending hatches, can find hq, ready and num of hatches via the dictionary
     def update_townhalls(self):
         self.hq = self.bot.townhalls.first
         self.all_hatches = self.bot.townhalls
@@ -141,13 +142,14 @@ class MacroManager:
 
         :params: list of Queens
         """
-        queens = units['Queen'].values()
+        queen_count = dictops.get_count(units, 'Queen')
+        hatches = dictops.get_values(self.structures, 'Hatchery')
         if (
-            self.structures.get('SpawningPool') != None and (len(queens) <= (self.num_rdy_hatches + 2))
+            self.structures.get('SpawningPool') != None and (queen_count <= (self.num_rdy_hatches + 2))
             and self.bot.already_pending(UnitTypeId.QUEEN) < 1
         ):
             if self.bot.can_afford(UnitTypeId.QUEEN):
-                for hatchery in self.rdy_hatches:
-                    if hatchery.is_idle:
-                        hatchery.train(UnitTypeId.QUEEN)
+                for hatchery in hatches:
+                    if hatchery.unit.is_idle:
+                        hatchery.unit.train(UnitTypeId.QUEEN)
 
