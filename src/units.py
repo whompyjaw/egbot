@@ -5,6 +5,10 @@ class NewUnit:
         self.unit = unit
         self.position = unit.position
 
+class Larva(NewUnit):
+    def __init__(self, unit):
+        super().__init__(unit, 'Larva')
+
 class Drone(NewUnit):
     def __init__(self, unit):
         super().__init__(unit, 'Drone')

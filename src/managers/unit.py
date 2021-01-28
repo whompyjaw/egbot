@@ -10,7 +10,9 @@ from sc2.units import Units
 from queen import Queen
 from managers.macro import MacroManager
 from collections import defaultdict
-from units import Drone, Overlord, NewUnit
+from units import Drone, Overlord, Broodling, Larva
+import constants
+import dictops
 
 
 class UnitManager:
@@ -27,30 +29,25 @@ class UnitManager:
         self.units = defaultdict(dict)
         self.larvae = []
 
-    def update_units(self):
-        self.larvae = self.bot.larva
-
     def add_unit(self, unit: Unit):
         """
         Adds the unit to specific list
-
         :params: Unit
         """
-        #Hatchery
+        if unit.name == 'Larva':
+            new_unit = Larva(unit)
+
         if unit.name == 'Drone':
             new_unit = Drone(unit)
-        #Spawning Pool
+
         if unit.name == 'Overlord':
             new_unit = Overlord(unit)
-         #assign queen after
+
         if unit.name == 'Queen':
             new_unit = Queen(unit)
 
-        if unit.name == 'Larva':
-            new_unit = NewUnit(unit, 'Larva')
-
         if unit.name == 'Broodling':
-            new_unit = NewUnit(unit, 'Broodling')
+            new_unit = Broodling(unit)
         
         self.units[new_unit.name][new_unit.tag] = new_unit
 
@@ -63,8 +60,8 @@ class UnitManager:
         
         :params Queen object:
         """        
-        queens = self.units['Queen'].values()
-        hatches = self.mm.structures['Hatchery'].values()
+        queens = dictops.get_values(self.units, 'Queen')
+        hatches = dictops.get_values(self.mm.structures, 'Hatchery')
         bases_without_queens = Units([h.unit for h in hatches if h.assigned_queen_tag == None], self.bot)
 
         if len(queens) == 1:
@@ -85,9 +82,8 @@ class UnitManager:
     async def do_queen_injects(self):
         """
         Selects queen assign to specific and injects its assigned hatchery
-        TODO: After hatch was destroyed, queen attempted to larva inject None hatch
         """
-        queens = self.units['Queen'].values()
+        queens = dictops.get_values(self.units, 'Queen')
         if queens:
             for queen in queens:
                 if queen.is_hatch and queen.energy >= 25 and queen.unit.is_idle:
