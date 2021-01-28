@@ -10,7 +10,7 @@ from sc2.units import Units
 from queen import Queen
 from managers.macro import MacroManager
 from collections import defaultdict
-from units import NewUnit, Drone, Overlord, Broodling
+from units import Drone, Overlord, Broodling, Larva
 import constants
 import dictops
 
@@ -29,22 +29,13 @@ class UnitManager:
         self.units = defaultdict(dict)
         self.larvae = []
 
-    #do we need?
-    def update_units(self):
-        self.larvae = self.bot.larva
-
     def add_unit(self, unit: Unit):
         """
         Adds the unit to specific list
         :params: Unit
         """
-        # for name in constants.unit_name:
-        #     if name == unit.name:
-        #         new_unit = NewUnit(unit, name)
-        #         break
-
         if unit.name == 'Larva':
-            new_unit = NewUnit(unit, 'Larva')
+            new_unit = Larva(unit)
 
         if unit.name == 'Drone':
             new_unit = Drone(unit)
@@ -91,7 +82,6 @@ class UnitManager:
     async def do_queen_injects(self):
         """
         Selects queen assign to specific and injects its assigned hatchery
-        TODO: After hatch was destroyed, queen attempted to larva inject None hatch
         """
         queens = dictops.get_values(self.units, 'Queen')
         if queens:

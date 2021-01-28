@@ -18,8 +18,6 @@ class MacroManager:
         self.all_hatches = None
         self.rdy_hatches = None
         self.num_rdy_hatches = None
-        # self.hatch_name = ("Hatchery" or "Hive" or "Lair") 
-        # self.used_tumors: Set[int] = set()
         self.inject_interval = 100
 
     def add_structure(self, structure: Unit):
@@ -28,19 +26,12 @@ class MacroManager:
         
         :params Unit:
         """
-
-        # for name in constants.struct_name:
-        #     if name == structure.name:
-        #         new_struct = NewStructure(structure, name)
-        #         break
-
-        #Hatchery
         if structure.name == 'Hatchery':
             new_struct = Hatchery(structure)
-        #Spawning Pool
+
         if structure.name == 'SpawningPool':
             new_struct = SpawningPool(structure)
-        #Extractor
+
         if structure.name == 'Extractor':
             new_struct = Extractor(structure)
 
@@ -90,7 +81,7 @@ class MacroManager:
             if self.bot.can_afford(UnitTypeId.HATCHERY):
                 next_expac = await self.bot.get_next_expansion()
                 # select drone
-                # TODO: Try to select drone that is pending or is in egg form
+                # TODO: Try to select drone that is pending or is in egg form (for strategy sprint)
                 worker = self.bot.select_build_worker(next_expac)
                 if worker:
                     worker.build(UnitTypeId.HATCHERY, next_expac)
@@ -101,7 +92,6 @@ class MacroManager:
         Builds drones; drone limit based on # of hatcheries; 22 drones per hatchery 
         """
         larvae = Units(dictops.get_values(units, 'Larva'), self.bot)
-        #larvae = Units(units['Larva'].values(), self.bot)
         if (larvae and self.bot.can_afford(drone)
             and (self.bot.supply_left > 1 or self.bot.already_pending(overlord))>= 1):
             if (
@@ -116,10 +106,8 @@ class MacroManager:
         TODO: Will need to figure out if we need to create more than 200 supply OLs
         """
         larvae = Units(dictops.get_values(units, 'Larva'), self.bot)
-        # works with build_drones, ensures at game opening, only one OL is pending
         if self.bot.supply_used <= 13 and self.bot.already_pending(overlord) < 1:
             larvae.random.unit.train(overlord)
-        # after we're above 13 supply, complete the normal OL method
         elif (
             self.bot.supply_cap > 14
             and self.bot.supply_left < 2
@@ -129,7 +117,6 @@ class MacroManager:
         ):
             larvae.random.unit.train(overlord)
 
-    #do we still need? Good for pending hatches, can find hq, ready and num of hatches via the dictionary
     def update_townhalls(self):
         self.hq = self.bot.townhalls.first
         self.all_hatches = self.bot.townhalls

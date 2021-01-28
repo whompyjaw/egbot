@@ -30,7 +30,6 @@ class EGbot(sc2.BotAI):
 
     async def on_step(self, iteration):
         self.iteration = iteration
-        self.um.update_units()
         await self.mm.build_drone(self.um.units, self.um.drone, self.um.overlord)
         await self.mm.build_overlords(self.um.units, self.um.overlord)
         await self.mm.build_pool()
