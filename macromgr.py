@@ -11,17 +11,25 @@ class MacroManager:
 
     async def manage(self):
         await self.build_drone()
-        await self.expand()
+        await self.build_overlords()
+        await self.build_structures()
+        await self.build_queens()
+
+
+    async def build_structures(self) -> None:
         await self.build_pool()
         await self.build_gas()
-        await self.build_queens()
+        await self.expand()
+
 
     async def build_pool(self) -> None:
         """Builds a Spawning Pool near starting Hatchery location"""
 
         hq: Unit = self.bot.townhalls.first
+        pool_ready: Units = self.bot.structures(UnitTypeId.SPAWNINGPOOL).ready  # NOTE: made for fun
+        pool_pending: Units = self.bot.already_pending(UnitTypeId.SPAWNINGPOOL)
 
-        if not self.bot.already_pending(UnitTypeId.SPAWNINGPOOL):
+        if not pool_ready and not pool_pending:
             if self.bot.can_afford(UnitTypeId.SPAWNINGPOOL):
                 await self.bot.build(
                     UnitTypeId.SPAWNINGPOOL,
@@ -85,7 +93,7 @@ class MacroManager:
         overlord: UnitTypeId = UnitTypeId.OVERLORD
 
         if self.bot.supply_used <= 13 and self.bot.already_pending(overlord) < 1:
-            larvae.random.unit.train(overlord)
+            larvae.random.train(overlord)
         elif (
             self.bot.supply_cap > 14
             and self.bot.supply_left < 3 # TODO: 2 or 3?
@@ -93,7 +101,7 @@ class MacroManager:
             and self.bot.can_afford(overlord)
             and self.bot.already_pending(overlord) < 2
         ):
-            larvae.random.unit.train(overlord)
+            larvae.random.train(overlord)
 
     async def build_queens(self) -> None:
         """
@@ -110,8 +118,12 @@ class MacroManager:
         iq: int = queens.policies.get('inject_policy').max_queens
 
         if (queen_count + self.bot.already_pending(UnitTypeId.QUEEN)) < (cq+dq+iq):
-            if self.bot.structures(UnitTypeId.SPAWNINGPOOL):
+            if self.bot.structures(UnitTypeId.SPAWNINGPOOL).ready:
                 if self.bot.can_afford(UnitTypeId.QUEEN):
                     for hatchery in self.bot.townhalls.ready:
                         if hatchery.is_idle:
                             hatchery.train(UnitTypeId.QUEEN)
+
+
+    # async def _get_rdy_struct(self, id: UnitTypeId) -> Units:
+    #     return self.bot.structures(id).ready 
