@@ -30,7 +30,8 @@ class EGbot(sc2.BotAI):
         self.md = MapData(self)
         # logic: thinking we find paths to enemy base and then spread creep via that
         # TODO: Would we pass the list of paths to queen policy?
-        self.paths = self.md.get_pyastar_grid()
+        self.grid_points = self.md.get_pyastar_grid()
+        self.paths = self.md.pathfind(self.grid_points)
         self.qp = QueenPolicy(self, self.paths)
         self.queens = Queens(self, self.qp.get_policy())
 
