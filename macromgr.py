@@ -14,6 +14,7 @@ class MacroManager:
         await self.expand()
         await self.build_pool()
         await self.build_gas()
+        await self.build_queens()
 
     async def build_pool(self) -> None:
         """Builds a Spawning Pool near starting Hatchery location"""
@@ -94,13 +95,14 @@ class MacroManager:
         ):
             larvae.random.unit.train(overlord)
 
-    async def build_queens(self, queens: Queens) -> None:
+    async def build_queens(self) -> None:
         """
         If a pool exists and bot can afford build a queen.
 
         :params: Queens object
         """
         queen_count: int = self.bot.units(UnitTypeId.QUEEN).amount
+        queens: Queens = self.bot.queens
         #hatches = dictops.get_values(self.structures, 'Hatchery')
         
         cq: int = queens.policies.get('creep_policy').max_queens
@@ -108,7 +110,7 @@ class MacroManager:
         iq: int = queens.policies.get('inject_policy').max_queens
 
         if (queen_count + self.bot.already_pending(UnitTypeId.QUEEN)) < (cq+dq+iq):
-            if (self.structures.get('SpawningPool') != None):
+            if self.bot.structures(UnitTypeId.SPAWNINGPOOL):
                 if self.bot.can_afford(UnitTypeId.QUEEN):
                     for hatchery in self.bot.townhalls.ready:
                         if hatchery.is_idle:
