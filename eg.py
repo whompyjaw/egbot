@@ -42,6 +42,7 @@ class EGbot(sc2.BotAI):
         if iteration == 0:
             await self.chat_send("(glhf)")
         await self.gm.manage()
+        await self.queens.manage_queens(iteration)
         logging.info('Iteration: %s' % iteration)
 
     async def on_before_start(self):
@@ -59,7 +60,7 @@ class EGbot(sc2.BotAI):
         pass
 
     async def on_unit_destroyed(self, unit_tag: int):
-        pass
+        self.queens.remove_unit(unit_tag)
 
     async def on_unit_type_changed(self, unit: Unit, previous_type: UnitTypeId):
         pass
@@ -71,7 +72,7 @@ def main():
     """Setting realtime=False makes the game/bot play as fast as possible"""
     run_game(
         maps.get("AbyssalReefLE"),
-        [Bot(Race.Zerg, EGbot()), Computer(Race.Terran, Difficulty.Easy)],
+        [Bot(Race.Zerg, EGbot())],
         realtime=False,
     )
 
