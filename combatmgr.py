@@ -12,7 +12,6 @@ from sc2.ids.buff_id import BuffId
 from sc2.unit import Unit
 from sc2.units import Units
 from collections import defaultdict
-import constants
 
 
 class CombatManager:

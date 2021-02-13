@@ -5,6 +5,9 @@ from sc2.player import Bot, Computer
 from sc2.unit import Unit
 import logging
 from genmgr import GeneralManager
+from MapAnalyzer import MapData
+from queens_sc2.queens import Queens
+from queen_policy import QueenPolicy
 
 # logging.basicConfig(
 #     level=logging.DEBUG,
@@ -16,17 +19,20 @@ from genmgr import GeneralManager
 
 class EGbot(sc2.BotAI):
     def __init__(self):
+        self.qp = None
         self.gm = GeneralManager(self)
         self.logger = logging.getLogger()
         self.iteration = 0
+        self.md = None
+        self.queens = None
 
     async def on_start(self):
-        pass
-        # self.md = MapData(self)
-        # self.queens = Queens(self, **self.qp.get_policy())
-        #logic: thinking we find paths to enemy base and then spread creep via that
-        #self.paths = self.md.get_pyastar_grid()
-        #self.queens.spread_creep()
+        self.md = MapData(self)
+        # logic: thinking we find paths to enemy base and then spread creep via that
+        # TODO: Would we pass the list of paths to queen policy?
+        self.paths = self.md.get_pyastar_grid()
+        self.qp = QueenPolicy(self, self.paths)
+        self.queens = Queens(self, self.qp.get_policy())
 
     async def on_step(self, iteration):
         self.iteration = iteration

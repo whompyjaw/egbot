@@ -1,15 +1,16 @@
-from typing import Any, Dict, List, Optional, Set, Tuple, Union, TYPE_CHECKING, Callable
+from typing import List
 from sc2.unit import UnitTypeId as UnitID
 from sc2.position import Point2
 
 
 class QueenPolicy:
 
-  def __init__(self, bot):
+  def __init__(self, bot, paths: List[Point2]):
     self.bot = bot
+    self.paths = paths
 
-  def get_policy(self):
-      queen_policy: Dict = {
+  def get_policy(self) -> dict:
+      queen_policy: dict = {
         "creep_queens": {
             "active": True,
             "max": 2,
@@ -17,8 +18,8 @@ class QueenPolicy:
             "defend_against_air": True,
             "defend_against_ground": False,
             "distance_between_existing_tumors": 10,
-          #   "should_tumors_block_expansions": bool,
-          #   "creep_targets": list[Point2],
+            # "should_tumors_block_expansions": False,
+            "creep_targets": self.paths,
           #   "spread_style": str, # "targeted" is default, or "random"
           #   "rally_point": Point2,
             "first_tumor_position": self.bot.start_location.towards(

@@ -1,8 +1,7 @@
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.unit import Unit
 from sc2.units import Units
-from collections import defaultdict
-import constants
+from queens_sc2.queens import Queens
 
 
 class MacroManager:
@@ -95,28 +94,22 @@ class MacroManager:
         ):
             larvae.random.unit.train(overlord)
 
-    # async def build_queens(self, queens: Queens) -> None:
-    #     """
-    #     If a pool exists and bot can afford build a queen.
+    async def build_queens(self, queens: Queens) -> None:
+        """
+        If a pool exists and bot can afford build a queen.
 
-    #     :params: list of Queens
-    #     """
-    #     """
-    #     If a pool exists and bot can afford build a queen.
-
-    #     :params: list of Queens
-    #     Queens object
-    #     """
-    #     queen_count: int = self.bot.units(UnitTypeId.QUEEN).amount
-    #     #hatches = dictops.get_values(self.structures, 'Hatchery')
+        :params: Queens object
+        """
+        queen_count: int = self.bot.units(UnitTypeId.QUEEN).amount
+        #hatches = dictops.get_values(self.structures, 'Hatchery')
         
-    #     cq = queens.policies.get('creep_policy').max_queens
-    #     dq = queens.policies.get('defence_policy').max_queens
-    #     iq = queens.policies.get('inject_policy').max_queens
+        cq: int = queens.policies.get('creep_policy').max_queens
+        dq: int = queens.policies.get('defence_policy').max_queens
+        iq: int = queens.policies.get('inject_policy').max_queens
 
-    #     if (queen_count + self.bot.already_pending(UnitTypeId.QUEEN)) < (cq+dq+iq):
-    #         if (self.structures.get('SpawningPool') != None):
-    #             if self.bot.can_afford(UnitTypeId.QUEEN):
-    #                 for hatchery in self.bot.townhalls.ready:
-    #                     if hatchery.is_idle:
-    #                         hatchery.train(UnitTypeId.QUEEN)
+        if (queen_count + self.bot.already_pending(UnitTypeId.QUEEN)) < (cq+dq+iq):
+            if (self.structures.get('SpawningPool') != None):
+                if self.bot.can_afford(UnitTypeId.QUEEN):
+                    for hatchery in self.bot.townhalls.ready:
+                        if hatchery.is_idle:
+                            hatchery.train(UnitTypeId.QUEEN)
