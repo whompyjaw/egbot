@@ -21,7 +21,6 @@ class EGbot(sc2.BotAI):
     def __init__(self):
         self.qp = None
         self.gm = GeneralManager(self)
-        self.logger = logging.getLogger()
         self.iteration = 0
         self.md = None
         self.queens = None
@@ -35,7 +34,8 @@ class EGbot(sc2.BotAI):
         enemy_hq = self.enemy_start_locations[0]
         self.paths = self.md.pathfind(hq, enemy_hq, self.grid_points)
         self.qp = QueenPolicy(self, self.paths)
-        self.queens = Queens(self, self.qp.get_policy())
+        policy = self.qp.get_policy()
+        self.queens = Queens(self, True, policy)
 
     async def on_step(self, iteration):
         self.iteration = iteration
@@ -73,7 +73,7 @@ def main():
     """Setting realtime=False makes the game/bot play as fast as possible"""
     run_game(
         maps.get("AbyssalReefLE"),
-        [Bot(Race.Zerg, EGbot())],
+        [Bot(Race.Zerg, EGbot()), Computer(Race.Terran, Difficulty.Easy)],
         realtime=False,
     )
 
