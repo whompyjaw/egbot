@@ -19,11 +19,11 @@ class QueenPolicy:
             "defend_against_ground": False,
             "distance_between_existing_tumors": 10,
             # "should_tumors_block_expansions": False,
-            "creep_targets": self.paths,
+            # "creep_targets": self.paths,
           #   "spread_style": str, # "targeted" is default, or "random"
           #   "rally_point": Point2,
             "first_tumor_position": self.bot.start_location.towards(
-                          self.bot.main_base_ramp.top_center, 10
+                          self.bot.main_base_ramp.top_center, 11
                       ),
           #   "prioritize_creep": Callable, # prioritize over defending bases if energy is available?
           #   "pass_own_threats": bool, # if set to True, library wont calculate enemy near bases, you should pass air and ground threats to manage_queens() method

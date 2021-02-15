@@ -14,6 +14,7 @@ class MacroManager:
         await self.build_overlords()
         await self.build_structures()
         await self.build_queens()
+        await self.bot.distribute_workers()
 
 
     async def build_structures(self) -> None:
