@@ -2,7 +2,4 @@ env/
 venv/
 .DS_Store
 .vscode/
-src/debug/__pychache__/
-src/managers/__pychache__/
-src/__pycache__/
-tests/__pycache__/
+__pycache__/
