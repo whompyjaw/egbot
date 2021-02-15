@@ -11,7 +11,7 @@ class Sc2Logger:
         wd = defaultdict()
         hq: Unit = bot.townhalls.first
         bases: Units = bot.townhalls.ready
-        bases.sorted_by_distance_to(bot.start_location)
+        bases = bases.sorted_by_distance_to(bot.start_location)
         num_hatch = 1
         for base in bases:
             num_gas = 1
