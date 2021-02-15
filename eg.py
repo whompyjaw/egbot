@@ -10,12 +10,12 @@ from queens_sc2.queens import Queens
 from queen_policy import QueenPolicy
 from logger import Sc2Logger
 
-# logging.basicConfig(
-#     level=logging.DEBUG,
-#     filename="egbot.log",
-#     datefmt="%d-%m-%y %H:%M:%S",
-#     format="%(asctime)s | %(levelname)s | %(funcName)s | ln:%(lineno)d | %(message)s",
-# )
+logging.basicConfig(
+    level=logging.DEBUG,
+    filename="egbot.log",
+    datefmt="%d-%m-%y %H:%M:%S",
+    format="%(asctime)s | %(levelname)s | %(funcName)s | ln:%(lineno)d | %(message)s",
+)
 
 
 class EGbot(sc2.BotAI):
@@ -45,7 +45,9 @@ class EGbot(sc2.BotAI):
             await self.chat_send("(glhf)")
         await self.gm.manage()
         await self.queens.manage_queens(iteration)
-        logging.info('Iteration: %s' % iteration)
+        # logging.info('Iteration: %s' % iteration)
+        if self.iteration % 100 == 0:
+            await self.log_info()
 
     async def on_before_start(self):
         mfs = self.mineral_field.closer_than(10, self.townhalls.random)
@@ -69,8 +71,8 @@ class EGbot(sc2.BotAI):
         pass
 
     async def log_info(self):
-        if self.iteration % 100 == 0:
-            logging.info(self.logger.get_worker_distribution(self))
+        res = await self.logger.log_worker_distribution(self)
+        logging.info(res)
 
 
 
