@@ -8,6 +8,7 @@ from genmgr import GeneralManager
 from MapAnalyzer import MapData
 from queens_sc2.queens import Queens
 from queen_policy import QueenPolicy
+from logger import Sc2Logger
 
 # logging.basicConfig(
 #     level=logging.DEBUG,
@@ -24,6 +25,7 @@ class EGbot(sc2.BotAI):
         self.iteration = 0
         self.md = None
         self.queens = None
+        self.logger = Sc2Logger()
 
     async def on_start(self):
         self.md = MapData(self)
@@ -65,6 +67,10 @@ class EGbot(sc2.BotAI):
 
     async def on_unit_type_changed(self, unit: Unit, previous_type: UnitTypeId):
         pass
+
+    async def log_info(self):
+        if self.iteration % 100 == 0:
+            logging.info(self.logger.get_worker_distribution(self))
 
 
 
