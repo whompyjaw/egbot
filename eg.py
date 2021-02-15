@@ -32,6 +32,9 @@ class EGbot(sc2.BotAI):
         # logic: thinking we find paths to enemy base and then spread creep via that
         # TODO: Would we pass the list of paths to queen policy?
         self.grid_points = self.md.get_pyastar_grid()
+
+        await self.control_enemy()
+
         hq = self.townhalls.first.position
         enemy_hq = self.enemy_start_locations[0]
         self.paths = self.md.pathfind(hq, enemy_hq, self.grid_points)
@@ -75,7 +78,8 @@ class EGbot(sc2.BotAI):
         logging.info(res)
 
 
-
+    async def control_enemy(self):
+        self.client.debug_control_enemy()
 
 def main():
     """Setting realtime=False makes the game/bot play as fast as possible"""
