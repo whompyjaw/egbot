@@ -16,8 +16,8 @@ class PathBot(sc2.BotAI):
      async def on_start(self):
           self.md = MapData(self)
           self.grid_points = self.md.get_pyastar_grid()
-          self.hq = self.townhalls.first.position
-          self.enemy_hq = self.enemy_start_locations[0]
+          self.hq = self.townhalls.first.position3d
+          self.enemy_hq = self.enemy_start_locations[0].to3
           self.paths = self.md.pathfind(self.hq, self.enemy_hq, self.grid_points)
           self.client.debug_text_simple('inside on_start')
           
