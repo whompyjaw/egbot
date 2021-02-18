@@ -29,9 +29,6 @@ class DebugQueen(sc2.BotAI):
         self.grid_points = self.md.get_pyastar_grid()
         hq = self.townhalls.first.position
         enemy_hq = self.enemy_start_locations[0]
-        self.qp = QueenPolicy(self, self.paths)
-        policy = self.qp.get_policy()
-        self.queens = Queens(self, True, policy)
 
 
     async def on_step(self, iteration):

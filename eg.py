@@ -42,6 +42,8 @@ class EGbot(sc2.BotAI):
         policy = self.qp.get_policy()
         self.queens = Queens(self, True, policy)
 
+   
+
     async def on_step(self, iteration):
         self.iteration = iteration
         if iteration == 0:
