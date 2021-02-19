@@ -19,7 +19,7 @@ class QueenPolicy:
             "defend_against_ground": False,
             "distance_between_existing_tumors": 10,
             # "should_tumors_block_expansions": False,
-            # "creep_targets": self.paths,
+            "creep_targets": self.paths,
           #   "spread_style": str, # "targeted" is default, or "random"
           #   "rally_point": Point2,
             "first_tumor_position": self.bot.start_location.towards(

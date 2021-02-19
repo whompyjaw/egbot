@@ -199,7 +199,7 @@ class Creep(BaseUnit):
         angle: int = randint(0, 360)
         pos: Point2 = from_pos + (distance * Point2((cos(angle), sin(angle))))
         # go backwards towards tumor till position is found
-        for i in range(5):
+        for i in range(8):
             creep_pos: Point2 = pos.towards(from_pos, distance=i)
             if self.bot.has_creep(creep_pos):
                 return creep_pos

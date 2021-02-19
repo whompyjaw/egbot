@@ -30,10 +30,13 @@ class PathBot(sc2.BotAI):
           # self.paths = self.md.pathfind(self.hq_pos, self.enemy_hq, self.grid_points)
           # self.md.plot_influenced_path(start=self.hq_pos, goal=self.enemy_hq, weight_array=self.grid_points)
           # self.md.show()
-
           expacs = self.expansion_locations_list
 
-          for loc in expacs[:3]:
+          close_expacs = [expac for expac in expacs if self.distance_math_hypot(expac, self.hq_pos) < 50.0]
+
+          enemy_expacs = [expac for expac in expacs if self.distance_math_hypot(expac, self.enemy_hq) < 50.0]
+
+          for loc in enemy_expacs:
                if self.hq_pos == loc:
                     continue
                # path = self.md.pathfind(self.hq_pos, loc, self.grid_points)
