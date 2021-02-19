@@ -1,4 +1,4 @@
-import sys, os
+mport sys, os
 from contextlib import suppress
 import sc2
 import logging

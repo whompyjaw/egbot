@@ -37,7 +37,14 @@ class EGbot(sc2.BotAI):
 
         hq = self.townhalls.first.position
         enemy_hq = self.enemy_start_locations[0]
-        self.paths = self.md.pathfind(hq, enemy_hq, self.grid_points, sensitivity=4)
+        creep_locs = self.expansion_locations_list
+
+        for loc in creep_locs[:5]:
+            if loc == hq:
+                continue
+            
+            self.paths = self.md.pathfind(hq, loc, self.grid_points, sensitivity = 7)
+
         self.qp = QueenPolicy(self, self.paths)
         policy = self.qp.get_policy()
         self.queens = Queens(self, True, policy)
