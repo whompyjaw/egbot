@@ -232,11 +232,12 @@ class MapAnalyzerDebugger:
         if name is None:
             name = self.map_data.map_name
         arr = weight_array.copy()
+        bob
         path = self.map_data.pathfind(start, goal,
                                         grid=arr,
                                         large=large,
                                         smoothing=smoothing,
-                                        sensitivity=1)
+                                        sensitivity=20)
         ax: plt.Axes = plt.subplot(1, 1, 1)
         if path is not None:
             path = np.flipud(path)  # for plot align

@@ -6,7 +6,7 @@ from sc2.unit import Unit
 import logging
 from genmgr import GeneralManager
 from MapAnalyzer import MapData
-from queens_sc2.queens import Queens
+from queens_sc2.queens import INJECT_POLICY, Queens
 from queen_policy import QueenPolicy
 from logger import Sc2Logger
 
@@ -37,10 +37,11 @@ class EGbot(sc2.BotAI):
 
         hq = self.townhalls.first.position
         enemy_hq = self.enemy_start_locations[0]
-        self.paths = self.md.pathfind(hq, enemy_hq, self.grid_points)
+        self.paths = self.md.pathfind(hq, enemy_hq, self.grid_points, sensitivity=4)
         self.qp = QueenPolicy(self, self.paths)
         policy = self.qp.get_policy()
         self.queens = Queens(self, True, policy)
+        self.inject_queens = Queens(self, True, INJECT_POLICY)
 
    
 
@@ -50,6 +51,7 @@ class EGbot(sc2.BotAI):
             await self.chat_send("(glhf)")
         await self.gm.manage()
         await self.queens.manage_queens(iteration)
+        await self.inject_queens.manage_queens(iteration)
         # logging.info('Iteration: %s' % iteration)
         if self.iteration % 100 == 0:
             await self.log_info()

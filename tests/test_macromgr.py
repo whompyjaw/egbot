@@ -2,9 +2,12 @@ import unittest
 from unittest import mock
 from eg import EGbot, main
 
-class TestUnitManager(unittest.TestCase):
+from sc2.renderer import Renderer
+
+class TestMacroManager(unittest.TestCase):
     def setUp(self):
         self.eg = EGbot()
+        self.renderer = Renderer()
 
     def test_add_unit(self):
         """_initialize_variables
@@ -13,6 +16,7 @@ class TestUnitManager(unittest.TestCase):
         sharpy mockbot also calls this
         """
         # main()
+        self.renderer.render()
         self.eg._initialize_variables()
         self.eg.state = mock.Mock()
         self.eg.state.game_loop = mock.Mock()

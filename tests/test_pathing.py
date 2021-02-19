@@ -7,6 +7,10 @@ from sc2 import run_game, maps, Race, Difficulty
 from sc2.player import Bot, Computer
 from sc2.position import Point3
 
+import sys
+
+sys.path.insert(1, "MapAnalyzer")
+
 from MapAnalyzer import MapData
 
 
@@ -26,7 +30,7 @@ class PathBot(sc2.BotAI):
 
 
      def plot_paths(self):
-          self.grid_points = self.md.get_pyastar_grid(default_weight=1.5)
+          self.grid_points = self.md.get_pyastar_grid()
           # self.paths = self.md.pathfind(self.hq_pos, self.enemy_hq, self.grid_points)
           # self.md.plot_influenced_path(start=self.hq_pos, goal=self.enemy_hq, weight_array=self.grid_points)
           # self.md.show()
@@ -38,6 +42,12 @@ class PathBot(sc2.BotAI):
                     continue
                # path = self.md.pathfind(self.hq_pos, loc, self.grid_points)
                self.md.plot_influenced_path(self.hq_pos, loc, self.grid_points)
+               # sens4 = set(self.md.pathfind(self.hq_pos, loc, self.grid_points, sensitivity=4))
+               # sens1 = set(self.md.pathfind(self.hq_pos, loc, self.grid_points))
+
+               # res = sens4.difference(sens1)
+               # same = sens4.intersection(sens1)
+
           
           self.md.show()
 
