@@ -49,6 +49,13 @@ class EGbot(sc2.BotAI):
             path = self.md.pathfind(self.hq_pos, loc, self.grid_points, sensitivity=7)
             self.ally_expac_paths.extend(path)
 
+
+        #confusing list comprehension - creating a new list of unique Point2 objects by looping through 
+        # self.ally_expac_paths, casting the overall product as a set and casting each item within 
+        #self.ally_expac_paths as a Point2.  Then a 3rd cast... the actual list comprehension itself
+        #casts the result back to a list: Filtered_expac_list.  So any Point2s that were duplicates
+        #across the paths we passed in are now removed; also the whole list is a list of Point2s now
+        #which does correct the issue as Raspers code was expecting a Point2.
         filtered_expac_list = [pos for pos in (set(Point2(i) for i in self.ally_expac_paths))]
 
         self.qp = QueenPolicy(self, filtered_expac_list)
