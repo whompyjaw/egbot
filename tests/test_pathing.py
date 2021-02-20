@@ -62,23 +62,23 @@ class PathBot(sc2.BotAI):
           
           self.md.show()
 
-          for x in close_expac_list[second:]:
-               loc = x[1]
-               if self.hq_pos == loc:
-                    continue
-               # path = self.md.pathfind(self.hq_pos, loc, self.grid_points)
-               self.md.plot_influenced_path(self.hq_pos, loc, self.grid_points)
-               # sens4 = set(self.md.pathfind(self.hq_pos, loc, self.grid_points, sensitivity=4))
-               # sens1 = set(self.md.pathfind(self.hq_pos, loc, self.grid_points))
+          # for x in close_expac_list[second:]:
+          #      loc = x[1]
+          #      if self.hq_pos == loc:
+          #           continue
+          #      # path = self.md.pathfind(self.hq_pos, loc, self.grid_points)
+          #      self.md.plot_influenced_path(self.hq_pos, loc, self.grid_points)
+          #      # sens4 = set(self.md.pathfind(self.hq_pos, loc, self.grid_points, sensitivity=4))
+          #      # sens1 = set(self.md.pathfind(self.hq_pos, loc, self.grid_points))
 
-               # res = sens4.difference(sens1)
-               # same = sens4.intersection(sens1)
-          self.md.show()
+          #      # res = sens4.difference(sens1)
+          #      # same = sens4.intersection(sens1)
+          # self.md.show()
 
 
-          # TODO: Get paths between expansions.
-          self.md.plot_influenced_path(close_expac_list[4][1], close_expac_list[12][1], self.grid_points)
-          self.md.show()
+          # # TODO: Get paths between expansions.
+          # self.md.plot_influenced_path(close_expac_list[4][1], close_expac_list[12][1], self.grid_points)
+          # self.md.show()
 
      async def on_step(self, iteration):
           if iteration == 0:

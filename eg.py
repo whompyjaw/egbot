@@ -37,6 +37,10 @@ class EGbot(sc2.BotAI):
         expacs = self.expansion_locations_list
         self.sorted_expacs = sorted(self.get_distances(self.hq_pos, expacs), key=lambda x:x[0])
         self.ally_expac_paths = []
+        self.enemy_expac_paths = []
+        self.total_paths = []
+        self.creep_target_list = []
+        self.filtered_expac_list = []
         
         first_half = int(len(expacs) / 2)
         second_half = len(expacs) - first_half
@@ -49,16 +53,23 @@ class EGbot(sc2.BotAI):
             path = self.md.pathfind(self.hq_pos, loc, self.grid_points, sensitivity=7)
             self.ally_expac_paths.extend(path)
 
+        for x in self.sorted_expacs[14:]:
+            loc = x[1]
+            if self.hq_pos == loc:
+                continue
+            # path = self.md.pathfind(self.hq_pos, loc, self.grid_points)
+            path = self.md.pathfind(self.hq_pos, loc, self.grid_points, sensitivity=7)
+            self.enemy_expac_paths.extend(path)
 
-        #confusing list comprehension - creating a new list of unique Point2 objects by looping through 
-        # self.ally_expac_paths, casting the overall product as a set and casting each item within 
-        #self.ally_expac_paths as a Point2.  Then a 3rd cast... the actual list comprehension itself
-        #casts the result back to a list: Filtered_expac_list.  So any Point2s that were duplicates
-        #across the paths we passed in are now removed; also the whole list is a list of Point2s now
-        #which does correct the issue as Raspers code was expecting a Point2.
-        filtered_expac_list = [pos for pos in (set(Point2(i) for i in self.ally_expac_paths))]
+        self.total_paths = self.ally_expac_paths + self.enemy_expac_paths
 
-        self.qp = QueenPolicy(self, filtered_expac_list)
+        self.filtered_expac_list = [pos for pos in (set(Point2(i) for i in self.total_paths))]
+
+        for pos in self.filtered_expac_list:
+            if not self.has_creep(pos):
+                self.creep_target_list.append(pos)
+
+        self.qp = QueenPolicy(self, self.creep_target_list)
         policy = self.qp.get_policy()
         self.queens = Queens(self, True, policy)
 
@@ -69,6 +80,7 @@ class EGbot(sc2.BotAI):
             await self.chat_send("(glhf)")
         await self.gm.manage()
         await self.queens.manage_queens(iteration)
+        await self.update_creep(iteration)
         # logging.info('Iteration: %s' % iteration)
         if self.iteration % 100 == 0:
             await self.log_info()
@@ -83,11 +95,18 @@ class EGbot(sc2.BotAI):
 
         return dist_list
 
+    async def update_creep(self, iteration):
+        self.target_list = []
 
+        if iteration % 120 == 0:
+            for pos in self.creep_target_list:
+                if not self.has_creep(pos):
+                    self.target_list.append(pos)
 
-
-            
-            
+            self.queens.update_creep_targets(self.target_list)
+        
+        else:
+            pass
 
     async def on_before_start(self):
         mfs = self.mineral_field.closer_than(10, self.townhalls.random)

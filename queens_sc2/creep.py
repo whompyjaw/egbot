@@ -129,6 +129,7 @@ class Creep(BaseUnit):
             self.creep_target_index += 1
 
     async def spread_existing_tumors(self):
+        pass
         tumors: Units = self.bot.structures.filter(
             lambda s: s.type_id == UnitID.CREEPTUMORBURROWED
             and s.tag not in self.used_tumors
