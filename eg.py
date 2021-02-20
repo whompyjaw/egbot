@@ -2,12 +2,14 @@ import sc2
 from sc2 import run_game, maps, Race, Difficulty
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.player import Bot, Computer
+from sc2.position import Point2
 from sc2.unit import Unit
 import logging
 from genmgr import GeneralManager
 from MapAnalyzer import MapData
-from queens_sc2.queens import INJECT_POLICY, Queens
+from queens_sc2.queens import Queens
 from queen_policy import QueenPolicy
+
 from logger import Sc2Logger
 
 logging.basicConfig(
@@ -29,27 +31,30 @@ class EGbot(sc2.BotAI):
 
     async def on_start(self):
         self.md = MapData(self)
-        # logic: thinking we find paths to enemy base and then spread creep via that
-        # TODO: Would we pass the list of paths to queen policy?
+        #self.gm.setup_queen_policy()
+        self.hq_pos = self.townhalls.first.position
         self.grid_points = self.md.get_pyastar_grid()
+        expacs = self.expansion_locations_list
+        self.sorted_expacs = sorted(self.get_distances(self.hq_pos, expacs), key=lambda x:x[0])
+        self.ally_expac_paths = []
+        
+        first_half = int(len(expacs) / 2)
+        second_half = len(expacs) - first_half
 
-        await self.control_enemy()
-
-        hq = self.townhalls.first.position
-        enemy_hq = self.enemy_start_locations[0]
-        creep_locs = self.expansion_locations_list
-
-        for loc in creep_locs[:5]:
-            if loc == hq:
+        for x in self.sorted_expacs[:first_half]:
+            loc = x[1]
+            if self.hq_pos == loc:
                 continue
-            
-            self.paths = self.md.pathfind(hq, loc, self.grid_points, sensitivity = 7)
+            # path = self.md.pathfind(self.hq_pos, loc, self.grid_points)
+            path = self.md.pathfind(self.hq_pos, loc, self.grid_points, sensitivity=7)
+            self.ally_expac_paths.extend(path)
 
-        self.qp = QueenPolicy(self, self.paths)
+        filtered_expac_list = [pos for pos in (set(Point2(i) for i in self.ally_expac_paths))]
+
+        self.qp = QueenPolicy(self, filtered_expac_list)
         policy = self.qp.get_policy()
         self.queens = Queens(self, True, policy)
 
-   
 
     async def on_step(self, iteration):
         self.iteration = iteration
@@ -60,6 +65,22 @@ class EGbot(sc2.BotAI):
         # logging.info('Iteration: %s' % iteration)
         if self.iteration % 100 == 0:
             await self.log_info()
+
+
+    def get_distances(self, point, iterable: list) -> list:
+        dist_list = []
+
+        for x in iterable:
+            dist = self.distance_math_hypot(x, point)
+            dist_list.append(tuple([dist, x]))
+
+        return dist_list
+
+
+
+
+            
+            
 
     async def on_before_start(self):
         mfs = self.mineral_field.closer_than(10, self.townhalls.random)

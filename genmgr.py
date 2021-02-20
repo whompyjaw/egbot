@@ -1,18 +1,28 @@
+# from creepmgr import CreepManager
 from combatmgr import CombatManager
 from macromgr import MacroManager
-from combatmgr import CombatManager
+from queens_sc2.queens import Queens
+from queen_policy import QueenPolicy
+from MapAnalyzer import MapData
 
 
 class GeneralManager:
     def __init__(self, bot) -> None:
+        self.bot = bot
         self.mm = MacroManager(bot)
         self.cm = CombatManager(bot)
+        # self.cp = CreepManager(bot)
 
     async def manage(self) -> None:
         await self.mm.manage()
         await self.cm.manage()
 
-
+    # async def setup_queen_policy(self):
+    #     self.md = MapData(self)
+    #     self.cp.setup_paths()
+    #     self.qp = QueenPolicy(self, self.cp.ally_expac_paths)
+    #     policy = self.qp.get_policy()
+    #     self.bot.queens = Queens(self, True, policy)
 
 # def get_pos_around_unit(
 #     self, unit, min_range=0, max_range=500, step_size=1, loc_amt=32
