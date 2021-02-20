@@ -48,7 +48,6 @@ class EGbot(sc2.BotAI):
         self.qp = QueenPolicy(self, self.paths)
         policy = self.qp.get_policy()
         self.queens = Queens(self, True, policy)
-        self.inject_queens = Queens(self, True, INJECT_POLICY)
 
    
 
@@ -58,7 +57,6 @@ class EGbot(sc2.BotAI):
             await self.chat_send("(glhf)")
         await self.gm.manage()
         await self.queens.manage_queens(iteration)
-        await self.inject_queens.manage_queens(iteration)
         # logging.info('Iteration: %s' % iteration)
         if self.iteration % 100 == 0:
             await self.log_info()

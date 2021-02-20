@@ -14,7 +14,6 @@ from queens_sc2.policy import Policy
 
 TARGETED_CREEP_SPREAD = "TARGETED"
 
-
 class Creep(BaseUnit):
     creep_map: np.ndarray
     no_creep_map: np.ndarray

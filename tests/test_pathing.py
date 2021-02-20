@@ -44,7 +44,11 @@ class PathBot(sc2.BotAI):
           a specific path via a specific queen policy.  
           '''
 
-          for x in close_expac_list[:7]:
+          first_half = int(len(expacs) / 2)
+          second = len(expacs) - first_half
+
+
+          for x in close_expac_list[:first_half]:
                loc = x[1]
                if self.hq_pos == loc:
                     continue
@@ -55,8 +59,25 @@ class PathBot(sc2.BotAI):
 
                # res = sens4.difference(sens1)
                # same = sens4.intersection(sens1)
-
           
+          self.md.show()
+
+          for x in close_expac_list[second:]:
+               loc = x[1]
+               if self.hq_pos == loc:
+                    continue
+               # path = self.md.pathfind(self.hq_pos, loc, self.grid_points)
+               self.md.plot_influenced_path(self.hq_pos, loc, self.grid_points)
+               # sens4 = set(self.md.pathfind(self.hq_pos, loc, self.grid_points, sensitivity=4))
+               # sens1 = set(self.md.pathfind(self.hq_pos, loc, self.grid_points))
+
+               # res = sens4.difference(sens1)
+               # same = sens4.intersection(sens1)
+          self.md.show()
+
+
+          # TODO: Get paths between expansions.
+          self.md.plot_influenced_path(close_expac_list[4][1], close_expac_list[12][1], self.grid_points)
           self.md.show()
 
      async def on_step(self, iteration):
@@ -66,7 +87,7 @@ class PathBot(sc2.BotAI):
 
                
           # self.client.debug_line_out(self.hq_pos3, self.enemy_hq_pos3, color=(255, 255, 255))
-     def get_distances(self, point, iterable: list):
+     def get_distances(self, point, iterable: list) -> list:
           dist_list = []
 
           for x in iterable:
