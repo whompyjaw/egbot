@@ -5,12 +5,10 @@ from sc2.position import Point2
 
 class QueenPolicy:
 
-  def __init__(self, bot, paths: List[Point2]):
+  def __init__(self, bot, targets: List[Point2]):
     self.bot = bot
-    self.paths = paths
-
-  def get_policy(self) -> dict:
-      queen_policy: dict = {
+    self.targets = targets
+    self.queen_policy: dict = {
         "creep_queens": {
             "active": True,
             "max": 4,
@@ -19,7 +17,7 @@ class QueenPolicy:
             "defend_against_ground": False,
             "distance_between_existing_tumors": 10,
             # "should_tumors_block_expansions": False,
-            "creep_targets": self.paths,
+            "creep_targets": self.targets,
           #   "spread_style": str, # "targeted" is default, or "random"
           #   "rally_point": Point2,
             "first_tumor_position": self.bot.start_location.towards(
@@ -66,4 +64,6 @@ class QueenPolicy:
           #             },
           },
       }
-      return queen_policy
+
+  def set_creep_targets(self, targets):
+    self.queen_policy['creep_targets'] = targets

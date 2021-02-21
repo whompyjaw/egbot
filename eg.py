@@ -38,12 +38,15 @@ class EGbot(sc2.BotAI):
         self.sorted_expacs = sorted(self.get_distances(self.hq_pos, expacs), key=lambda x:x[0])
         self.ally_expac_paths = []
         self.enemy_expac_paths = []
-        self.total_paths = []
+        self.paths = []
         self.creep_target_list = []
         self.filtered_expac_list = []
         
         first_half = int(len(expacs) / 2)
         second_half = len(expacs) - first_half
+
+        self.qp = QueenPolicy(self, self.creep_target_list)
+        self.queens = Queens(self, True, self.qp.queen_policy)
 
         for x in self.sorted_expacs[:first_half]:
             loc = x[1]
@@ -61,17 +64,7 @@ class EGbot(sc2.BotAI):
             path = self.md.pathfind(self.hq_pos, loc, self.grid_points, sensitivity=7)
             self.enemy_expac_paths.extend(path)
 
-        self.total_paths = self.ally_expac_paths + self.enemy_expac_paths
 
-        self.filtered_expac_list = [pos for pos in (set(Point2(i) for i in self.total_paths))]
-
-        for pos in self.filtered_expac_list:
-            if not self.has_creep(pos):
-                self.creep_target_list.append(pos)
-
-        self.qp = QueenPolicy(self, self.creep_target_list)
-        policy = self.qp.get_policy()
-        self.queens = Queens(self, True, policy)
 
 
     async def on_step(self, iteration):
@@ -80,7 +73,8 @@ class EGbot(sc2.BotAI):
             await self.chat_send("(glhf)")
         await self.gm.manage()
         await self.queens.manage_queens(iteration)
-        await self.update_creep(iteration)
+        if iteration % 120 == 0:
+            await self.update_creep()
         # logging.info('Iteration: %s' % iteration)
         if self.iteration % 100 == 0:
             await self.log_info()
@@ -95,18 +89,24 @@ class EGbot(sc2.BotAI):
 
         return dist_list
 
-    async def update_creep(self, iteration):
-        self.target_list = []
-
-        if iteration % 120 == 0:
-            for pos in self.creep_target_list:
-                if not self.has_creep(pos):
-                    self.target_list.append(pos)
-
-            self.queens.update_creep_targets(self.target_list)
-        
+    async def update_creep(self):
+        if self.queens.creep.creep_coverage <= 50.0: 
+            self.paths = self.ally_expac_paths 
         else:
-            pass
+            self.paths = self.enemy_expac_paths
+
+        self.filtered_expac_list = [pos for pos in (set(Point2(i) for i in self.paths))]
+        # if no creep, don't include
+        for pos in self.filtered_expac_list:
+            # TODO: if pos is not within 10 units of tumor
+            if not self.has_creep(pos):
+                self.creep_target_list.append(pos)
+        target_list = []
+        for pos in self.creep_target_list:
+            if not self.has_creep(pos):
+                target_list.append(pos)
+
+        self.queens.update_creep_targets(target_list)
 
     async def on_before_start(self):
         mfs = self.mineral_field.closer_than(10, self.townhalls.random)
