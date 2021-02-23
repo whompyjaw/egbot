@@ -9,6 +9,7 @@ from genmgr import GeneralManager
 from MapAnalyzer import MapData
 from queens_sc2.queens import Queens
 from queen_policy import QueenPolicy
+from random import shuffle
 
 from logger import Sc2Logger
 
@@ -103,6 +104,8 @@ class EGbot(sc2.BotAI):
             # TODO: if pos is not within 10 units of tumor
             if not self.has_creep(pos):
                 target_list.append(pos)
+
+        shuffle(target_list)
 
         if target_list:
             self.queens.update_creep_targets(target_list)
