@@ -41,6 +41,8 @@ class EGbot(sc2.BotAI):
         self.paths = []
         self.creep_target_list = []
         self.filtered_expac_list = []
+        self.ally_expac_paths_set = False
+        self.enemy_expac_paths_set = False
         
         first_half = int(len(expacs) / 2)
         second_half = len(expacs) - first_half
@@ -52,19 +54,15 @@ class EGbot(sc2.BotAI):
             loc = x[1]
             if self.hq_pos == loc:
                 continue
-            # path = self.md.pathfind(self.hq_pos, loc, self.grid_points)
             path = self.md.pathfind(self.hq_pos, loc, self.grid_points, sensitivity=7)
             self.ally_expac_paths.extend(path)
 
-        for x in self.sorted_expacs[14:]:
+        for x in self.sorted_expacs[second_half:]:
             loc = x[1]
             if self.hq_pos == loc:
                 continue
-            # path = self.md.pathfind(self.hq_pos, loc, self.grid_points)
             path = self.md.pathfind(self.hq_pos, loc, self.grid_points, sensitivity=7)
             self.enemy_expac_paths.extend(path)
-
-
 
 
     async def on_step(self, iteration):
@@ -75,38 +73,39 @@ class EGbot(sc2.BotAI):
         await self.queens.manage_queens(iteration)
         if iteration % 120 == 0:
             await self.update_creep()
-        # logging.info('Iteration: %s' % iteration)
-        if self.iteration % 100 == 0:
             await self.log_info()
+                    
 
 
-    def get_distances(self, point, iterable: list) -> list:
-        dist_list = []
+    def get_distances(self, start: Point2, targets: list) -> list:
+        distances_to_target = []
 
-        for x in iterable:
-            dist = self.distance_math_hypot(x, point)
-            dist_list.append(tuple([dist, x]))
+        for target in targets:
+            dist = self.distance_math_hypot(start, target)
+            distances_to_target.append([dist, target])
 
-        return dist_list
+        return distances_to_target
 
     async def update_creep(self):
-        if self.queens.creep.creep_coverage <= 50.0: 
-            self.paths = self.ally_expac_paths 
-        else:
+        # TODO: Need to figure out how to not 
+        if not self.ally_expac_paths_set:
+            self.ally_expac_paths_set = True
+            self.paths = self.ally_expac_paths
+            self.paths = set(self.paths)  # remove dups
+        elif not self.enemy_expac_paths_set and self.queens.creep.creep_coverage >= 45.0:
+            self.enemy_expac_paths_set = True
             self.paths = self.enemy_expac_paths
+            self.paths = set(self.paths)  # remove dups
 
-        self.filtered_expac_list = [pos for pos in (set(Point2(i) for i in self.paths))]
-        # if no creep, don't include
-        for pos in self.filtered_expac_list:
-            # TODO: if pos is not within 10 units of tumor
-            if not self.has_creep(pos):
-                self.creep_target_list.append(pos)
+        
         target_list = []
-        for pos in self.creep_target_list:
+        for pos in self.paths:
+            # TODO: if pos is not within 10 units of tumor
             if not self.has_creep(pos):
                 target_list.append(pos)
 
-        self.queens.update_creep_targets(target_list)
+        if target_list:
+            self.queens.update_creep_targets(target_list)
 
     async def on_before_start(self):
         mfs = self.mineral_field.closer_than(10, self.townhalls.random)
