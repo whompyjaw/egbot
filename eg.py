@@ -12,7 +12,6 @@ from queen_policy import QueenPolicy
 from random import shuffle
 from typing import Union
 from numpy import ndarray
-
 from logger import Sc2Logger
 
 logging.basicConfig(
@@ -42,6 +41,8 @@ class EGbot(sc2.BotAI):
         self.sorted_expacs = []
         self.grid_points = []
         self.hq_pos = (0, 0)
+        self.splice = 0
+        self.section_size = 0
 
     async def on_start(self):
         self.md = MapData(self)
@@ -93,16 +94,22 @@ class EGbot(sc2.BotAI):
     async def update_creep(self):
         if not self.ally_expac_paths_set:
             self.ally_expac_paths_set = True
-            self.paths = self.ally_expac_paths
-            self.paths = set(self.paths)  # remove dups
+            self.paths = list(set(self.ally_expac_paths))
+            self.section_size = int(len(self.paths) / 3)
         elif not self.enemy_expac_paths_set and self.queens.creep.creep_coverage >= 45.0:
             self.enemy_expac_paths_set = True
-            self.paths = self.enemy_expac_paths
-            self.paths = set(self.paths)  # remove dups
+            self.paths = list(set(self.enemy_expac_paths))
+            self.section_size = int(len(self.paths) / 3)
+
+
+        if self.splice >= len(self.paths):
+            self.splice = 0
+        paths = self.paths[self.splice : self.splice + self.section_size]
+        self.splice += self.section_size
 
         target_list = []
-        for pos in self.paths:
-            # TODO: if pos is not within 10 units of tumor
+        for pos in paths:
+            # TODO: if pos is not within 10 units of tumor etc
             if not self.has_creep(pos):
                 target_list.append(pos)
 
