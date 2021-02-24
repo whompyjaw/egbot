@@ -9,6 +9,9 @@ from genmgr import GeneralManager
 from MapAnalyzer import MapData
 from queens_sc2.queens import Queens
 from queen_policy import QueenPolicy
+from random import shuffle
+from typing import Union
+from numpy import ndarray
 
 from logger import Sc2Logger
 
@@ -22,20 +25,13 @@ logging.basicConfig(
 
 class EGbot(sc2.BotAI):
     def __init__(self):
+        super().__init__()
         self.qp = None
         self.gm = GeneralManager(self)
         self.iteration = 0
         self.md = None
         self.queens = None
         self.logger = Sc2Logger()
-
-    async def on_start(self):
-        self.md = MapData(self)
-        #self.gm.setup_queen_policy()
-        self.hq_pos = self.townhalls.first.position
-        self.grid_points = self.md.get_pyastar_grid()
-        expacs = self.expansion_locations_list
-        self.sorted_expacs = sorted(self.get_distances(self.hq_pos, expacs), key=lambda x:x[0])
         self.ally_expac_paths = []
         self.enemy_expac_paths = []
         self.paths = []
@@ -43,7 +39,18 @@ class EGbot(sc2.BotAI):
         self.filtered_expac_list = []
         self.ally_expac_paths_set = False
         self.enemy_expac_paths_set = False
-        
+        self.sorted_expacs = []
+        self.grid_points = []
+        self.hq_pos = (0, 0)
+
+    async def on_start(self):
+        self.md = MapData(self)
+        # self.gm.setup_queen_policy()
+        self.hq_pos: Point2 = self.townhalls.first.position
+        self.grid_points: Union[ndarray, ndarray] = self.md.get_pyastar_grid()
+        expacs = self.expansion_locations_list
+        self.sorted_expacs = sorted(self.get_distances(self.hq_pos, expacs), key=lambda expac: expac[0])
+
         first_half = int(len(expacs) / 2)
         second_half = len(expacs) - first_half
 
@@ -64,7 +71,6 @@ class EGbot(sc2.BotAI):
             path = self.md.pathfind(self.hq_pos, loc, self.grid_points, sensitivity=7)
             self.enemy_expac_paths.extend(path)
 
-
     async def on_step(self, iteration):
         self.iteration = iteration
         if iteration == 0:
@@ -74,8 +80,6 @@ class EGbot(sc2.BotAI):
         if iteration % 120 == 0:
             await self.update_creep()
             await self.log_info()
-                    
-
 
     def get_distances(self, start: Point2, targets: list) -> list:
         distances_to_target = []
@@ -87,7 +91,6 @@ class EGbot(sc2.BotAI):
         return distances_to_target
 
     async def update_creep(self):
-        # TODO: Need to figure out how to not 
         if not self.ally_expac_paths_set:
             self.ally_expac_paths_set = True
             self.paths = self.ally_expac_paths
@@ -97,12 +100,13 @@ class EGbot(sc2.BotAI):
             self.paths = self.enemy_expac_paths
             self.paths = set(self.paths)  # remove dups
 
-        
         target_list = []
         for pos in self.paths:
             # TODO: if pos is not within 10 units of tumor
             if not self.has_creep(pos):
                 target_list.append(pos)
+
+        shuffle(target_list)
 
         if target_list:
             self.queens.update_creep_targets(target_list)
@@ -132,9 +136,9 @@ class EGbot(sc2.BotAI):
         res = await self.logger.log_worker_distribution(self)
         logging.info(res)
 
-
     async def control_enemy(self):
         self.client.debug_control_enemy()
+
 
 def main():
     """Setting realtime=False makes the game/bot play as fast as possible"""
@@ -144,7 +148,6 @@ def main():
         realtime=False,
     )
 
+
 if __name__ == "__main__":
     main()
-
-
