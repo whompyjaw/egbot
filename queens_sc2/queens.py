@@ -375,9 +375,20 @@ class Queens:
             lambda s: s.type_id == UnitID.CREEPTUMORBURROWED
             and s.tag not in self.creep.used_tumors
         )
+
+        # if tumors:
+        #     for tumor in tumors:
+        #         x = str(tumor.position.x)
+        #         y = str(tumor.position.y)
+        #         xy = x + ',' + y
+        #         self._draw_on_world(tumor.position, xy)
+        tumors = self.bot.structures.filter(lambda s: s.type_id == UnitID.CREEPTUMORBURROWED)
         if tumors:
             for tumor in tumors:
-                self._draw_on_world(tumor.position, f"TUMOR")
+                x = str(tumor.position.x)
+                y = str(tumor.position.y)
+                xy = x + ',' + y
+                self._draw_on_world(tumor.position, xy)
 
     def _draw_on_world(self, pos: Point2, text: str) -> None:
         z_height: float = self.bot.get_terrain_z_height(pos)

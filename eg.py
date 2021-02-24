@@ -72,15 +72,22 @@ class EGbot(sc2.BotAI):
             path = self.md.pathfind(self.hq_pos, loc, self.grid_points, sensitivity=7)
             self.enemy_expac_paths.extend(path)
 
+        self.paths = list(set(self.enemy_expac_paths))
+        self.section_size = int(len(self.paths) / 3)
+
     async def on_step(self, iteration):
         self.iteration = iteration
         if iteration == 0:
             await self.chat_send("(glhf)")
         await self.gm.manage()
+        if iteration % 60 == 0 and self.units(UnitTypeId.QUEEN):
+            # TODO: and if at least 1 queen exists
+            await self.update_creep()
         await self.queens.manage_queens(iteration)
         if iteration % 120 == 0:
-            await self.update_creep()
             await self.log_info()
+
+            
 
     def get_distances(self, start: Point2, targets: list) -> list:
         distances_to_target = []
@@ -92,14 +99,14 @@ class EGbot(sc2.BotAI):
         return distances_to_target
 
     async def update_creep(self):
-        if not self.ally_expac_paths_set:
-            self.ally_expac_paths_set = True
-            self.paths = list(set(self.ally_expac_paths))
-            self.section_size = int(len(self.paths) / 3)
-        elif not self.enemy_expac_paths_set and self.queens.creep.creep_coverage >= 45.0:
-            self.enemy_expac_paths_set = True
-            self.paths = list(set(self.enemy_expac_paths))
-            self.section_size = int(len(self.paths) / 3)
+        # if not self.ally_expac_paths_set:
+        #     self.ally_expac_paths_set = True
+        #     self.paths = list(set(self.ally_expac_paths))
+        #     self.section_size = int(len(self.paths) / 3)
+        # elif not self.enemy_expac_paths_set and self.queens.creep.creep_coverage >= 45.0:
+        #     self.enemy_expac_paths_set = True
+        #     self.paths = list(set(self.enemy_expac_paths))
+        #     self.section_size = int(len(self.paths) / 3)
 
 
         if self.splice >= len(self.paths):
@@ -113,7 +120,7 @@ class EGbot(sc2.BotAI):
             if not self.has_creep(pos):
                 target_list.append(pos)
 
-        shuffle(target_list)
+        # shuffle(target_list)
 
         if target_list:
             self.queens.update_creep_targets(target_list)
@@ -152,7 +159,7 @@ def main():
     run_game(
         maps.get("AbyssalReefLE"),
         [Bot(Race.Zerg, EGbot()), Computer(Race.Terran, Difficulty.Easy)],
-        realtime=False,
+        realtime=True,
     )
 
 
