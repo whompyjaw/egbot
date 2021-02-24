@@ -137,7 +137,7 @@ class EGbot(sc2.BotAI):
         logging.info(res)
 
     async def control_enemy(self):
-        self.client.debug_control_enemy()
+        await self.client.debug_control_enemy()
 
 
 def main():
