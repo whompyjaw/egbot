@@ -28,102 +28,19 @@ class EGbot(sc2.BotAI):
         self.qp = None
         self.gm = GeneralManager(self)
         self.iteration = 0
-        self.md = None
-        self.queens = None
         self.logger = Sc2Logger()
-        self.ally_expac_paths = []
-        self.enemy_expac_paths = []
-        self.paths = []
-        self.creep_target_list = []
-        self.filtered_expac_list = []
-        self.ally_expac_paths_set = False
-        self.enemy_expac_paths_set = False
-        self.sorted_expacs = []
-        self.grid_points = []
-        self.hq_pos = (0, 0)
-        self.splice = 0
-        self.section_size = 0
+
 
     async def on_start(self):
-        self.md = MapData(self)
-        # self.gm.setup_queen_policy()
-        self.hq_pos: Point2 = self.townhalls.first.position
-        self.grid_points: Union[ndarray, ndarray] = self.md.get_pyastar_grid()
-        expacs = self.expansion_locations_list
-        self.sorted_expacs = sorted(self.get_distances(self.hq_pos, expacs), key=lambda expac: expac[0])
-
-        first_half = int(len(expacs) / 2)
-        second_half = len(expacs) - first_half
-
-        self.qp = QueenPolicy(self, self.creep_target_list)
-        self.queens = Queens(self, True, self.qp.queen_policy)
-
-        for x in self.sorted_expacs[:first_half]:
-            loc = x[1]
-            if self.hq_pos == loc:
-                continue
-            path = self.md.pathfind(self.hq_pos, loc, self.grid_points, sensitivity=7)
-            self.ally_expac_paths.extend(path)
-
-        for x in self.sorted_expacs[second_half:]:
-            loc = x[1]
-            if self.hq_pos == loc:
-                continue
-            path = self.md.pathfind(self.hq_pos, loc, self.grid_points, sensitivity=7)
-            self.enemy_expac_paths.extend(path)
-
-        self.paths = list(set(self.enemy_expac_paths))
-        self.section_size = int(len(self.paths) / 3)
+        self.gm.setup()
 
     async def on_step(self, iteration):
         self.iteration = iteration
-        if iteration == 0:
-            await self.chat_send("(glhf)")
-        await self.gm.manage()
-        if iteration % 60 == 0 and self.units(UnitTypeId.QUEEN):
-            # TODO: and if at least 1 queen exists
-            await self.update_creep()
-        await self.queens.manage_queens(iteration)
+        # if iteration == 0:
+        #     await self.chat_send("(glhf)")
+        await self.gm.manage(iteration)
         if iteration % 120 == 0:
             await self.log_info()
-
-            
-
-    def get_distances(self, start: Point2, targets: list) -> list:
-        distances_to_target = []
-
-        for target in targets:
-            dist = self.distance_math_hypot(start, target)
-            distances_to_target.append([dist, target])
-
-        return distances_to_target
-
-    async def update_creep(self):
-        # if not self.ally_expac_paths_set:
-        #     self.ally_expac_paths_set = True
-        #     self.paths = list(set(self.ally_expac_paths))
-        #     self.section_size = int(len(self.paths) / 3)
-        # elif not self.enemy_expac_paths_set and self.queens.creep.creep_coverage >= 45.0:
-        #     self.enemy_expac_paths_set = True
-        #     self.paths = list(set(self.enemy_expac_paths))
-        #     self.section_size = int(len(self.paths) / 3)
-
-
-        if self.splice >= len(self.paths):
-            self.splice = 0
-        paths = self.paths[self.splice : self.splice + self.section_size]
-        self.splice += self.section_size
-
-        target_list = []
-        for pos in paths:
-            # TODO: if pos is not within 10 units of tumor etc
-            if not self.has_creep(pos):
-                target_list.append(pos)
-
-        # shuffle(target_list)
-
-        if target_list:
-            self.queens.update_creep_targets(target_list)
 
     async def on_before_start(self):
         mfs = self.mineral_field.closer_than(10, self.townhalls.random)
@@ -140,7 +57,7 @@ class EGbot(sc2.BotAI):
         pass
 
     async def on_unit_destroyed(self, unit_tag: int):
-        self.queens.remove_unit(unit_tag)
+        self.gm.queens.remove_unit(unit_tag)
         pass
 
     async def on_unit_type_changed(self, unit: Unit, previous_type: UnitTypeId):
