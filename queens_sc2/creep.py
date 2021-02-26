@@ -14,6 +14,7 @@ from queens_sc2.policy import Policy
 
 TARGETED_CREEP_SPREAD = "TARGETED"
 
+
 class Creep(BaseUnit):
     creep_map: np.ndarray
     no_creep_map: np.ndarray
@@ -129,7 +130,6 @@ class Creep(BaseUnit):
             self.creep_target_index += 1
 
     async def spread_existing_tumors(self):
-        pass
         tumors: Units = self.bot.structures.filter(
             lambda s: s.type_id == UnitID.CREEPTUMORBURROWED
             and s.tag not in self.used_tumors
@@ -139,7 +139,6 @@ class Creep(BaseUnit):
             for i, abilities in enumerate(all_tumors_abilities):
                 tumor = tumors[i]
                 if not tumor.is_idle and isinstance(tumor.order_target, Point2):
-                    # self.used_tumors.append(tumor.tag)
                     self.used_tumors.add(tumor.tag)
                     continue
 
@@ -179,7 +178,12 @@ class Creep(BaseUnit):
         target: Point2 = self._find_closest_to_target(from_pos, self.no_creep_map)
 
         # start at possible placement area, and move back till we find a spot
-        for i in range(self.policy.distance_between_existing_tumors):
+        for i, x in enumerate(
+            range(
+                self.policy.min_distance_between_existing_tumors,
+                self.policy.distance_between_existing_tumors,
+            )
+        ):
             new_pos: Point2 = from_pos.towards(
                 target, self.policy.distance_between_existing_tumors - i
             )
@@ -199,7 +203,7 @@ class Creep(BaseUnit):
         angle: int = randint(0, 360)
         pos: Point2 = from_pos + (distance * Point2((cos(angle), sin(angle))))
         # go backwards towards tumor till position is found
-        for i in range(8):
+        for i in range(5):
             creep_pos: Point2 = pos.towards(from_pos, distance=i)
             if self.bot.has_creep(creep_pos):
                 return creep_pos

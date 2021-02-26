@@ -1,5 +1,5 @@
 from typing import Dict, List, Optional
-
+import numpy as np
 from sc2 import BotAI
 from sc2.ids.ability_id import AbilityId
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
@@ -233,6 +233,9 @@ class Queens:
             distance_between_existing_tumors=cq_policy.get(
                 "distance_between_existing_tumors", 10
             ),
+            min_distance_between_existing_tumors=cq_policy.get(
+                "min_distance_between_existing_tumors", 7
+            ),
             should_tumors_block_expansions=cq_policy.get(
                 "should_tumors_block_expansions", False
             ),
@@ -375,13 +378,9 @@ class Queens:
             lambda s: s.type_id == UnitID.CREEPTUMORBURROWED
             and s.tag not in self.creep.used_tumors
         )
-
         # if tumors:
         #     for tumor in tumors:
-        #         x = str(tumor.position.x)
-        #         y = str(tumor.position.y)
-        #         xy = x + ',' + y
-        #         self._draw_on_world(tumor.position, xy)
+        #         self._draw_on_world(tumor.position, f"TUMOR")
         tumors = self.bot.structures.filter(lambda s: s.type_id == UnitID.CREEPTUMORBURROWED)
         if tumors:
             for tumor in tumors:

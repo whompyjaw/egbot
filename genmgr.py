@@ -41,8 +41,10 @@ class GeneralManager:
         # TODO: It might be better to manaege iteration calls here
         await self.mm.manage()
         await self.cm.manage()
-        if self.bot.iteration % 60 == 0 and self.bot.units(UnitTypeId.QUEEN):
-            await self.queens.update_creep_targets(await self.cp.manage())
+        if self.bot.iteration % 90 == 0 and self.bot.units(UnitTypeId.QUEEN):
+            targets = self.cp.get_creep_targets()
+            if targets:
+                self.queens.update_creep_targets(targets)
         await self.queens.manage_queens(iteration)
         await self.build_queens()
 

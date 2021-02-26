@@ -1,5 +1,7 @@
 from sc2.unit import UnitTypeId
 from pathmgr import PathManager
+from typing import List
+from sc2.position import Point2
 
 
 class CreepManager:
@@ -19,7 +21,7 @@ class CreepManager:
     async def manage(self):
         return await self.update_creep()
 
-    async def update_creep(self):
+    def get_creep_targets(self) -> List[Point2]:
         # if not self.ally_expac_paths_set:
         #     self.ally_expac_paths_set = True
         #     self.paths = list(set(self.ally_expac_paths))
@@ -44,5 +46,5 @@ class CreepManager:
 
         # shuffle(target_list)
 
-        if creep_target_list:
-            return creep_target_list
+
+        return creep_target_list

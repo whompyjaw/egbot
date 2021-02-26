@@ -76,7 +76,7 @@ def main():
     run_game(
         maps.get("AbyssalReefLE"),
         [Bot(Race.Zerg, EGbot()), Computer(Race.Terran, Difficulty.Easy)],
-        realtime=True,
+        realtime=False,
     )
 
 
