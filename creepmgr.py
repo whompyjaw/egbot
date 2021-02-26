@@ -1,59 +1,50 @@
+from sc2.unit import UnitTypeId
+from pathmgr import PathManager
+from typing import List
+from sc2.position import Point2
 
 
+class CreepManager:
+    def __init__(self, bot):
+        self.bot = bot
+        self.creep_target_list = []
+        self.section_size = 0
+        self.target_start = 0
+        self.creep_paths = []
+        self.filtered_creep_points = []
 
-# class CreepManager:
-#     def __init__(self, bot):
-#         self.ally_expacs = []
-#         self.enemy_expacs = []
-#         self.bot = bot
-#         self.sorted_expacs = []
-#         self.ally_expac_paths = []
-#         self.setup_paths()
-        
+    def setup(self, pm: PathManager):
+        self.creep_paths = pm.paths_to_enemy # can change this to any paths we want in future.
+        self.filtered_creep_points = list(set(self.creep_paths)) # idk if we need this
+        self.section_size = int(len(self.creep_paths) / 3)
 
-#     async def manage(self):
-#         pass
+    async def manage(self):
+        return await self.update_creep()
 
+    def get_creep_targets(self) -> List[Point2]:
+        # if not self.ally_expac_paths_set:
+        #     self.ally_expac_paths_set = True
+        #     self.paths = list(set(self.ally_expac_paths))
+        #     self.section_size = int(len(self.paths) / 3)
+        # elif not self.enemy_expac_paths_set and self.queens.creep.creep_coverage >= 45.0:
+        #     self.enemy_expac_paths_set = True
+        #     self.paths = list(set(self.enemy_expac_paths))
+        #     self.section_size = int(len(self.paths) / 3)
 
-#     def setup_paths(self):
-#         self.grid_points = self.md.get_pyastar_grid()
-#         expacs = self.bot.expansion_locations_list
-#         self.sorted_expacs = sorted(self.get_distances(self.hq_pos, expacs), key=lambda x:x[0])
-#         self.sorted_expacs_pos = []
-#         for xy in self.sorted_expacs:
-#             self.sorted_expacs_pos.append(xy[1])
-            
-        
-#         #
-#         first_half = int(len(expacs) / 2)
-#         second_half = len(expacs) - first_half
+        if self.target_start >= len(self.creep_paths):
+            self.target_start = 0
+        path_points = self.filtered_creep_points[self.target_start: self.target_start + self.section_size]
 
-#         for x in self.sorted_expacs_pos[:first_half]:
-#             loc = x[1]
-#             if self.hq_pos == loc:
-#                 continue
-#             # path = self.md.pathfind(self.hq_pos, loc, self.grid_points)
-#             path = self.bot.md.pathfind(self.hq_pos, loc, self.grid_points, sensitivity=7)
-#             self.ally_expac_paths.append(path)
-            
+        self.target_start += self.section_size
+
+        creep_target_list = []
+        for pos in path_points:
+            # TODO: if pos is not within 10 units of tumor etc
+            # might be something better to change in queens-sc2
+            if not self.bot.has_creep(pos):
+                creep_target_list.append(pos)
+
+        # shuffle(target_list)
 
 
-
-#         # # logic: thinking we find paths to enemy base and then spread creep via that
-#         # # TODO: Would we pass the list of paths to queen policy?
-#         # self.grid_points = self.md.get_pyastar_grid()
-
-#         # await self.control_enemy()
-
-#         # hq = self.townhalls.first.position
-#         # enemy_hq = self.enemy_start_locations[0]
-#         # creep_locs = self.expansion_locations_list
-
-#         # for loc in creep_locs[:5]:
-#         #     if loc == hq:
-#         #         continue
-
-#         #     self.paths = self.md.pathfind(hq, loc, self.grid_points, sensitivity = 7)
-
-        
- 
+        return creep_target_list

@@ -1,1 +1,7 @@
-burnysc2
+burnysc2~=5.0.6
+numpy~=1.19.3
+scipy~=1.6.0
+s2clientprotocol~=5.0.5.82893.0
+pyastar~=0.0.1
+loguru~=0.5.3
+tqdm~=4.56.0
