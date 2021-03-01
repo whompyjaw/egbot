@@ -35,8 +35,7 @@ class GeneralManager:
         self.pm.setup(self.map_data)
         self.cp.setup(self.pm)
         self.mm.setup()
-        # self.mm.setup()
-        # self.cm.setup()
+        #self.cm.setup()
 
     async def manage(self, iteration: int) -> None:
         # TODO: It might be better to manaege iteration calls here

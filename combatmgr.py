@@ -13,16 +13,35 @@ from sc2.unit import Unit
 from sc2.units import Units
 from collections import defaultdict
 
+import random
+
 
 class CombatManager:
     def __init__(self, bot):
         self.bot = bot
+        self.forces = None
 
     async def manage(self):
-        # self.calculate_attack()
-        pass
+        await self.update_forces()
+        if len(self.forces) >= 20:
+            await self.attack_enemy()
 
+    async def attack_enemy(self):
+        for unit in self.forces.idle:
+            unit.attack(self.calculate_attack())
 
+    def calculate_attack(self):
+        if self.bot.enemy_structures:
+            return random.choice(self.bot.enemy_structures).position
+        return self.bot.enemy_start_locations[0]
+
+    async def update_forces(self):
+        self.forces = self.bot.units.of_type({UnitTypeId.ZERGLING, UnitTypeId.ROACH, UnitTypeId.BANELING,
+                                              UnitTypeId.HYDRALISK, UnitTypeId.MUTALISK, UnitTypeId.CORRUPTOR,
+                                              UnitTypeId.INFESTOR, UnitTypeId.ULTRALISK, UnitTypeId.BROODLORD,
+                                              UnitTypeId.SWARMHOSTMP, UnitTypeId.VIPER})
+
+        return self.forces
 
     def get_pos_around_unit(
         self, unit, min_range=0, max_range=500, step_size=1, loc_amt=32

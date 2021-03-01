@@ -22,15 +22,16 @@ class MacroManager:
         await self.build_structures()
         await self.build_zerglings()
         await self.build_roaches()
-        if self.bot.already_pending_upgrade(self.ling_speed):
+        if self.bot.already_pending_upgrade(self.ling_speed) == 0:
             await self.upgrade_ling_speed()
         if self.bot.iteration % 16 == 0:
             await self.bot.distribute_workers()
 
     async def build_structures(self) -> None:
         await self.build_pool()
-        if self.bot.structures(UnitTypeId.SPAWNINGPOOL):
+        if self.bot.structures(UnitTypeId.SPAWNINGPOOL).ready:
             await self.build_roach_warren()
+            await self.morph_lair()
         await self.build_gas()
         await self.expand()
 
@@ -95,6 +96,11 @@ class MacroManager:
                 worker = self.bot.select_build_worker(next_expac)
                 if worker:
                     worker.build(UnitTypeId.HATCHERY, next_expac)
+
+    async def morph_lair(self):
+        if self.hq.is_idle and not self.bot.townhalls(UnitTypeId.LAIR):
+            if self.bot.can_afford(UnitTypeId.LAIR):
+                self.hq.build(UnitTypeId.LAIR)
 
     async def build_drone(self) -> None:
         """
