@@ -2,48 +2,45 @@ import sc2
 from sc2 import run_game, maps, Race, Difficulty
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.player import Bot, Computer
+from sc2.position import Point2
 from sc2.unit import Unit
 import logging
 from genmgr import GeneralManager
 from MapAnalyzer import MapData
 from queens_sc2.queens import Queens
 from queen_policy import QueenPolicy
+from random import shuffle
+from typing import Union
+from numpy import ndarray
+from logger import Sc2Logger
 
-# logging.basicConfig(
-#     level=logging.DEBUG,
-#     filename="egbot.log",
-#     datefmt="%d-%m-%y %H:%M:%S",
-#     format="%(asctime)s | %(levelname)s | %(funcName)s | ln:%(lineno)d | %(message)s",
-# )
+logging.basicConfig(
+    level=logging.DEBUG,
+    filename="egbot.log",
+    datefmt="%d-%m-%y %H:%M:%S",
+    format="%(asctime)s | %(levelname)s | %(funcName)s | ln:%(lineno)d | %(message)s",
+)
 
 
 class EGbot(sc2.BotAI):
     def __init__(self):
+        super().__init__()
         self.qp = None
         self.gm = GeneralManager(self)
         self.iteration = 0
-        self.md = None
-        self.queens = None
+        self.logger = Sc2Logger()
+
 
     async def on_start(self):
-        self.md = MapData(self)
-        # logic: thinking we find paths to enemy base and then spread creep via that
-        # TODO: Would we pass the list of paths to queen policy?
-        self.grid_points = self.md.get_pyastar_grid()
-        hq = self.townhalls.first.position
-        enemy_hq = self.enemy_start_locations[0]
-        self.paths = self.md.pathfind(hq, enemy_hq, self.grid_points)
-        self.qp = QueenPolicy(self, self.paths)
-        policy = self.qp.get_policy()
-        self.queens = Queens(self, True, policy)
+        self.gm.setup()
 
     async def on_step(self, iteration):
         self.iteration = iteration
-        if iteration == 0:
-            await self.chat_send("(glhf)")
-        await self.gm.manage()
-        await self.queens.manage_queens(iteration)
-        logging.info('Iteration: %s' % iteration)
+        # if iteration == 0:
+        #     await self.chat_send("(glhf)")
+        await self.gm.manage(iteration)
+        if iteration % 120 == 0:
+            await self.log_info()
 
     async def on_before_start(self):
         mfs = self.mineral_field.closer_than(10, self.townhalls.random)
@@ -60,13 +57,18 @@ class EGbot(sc2.BotAI):
         pass
 
     async def on_unit_destroyed(self, unit_tag: int):
-        self.queens.remove_unit(unit_tag)
+        self.gm.queens.remove_unit(unit_tag)
         pass
 
     async def on_unit_type_changed(self, unit: Unit, previous_type: UnitTypeId):
         pass
 
+    async def log_info(self):
+        res = await self.logger.log_worker_distribution(self)
+        logging.info(res)
 
+    async def control_enemy(self):
+        await self.client.debug_control_enemy()
 
 
 def main():
@@ -77,7 +79,6 @@ def main():
         realtime=False,
     )
 
+
 if __name__ == "__main__":
     main()
-
-

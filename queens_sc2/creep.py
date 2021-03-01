@@ -94,6 +94,9 @@ class Creep(BaseUnit):
     def _check_queen_can_spread_creep(self, queen: Unit) -> bool:
         return queen.energy >= 25 and self.policy.prioritize_creep()
 
+    def set_creep_targets(self, creep_targets: List[Point2]) -> None:
+        self.policy.creep_targets = creep_targets
+
     async def spread_creep(self, queen: Unit) -> None:
         if self.creep_target_index >= len(self.creep_targets):
             self.creep_target_index = 0
@@ -136,7 +139,6 @@ class Creep(BaseUnit):
             for i, abilities in enumerate(all_tumors_abilities):
                 tumor = tumors[i]
                 if not tumor.is_idle and isinstance(tumor.order_target, Point2):
-                    # self.used_tumors.append(tumor.tag)
                     self.used_tumors.add(tumor.tag)
                     continue
 
@@ -176,7 +178,12 @@ class Creep(BaseUnit):
         target: Point2 = self._find_closest_to_target(from_pos, self.no_creep_map)
 
         # start at possible placement area, and move back till we find a spot
-        for i in range(self.policy.distance_between_existing_tumors):
+        for i, x in enumerate(
+            range(
+                self.policy.min_distance_between_existing_tumors,
+                self.policy.distance_between_existing_tumors,
+            )
+        ):
             new_pos: Point2 = from_pos.towards(
                 target, self.policy.distance_between_existing_tumors - i
             )

@@ -13,8 +13,8 @@ class MacroManager:
         await self.build_drone()
         await self.build_overlords()
         await self.build_structures()
-        await self.build_queens()
-        await self.bot.distribute_workers()
+        if self.bot.iteration % 16 == 0:
+            await self.bot.distribute_workers()
 
 
     async def build_structures(self) -> None:
@@ -104,26 +104,7 @@ class MacroManager:
         ):
             larvae.random.train(overlord)
 
-    async def build_queens(self) -> None:
-        """
-        If a pool exists and bot can afford build a queen.
 
-        :params: Queens object
-        """
-        queen_count: int = self.bot.units(UnitTypeId.QUEEN).amount
-        queens: Queens = self.bot.queens
-        #hatches = dictops.get_values(self.structures, 'Hatchery')
-        
-        cq: int = queens.policies.get('creep_policy').max_queens
-        dq: int = queens.policies.get('defence_policy').max_queens
-        iq: int = queens.policies.get('inject_policy').max_queens
-
-        if (queen_count + self.bot.already_pending(UnitTypeId.QUEEN)) < (cq+dq+iq):
-            if self.bot.structures(UnitTypeId.SPAWNINGPOOL).ready:
-                if self.bot.can_afford(UnitTypeId.QUEEN):
-                    for hatchery in self.bot.townhalls.ready:
-                        if hatchery.is_idle:
-                            hatchery.train(UnitTypeId.QUEEN)
 
 
     # async def _get_rdy_struct(self, id: UnitTypeId) -> Units:

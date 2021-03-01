@@ -1,5 +1,5 @@
 from typing import Dict, List, Optional
-
+import numpy as np
 from sc2 import BotAI
 from sc2.ids.ability_id import AbilityId
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
@@ -58,8 +58,9 @@ class Queens:
             Creep.creep_coverage.fget.cache_clear()
 
         if (
-            iteration % 16 == 0 and self.creep.creep_coverage <= 90.0
-        ) or iteration % 128 == 0:
+            self.creep.creep_coverage < 50
+            or iteration % int(self.creep.creep_coverage / 8) == 0
+        ):
             await self.creep.spread_existing_tumors()
 
         for queen in queens:
@@ -124,7 +125,10 @@ class Queens:
         self.inject.update_policy(self.policies[INJECT_POLICY])
 
     def update_attack_target(self, attack_target: Point2) -> None:
-        self.defence.policy.attack_target = attack_target
+        self.defence.set_attack_target(attack_target)
+
+    def update_creep_targets(self, creep_targets: List[Point2]) -> None:
+        self.creep.set_creep_targets(creep_targets)
 
     def _assign_queen_role(self, queen: Unit) -> None:
         """
@@ -228,6 +232,9 @@ class Queens:
             defend_against_ground=cq_policy.get("defend_against_ground", False),
             distance_between_existing_tumors=cq_policy.get(
                 "distance_between_existing_tumors", 10
+            ),
+            min_distance_between_existing_tumors=cq_policy.get(
+                "min_distance_between_existing_tumors", 7
             ),
             should_tumors_block_expansions=cq_policy.get(
                 "should_tumors_block_expansions", False
@@ -371,9 +378,16 @@ class Queens:
             lambda s: s.type_id == UnitID.CREEPTUMORBURROWED
             and s.tag not in self.creep.used_tumors
         )
+        # if tumors:
+        #     for tumor in tumors:
+        #         self._draw_on_world(tumor.position, f"TUMOR")
+        tumors = self.bot.structures.filter(lambda s: s.type_id == UnitID.CREEPTUMORBURROWED)
         if tumors:
             for tumor in tumors:
-                self._draw_on_world(tumor.position, f"TUMOR")
+                x = str(tumor.position.x)
+                y = str(tumor.position.y)
+                xy = x + ',' + y
+                self._draw_on_world(tumor.position, xy)
 
     def _draw_on_world(self, pos: Point2, text: str) -> None:
         z_height: float = self.bot.get_terrain_z_height(pos)
