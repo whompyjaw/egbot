@@ -20,6 +20,10 @@ class MacroManager:
         await self.build_drone()
         await self.build_overlords()
         await self.build_structures()
+        await self.build_zerglings()
+        await self.build_roaches()
+        if self.bot.already_pending_upgrade(self.ling_speed):
+            await self.upgrade_ling_speed()
         if self.bot.iteration % 16 == 0:
             await self.bot.distribute_workers()
 
@@ -39,8 +43,30 @@ class MacroManager:
             if self.bot.can_afford(UnitTypeId.SPAWNINGPOOL):
                 await self.bot.build(
                     UnitTypeId.SPAWNINGPOOL,
-                    near=hq.position.towards(self.bot.game_info.map_center, 5),
+                    near=self.hq.position.towards(self.bot.game_info.map_center, 5),
                 )
+
+    async def build_roach_warren(self):
+        roach_warren_id = UnitTypeId.ROACHWARREN
+        roach_warren: Units = self.bot.structures(UnitTypeId.ROACHWARREN)
+
+        if not roach_warren.ready and not self.bot.already_pending(roach_warren_id):
+            if self.bot.can_afford(roach_warren_id):
+                await self.bot.build(
+                    UnitTypeId.ROACHWARREN,
+                    near=self.hq.position.towards(self.bot.game_info.map_center, 5),
+                )
+
+    # async def build_hydra_den(self):
+    #     hydra_den_id = UnitTypeId.HYDRALISKDEN
+    #     hydra_den: Units = self.bot.structures(UnitTypeId.HYDRALISKDEN)
+    #
+    #     if not hydra_den.ready and not self.bot.already_pending(hydra_den_id):
+    #         if self.bot.can_afford(roach_warren_id):
+    #             await self.bot.build(
+    #                 UnitTypeId.ROACHWARREN,
+    #                 near=self.hq.position.towards(self.bot.game_info.map_center, 5),
+    #             )
 
     async def build_gas(self) -> None:
         """
