@@ -34,6 +34,7 @@ class GeneralManager:
         self.setup_queens()
         self.pm.setup(self.map_data)
         self.cp.setup(self.pm)
+        self.mm.setup()
         # self.mm.setup()
         # self.cm.setup()
 

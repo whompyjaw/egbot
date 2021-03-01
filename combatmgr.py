@@ -19,6 +19,7 @@ class CombatManager:
         self.bot = bot
 
     async def manage(self):
+        # self.calculate_attack()
         pass
 
 

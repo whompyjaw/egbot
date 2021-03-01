@@ -36,7 +36,6 @@ class PathManager:
         #     self.ally_expac_paths.extend(path)
         self.build_paths_to_enemy()
 
-
     async def manage(self):
         pass
 
@@ -56,4 +55,3 @@ class PathManager:
                 continue
             path = self.md.pathfind(self.hq_pos, loc, self.grid_points, sensitivity=7)
             self.paths_to_enemy.extend(path)
-
