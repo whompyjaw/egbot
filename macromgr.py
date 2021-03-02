@@ -2,6 +2,8 @@ from sc2.ids.unit_typeid import UnitTypeId
 from sc2.unit import Unit
 from sc2.units import Units
 from sc2.unit import UpgradeId
+from build_policy import BuildPolicy
+from build_policies import *
 
 
 class MacroManager:
@@ -12,9 +14,11 @@ class MacroManager:
         self.zergling: UnitTypeId = UnitTypeId.ZERGLING
         self.ling_speed = UpgradeId.ZERGLINGMOVEMENTSPEED
         self.hq = None
+        self.build_policy = None
 
     def setup(self):
         self.hq: Unit = self.bot.townhalls.first
+        self.build_policy = BuildPolicy(default)
 
     async def manage(self):
         await self.build_drone()
@@ -26,12 +30,14 @@ class MacroManager:
             await self.upgrade_ling_speed()
         if self.bot.iteration % 16 == 0:
             await self.bot.distribute_workers()
+        await self.update_build_policy()
+        await self.build()
 
     async def build_structures(self) -> None:
         await self.build_pool()
         if self.bot.structures(UnitTypeId.SPAWNINGPOOL).ready:
             await self.build_roach_warren()
-            await self.morph_lair()
+            await self.build_lair()
         await self.build_gas()
         await self.expand()
 
@@ -97,7 +103,7 @@ class MacroManager:
                 if worker:
                     worker.build(UnitTypeId.HATCHERY, next_expac)
 
-    async def morph_lair(self):
+    async def build_lair(self) -> None:
         if self.hq.is_idle and not self.bot.townhalls(UnitTypeId.LAIR):
             if self.bot.can_afford(UnitTypeId.LAIR):
                 self.hq.build(UnitTypeId.LAIR)
@@ -142,7 +148,6 @@ class MacroManager:
             larvae.random.train(overlord)
 
     async def build_zerglings(self):
-
         pool_ready: Units = self.bot.structures(UnitTypeId.SPAWNINGPOOL).ready
         larvae: Units = self.bot.units(UnitTypeId.LARVA)
 
@@ -151,7 +156,7 @@ class MacroManager:
 
     async def build_roaches(self):
         roach_warren_ready: Units = self.bot.structures(UnitTypeId.ROACHWARREN).ready
-        roach: Unit = UnitTypeId.ROACH
+        roach = UnitTypeId.ROACH
         larvae: Units = self.bot.units(UnitTypeId.LARVA)
 
         if roach_warren_ready and self.bot.can_afford(roach) and larvae and self.bot.supply_left > 1:
@@ -159,6 +164,18 @@ class MacroManager:
 
     async def build_hydras(self):
         pass
+
+    async def update_build_policy(self):
+        new_policy = {}
+        # get enemy info from ScoutManager
+        # update build policy accordingly
+        self.build_policy.update(new_policy)
+
+    async def check_upgrades(self):
+        await self.upgrade_ling_speed()
+        if self.build_policy.policy['upgrade_bane_speed']:
+            #  upgrade bane speed
+            pass
 
     async def upgrade_ling_speed(self):
         pool: Units = self.bot.structures(UnitTypeId.SPAWNINGPOOL)
