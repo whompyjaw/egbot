@@ -1,7 +1,8 @@
 # Maybe where our policies are?
 
 """
-PLEASE READ: When making a policy, use the SC2 keywords:
+**PLEASE READ**
+When making a policy, use the SC2 keywords:
     train for units
     build for structures
     upgrade for abilities
@@ -11,14 +12,30 @@ i.e. upgrade_ling_speed', 'build_pool', 'train_lurkers', "supply_for_lair', etc
 
 Also, try to kee it alphabatized.
 """
+from build_policy_consts import *
+
 default = {
-    'build_lair': True,
-    'build_pool': True,
-    'max_drones': 85,
-    'max_overlords': 20,  # 200/their supply count
-    'supply_for_lair': 35,
-    'time_for_lair': 3.00,
-    'upgrade_overlord_speed': True,
+    BUILD_LAIR: True,
+    BUILD_HIVE: True,
+    BUILD_POOL: True,
+    MAX_DRONE: 85,
+    MAX_OVERLORD: 20,  # 200/their supply count
+    TRAIN_OVERSEER: True,
+    UPGRADE_OVERLORD_SPEED: True,
+
+}
+
+roach_hydra = {
+    BUILD_HYDRADEN: True,
+    BUILD_ROACHWARREN: True,
+    MAX_ROACH: 50,
+    MAX_HYDRA: 50,
+    MAX_LING: 16,
+    TRAIN_ROACH: True,
+    TRAIN_RAVAGER: True,
+    TRAIN_HYDRA: True,
+    TIME_FOR_LAIR: 5.00,
+    SUPPLY_FOR_LAIR: 20,
 }
 
 zerg_rush_6pool = {

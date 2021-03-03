@@ -4,6 +4,7 @@ from sc2.units import Units
 from sc2.unit import UpgradeId
 from build_policy import BuildPolicy
 from build_policies import *
+from build_policy_consts import *
 
 
 class MacroManager:
@@ -173,8 +174,11 @@ class MacroManager:
 
     async def check_upgrades(self):
         await self.upgrade_ling_speed()
-        if self.build_policy.policy['upgrade_bane_speed']:
+        if self.build_policy.policy[UPGRADE_ARMOR]:
             #  upgrade bane speed
+            pass
+        if self.build_policy.policy[UPGRADE_ATTACK]:
+            # upgrade attack
             pass
 
     async def upgrade_ling_speed(self):
