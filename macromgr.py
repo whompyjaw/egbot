@@ -17,26 +17,41 @@ class MacroManager:
         self.hq: Unit = self.bot.townhalls.first
 
     async def manage(self):
-        await self.build_drone()
+        if (self.bot.units(UnitTypeId.DRONE).amount <= (self.bot.townhalls.ready.amount*19))\
+                and self.bot.units(UnitTypeId.DRONE).amount <= 85:
+            await self.build_drone()
         await self.build_overlords()
         await self.build_structures()
-        await self.build_zerglings()
-        await self.build_roaches()
+        if self.bot.units(UnitTypeId.DRONE).amount >= 16 and self.bot.units(UnitTypeId.ZERGLING).amount <= 10:
+            await self.build_zerglings()
+        #await self.build_roaches()
         await self.build_hydras()
         if self.bot.already_pending_upgrade(self.ling_speed) == 0:
             await self.upgrade_ling_speed()
+        if self.bot.structures(UnitTypeId.HYDRALISKDEN).ready:
+            await self.upgrade_hydralisks()
         if self.bot.iteration % 16 == 0:
             await self.bot.distribute_workers()
 
+
     async def build_structures(self) -> None:
-        await self.build_pool()
+        if self.bot.townhalls.amount >= 2:
+            if self.bot.structures(UnitTypeId.EXTRACTOR).amount < 1:
+                await self.build_gas()
+            await self.build_pool()
         if self.bot.structures(UnitTypeId.SPAWNINGPOOL).ready:
-            await self.build_roach_warren()
+            if self.bot.structures(UnitTypeId.EXTRACTOR).amount < 2:
+                await self.build_gas()
+            #await self.build_roach_warren()
             await self.morph_lair()
         if self.bot.structures(UnitTypeId.LAIR).ready:
+            if self.bot.structures(UnitTypeId.EXTRACTOR).amount <= 4:
+                await self.build_gas()
             await self.build_hydra_den()
-        await self.build_gas()
-        await self.expand()
+        if self.bot.supply_used >= 17:
+            await self.expand()
+        if self.bot.townhalls.ready.amount >= 4:
+            await self.build_gas()
 
     async def build_pool(self) -> None:
         """Builds a Spawning Pool near starting Hatchery location"""
@@ -77,9 +92,9 @@ class MacroManager:
         Build Extractors at Vespene Gas locations near Hatchery. If only one
         hatch is up, build one gas, once hatches.amount > 1 then begin building gas at all locations.
         """
-        iteration: int = self.bot.iteration
+        #iteration: int = self.bot.iteration
 
-        if self.bot.can_afford(UnitTypeId.EXTRACTOR) and iteration > 180:
+        if self.bot.can_afford(UnitTypeId.EXTRACTOR):# and iteration > 180:
             for vg in self.bot.vespene_geyser.closer_than(10, self.bot.townhalls.ready.random):
                 if not self.bot.worker_en_route_to_build(UnitTypeId.EXTRACTOR):
                     await self.bot.build(UnitTypeId.EXTRACTOR, vg)
@@ -111,19 +126,25 @@ class MacroManager:
         """
         drone: UnitTypeId = UnitTypeId.DRONE
         overlord: UnitTypeId = UnitTypeId.OVERLORD
+        #hatcheries: Units = self.bot.townhalls.ready.amount
         larvae: Units = self.bot.units(UnitTypeId.LARVA)
 
-        if (
-                larvae
-                and self.bot.can_afford(drone)
-                and (self.bot.supply_left > 1 or self.bot.already_pending(overlord)) >= 1
-        ):
-            if (
-                    self.bot.supply_workers
-                    - self.bot.worker_en_route_to_build(UnitTypeId.HATCHERY)
-                    + self.bot.already_pending(drone)
-            ) < 85:
-                larvae.random.train(drone)
+        #if self.bot.units(drone).amount <= hatcheries*22:
+        if self.bot.can_afford(drone) and larvae\
+                and (self.bot.supply_left > 1 or self.bot.already_pending(overlord)) >= 1:
+            larvae.random.train(drone)
+
+        # if (
+        #         larvae
+        #         and self.bot.can_afford(drone)
+        #         and (self.bot.supply_left > 1 or self.bot.already_pending(overlord)) >= 1
+        # ):
+        #     if (
+        #             self.bot.supply_workers
+        #             - self.bot.worker_en_route_to_build(UnitTypeId.HATCHERY)
+        #             + self.bot.already_pending(drone)
+        #     ) < 85:
+        #         larvae.random.train(drone)
 
     async def build_overlords(self) -> None:
         """
@@ -149,7 +170,7 @@ class MacroManager:
         pool_ready: Units = self.bot.structures(UnitTypeId.SPAWNINGPOOL).ready
         larvae: Units = self.bot.units(UnitTypeId.LARVA)
 
-        if pool_ready and self.bot.can_afford(self.zergling) and larvae and self.bot.supply_left >= 1:
+        if pool_ready and self.bot.can_afford(self.zergling) and larvae and self.bot.supply_left > 1:
             larvae.random.train(self.zergling)
 
     async def build_roaches(self):
@@ -173,3 +194,15 @@ class MacroManager:
         if pool.ready and self.bot.can_afford(self.ling_speed) and not self.bot.already_pending_upgrade(
                 self.ling_speed):
             self.bot.research(self.ling_speed)
+
+    async def upgrade_hydralisks(self):
+        hydra_den: Units = self.bot.structures(UnitTypeId.HYDRALISKDEN)
+
+        if self.bot.already_pending_upgrade(UpgradeId.EVOLVEGROOVEDSPINES) == 0\
+                and self.bot.can_afford(UpgradeId.EVOLVEGROOVEDSPINES):
+            self.bot.research(UpgradeId.EVOLVEGROOVEDSPINES)
+
+        elif self.bot.already_pending_upgrade(UpgradeId.EVOLVEMUSCULARAUGMENTS) == 0\
+                and self.bot.can_afford(UpgradeId.EVOLVEMUSCULARAUGMENTS):
+            self.bot.research(UpgradeId.EVOLVEMUSCULARAUGMENTS)
+

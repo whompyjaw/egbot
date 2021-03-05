@@ -3,10 +3,10 @@ class QueenPolicy:
         self.queen_policy: dict = {
             "creep_queens": {
                 "active": True,
-                "max": 4,
+                "max": 2,
                 "priority": True,
                 "defend_against_air": True,
-                "defend_against_ground": False,
+                "defend_against_ground": True,
                 "distance_between_existing_tumors": 10,
                 # "should_tumors_block_expansions": False,
                 "creep_targets": [],
@@ -26,8 +26,8 @@ class QueenPolicy:
             },
             "defence_queens": {
                 "active": True,
-                "max": 4,
-                "priority": True,
+                "max": 2,
+                "priority": False,
                 "defend_against_air": True,
                 "defend_against_ground": True,
                 # #   "attack_condition": Callable,
@@ -43,8 +43,8 @@ class QueenPolicy:
             },
             "inject_queens": {
                 "active": True,
-                "max": 4,
-                "priority": False,
+                "max": 3,
+                "priority": True,
                 "defend_against_air": True,
                 "defend_against_ground": True,
                 #   "pass_own_threats": bool,
