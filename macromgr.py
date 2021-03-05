@@ -22,6 +22,7 @@ class MacroManager:
         await self.build_structures()
         await self.build_zerglings()
         await self.build_roaches()
+        await self.build_hydras()
         if self.bot.already_pending_upgrade(self.ling_speed) == 0:
             await self.upgrade_ling_speed()
         if self.bot.iteration % 16 == 0:
@@ -32,6 +33,8 @@ class MacroManager:
         if self.bot.structures(UnitTypeId.SPAWNINGPOOL).ready:
             await self.build_roach_warren()
             await self.morph_lair()
+        if self.bot.structures(UnitTypeId.LAIR).ready:
+            await self.build_hydra_den()
         await self.build_gas()
         await self.expand()
 
@@ -58,16 +61,16 @@ class MacroManager:
                     near=self.hq.position.towards(self.bot.game_info.map_center, 5),
                 )
 
-    # async def build_hydra_den(self):
-    #     hydra_den_id = UnitTypeId.HYDRALISKDEN
-    #     hydra_den: Units = self.bot.structures(UnitTypeId.HYDRALISKDEN)
-    #
-    #     if not hydra_den.ready and not self.bot.already_pending(hydra_den_id):
-    #         if self.bot.can_afford(roach_warren_id):
-    #             await self.bot.build(
-    #                 UnitTypeId.ROACHWARREN,
-    #                 near=self.hq.position.towards(self.bot.game_info.map_center, 5),
-    #             )
+    async def build_hydra_den(self):
+        hydra_den_id = UnitTypeId.HYDRALISKDEN
+        hydra_den: Units = self.bot.structures(UnitTypeId.HYDRALISKDEN)
+
+        if not hydra_den.ready and not self.bot.already_pending(hydra_den_id):
+            if self.bot.can_afford(hydra_den_id):
+                await self.bot.build(
+                    UnitTypeId.HYDRALISKDEN,
+                    near=self.bot.townhalls[1].position.towards(self.bot.game_info.map_center, 5),
+                )
 
     async def build_gas(self) -> None:
         """
@@ -158,7 +161,12 @@ class MacroManager:
             larvae.random.train(roach)
 
     async def build_hydras(self):
-        pass
+        hydra_den_ready: Units = self.bot.structures(UnitTypeId.HYDRALISKDEN).ready
+        hydra: Unit = UnitTypeId.HYDRALISK
+        larvae: Units = self.bot.units(UnitTypeId.LARVA)
+
+        if hydra_den_ready and self.bot.can_afford(hydra) and larvae and self.bot.supply_left > 1:
+            larvae.random.train(hydra)
 
     async def upgrade_ling_speed(self):
         pool: Units = self.bot.structures(UnitTypeId.SPAWNINGPOOL)

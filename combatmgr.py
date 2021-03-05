@@ -23,7 +23,7 @@ class CombatManager:
 
     async def manage(self):
         await self.update_forces()
-        if len(self.forces) >= 20:
+        if len(self.forces) >= 40:
             await self.attack_enemy()
 
     async def attack_enemy(self):
