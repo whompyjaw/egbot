@@ -47,6 +47,8 @@ class GeneralManager:
                 self.queens.update_creep_targets(targets)
         await self.queens.manage_queens(iteration)
         await self.build_queens()
+        # if self.bot.units(UnitTypeId.QUEEN).amount == 2:
+        #     await self.queens.set_new_policy(queen_policy=self.qp.mid_game_policy, reset_roles=True)
 
     def setup_queens(self):
         self.qp = QueenPolicy(self.bot)
@@ -60,7 +62,7 @@ class GeneralManager:
         """
         queen_count: int = self.bot.units(UnitTypeId.QUEEN).amount
         queens: Queens = self.queens
-        # hatches = dictops.get_values(self.structures, 'Hatchery')
+
         # TODO: Probably want to keep this in case we update the queen count in the policy.
         cq: int = queens.policies.get('creep_policy').max_queens
         dq: int = queens.policies.get('defence_policy').max_queens

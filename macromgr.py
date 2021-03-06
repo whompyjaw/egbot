@@ -17,12 +17,12 @@ class MacroManager:
         self.hq: Unit = self.bot.townhalls.first
 
     async def manage(self):
-        if (self.bot.units(UnitTypeId.DRONE).amount <= (self.bot.townhalls.ready.amount*19))\
+        if (self.bot.units(UnitTypeId.DRONE).amount <= (self.bot.townhalls.ready.amount*16))\
                 and self.bot.units(UnitTypeId.DRONE).amount <= 85:
             await self.build_drone()
         await self.build_overlords()
         await self.build_structures()
-        if self.bot.units(UnitTypeId.DRONE).amount >= 16 and self.bot.units(UnitTypeId.ZERGLING).amount <= 10:
+        if self.bot.units(UnitTypeId.DRONE).amount >= 16 and self.bot.units(UnitTypeId.ZERGLING).amount <= 20:
             await self.build_zerglings()
         #await self.build_roaches()
         await self.build_hydras()
@@ -39,18 +39,20 @@ class MacroManager:
             if self.bot.structures(UnitTypeId.EXTRACTOR).amount < 1:
                 await self.build_gas()
             await self.build_pool()
-        if self.bot.structures(UnitTypeId.SPAWNINGPOOL).ready:
-            if self.bot.structures(UnitTypeId.EXTRACTOR).amount < 2:
-                await self.build_gas()
+        # if self.bot.structures(UnitTypeId.SPAWNINGPOOL).ready:
+        #     if self.bot.structures(UnitTypeId.EXTRACTOR).amount < 2:
+        #         await self.build_gas()
             #await self.build_roach_warren()
             await self.morph_lair()
         if self.bot.structures(UnitTypeId.LAIR).ready:
-            if self.bot.structures(UnitTypeId.EXTRACTOR).amount <= 4:
+            if self.bot.structures(UnitTypeId.EXTRACTOR).amount < 3:
                 await self.build_gas()
             await self.build_hydra_den()
-        if self.bot.supply_used >= 17:
+        if self.bot.supply_used >= 17 and self.bot.townhalls.amount < 3:
             await self.expand()
-        if self.bot.townhalls.ready.amount >= 4:
+        if self.bot.supply_used >= 90:
+            await self.expand()
+        if self.bot.townhalls.ready.amount >= 5:
             await self.build_gas()
 
     async def build_pool(self) -> None:
@@ -161,7 +163,7 @@ class MacroManager:
                 and self.bot.supply_left < 3  # TODO: 2 or 3?
                 and larvae
                 and self.bot.can_afford(overlord)
-                and self.bot.already_pending(overlord) < 2
+                and self.bot.already_pending(overlord) < 3
         ):
             larvae.random.train(overlord)
 
