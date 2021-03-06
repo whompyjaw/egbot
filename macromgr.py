@@ -17,7 +17,7 @@ class MacroManager:
         self.hq: Unit = self.bot.townhalls.first
 
     async def manage(self):
-        if (self.bot.units(UnitTypeId.DRONE).amount <= (self.bot.townhalls.ready.amount*16))\
+        if (self.bot.units(UnitTypeId.DRONE).amount <= (self.bot.townhalls.ready.amount*19))\
                 and self.bot.units(UnitTypeId.DRONE).amount <= 85:
             await self.build_drone()
         await self.build_overlords()

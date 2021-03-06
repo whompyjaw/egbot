@@ -26,7 +26,8 @@ class CombatManager:
         await self.update_army()
         if len(self.army) >= 40:
             await self.attack_enemy()
-        if self.bot.enemy_units:
+            await self.do_army_micro(self.army, self.bot.enemy_units)
+        elif self.bot.enemy_units:
             await self.do_army_micro(self.army, self.bot.enemy_units)
         else:
             #if len(self.army) < 40:
