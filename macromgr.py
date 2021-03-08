@@ -1,4 +1,5 @@
 from sc2.ids.unit_typeid import UnitTypeId
+from sc2.ids.ability_id import AbilityId
 from sc2.unit import Unit
 from sc2.units import Units
 from sc2.unit import UpgradeId
@@ -22,7 +23,7 @@ class MacroManager:
             await self.build_drone()
         await self.build_overlords()
         await self.build_structures()
-        if self.bot.units(UnitTypeId.DRONE).amount >= 16 and self.bot.units(UnitTypeId.ZERGLING).amount <= 20:
+        if self.bot.units(UnitTypeId.DRONE).amount >= 16 and self.bot.units(UnitTypeId.ZERGLING).amount <= 15:
             await self.build_zerglings()
         #await self.build_roaches()
         await self.build_hydras()
@@ -30,6 +31,8 @@ class MacroManager:
             await self.upgrade_ling_speed()
         if self.bot.structures(UnitTypeId.HYDRALISKDEN).ready:
             await self.upgrade_hydralisks()
+        if self.bot.structures(UnitTypeId.EVOLUTIONCHAMBER).ready:
+            await self.upgrade_units()
         if self.bot.iteration % 16 == 0:
             await self.bot.distribute_workers()
 
@@ -52,6 +55,8 @@ class MacroManager:
             await self.expand()
         if self.bot.supply_used >= 90:
             await self.expand()
+        if self.bot.townhalls.ready.amount >= 2:
+            await self.build_evo_chamber()
         if self.bot.townhalls.ready.amount >= 5:
             await self.build_gas()
 
@@ -86,6 +91,17 @@ class MacroManager:
             if self.bot.can_afford(hydra_den_id):
                 await self.bot.build(
                     UnitTypeId.HYDRALISKDEN,
+                    near=self.bot.main_base_ramp.bottom_center.towards(self.bot.game_info.map_center, 3),
+                )
+
+    async def build_evo_chamber(self):
+        evo_id = UnitTypeId.EVOLUTIONCHAMBER
+        evo_chamber: Units = self.bot.structures(UnitTypeId.EVOLUTIONCHAMBER)
+
+        if evo_chamber.amount < 2 and not self.bot.already_pending(evo_id):
+            if self.bot.can_afford(evo_id):
+                await self.bot.build(
+                    UnitTypeId.EVOLUTIONCHAMBER,
                     near=self.bot.townhalls[1].position.towards(self.bot.game_info.map_center, 5),
                 )
 
@@ -133,7 +149,7 @@ class MacroManager:
 
         #if self.bot.units(drone).amount <= hatcheries*22:
         if self.bot.can_afford(drone) and larvae\
-                and (self.bot.supply_left > 1 or self.bot.already_pending(overlord)) >= 1:
+                and (self.bot.supply_left > 2 or self.bot.already_pending(overlord)) >= 1:
             larvae.random.train(drone)
 
         # if (
@@ -172,7 +188,7 @@ class MacroManager:
         pool_ready: Units = self.bot.structures(UnitTypeId.SPAWNINGPOOL).ready
         larvae: Units = self.bot.units(UnitTypeId.LARVA)
 
-        if pool_ready and self.bot.can_afford(self.zergling) and larvae and self.bot.supply_left > 1:
+        if pool_ready and self.bot.can_afford(self.zergling) and larvae and self.bot.supply_left > 2:
             larvae.random.train(self.zergling)
 
     async def build_roaches(self):
@@ -180,7 +196,7 @@ class MacroManager:
         roach: Unit = UnitTypeId.ROACH
         larvae: Units = self.bot.units(UnitTypeId.LARVA)
 
-        if roach_warren_ready and self.bot.can_afford(roach) and larvae and self.bot.supply_left > 1:
+        if roach_warren_ready and self.bot.can_afford(roach) and larvae and self.bot.supply_left > 2:
             larvae.random.train(roach)
 
     async def build_hydras(self):
@@ -188,7 +204,7 @@ class MacroManager:
         hydra: Unit = UnitTypeId.HYDRALISK
         larvae: Units = self.bot.units(UnitTypeId.LARVA)
 
-        if hydra_den_ready and self.bot.can_afford(hydra) and larvae and self.bot.supply_left > 1:
+        if hydra_den_ready and self.bot.can_afford(hydra) and larvae and self.bot.supply_left > 2:
             larvae.random.train(hydra)
 
     async def upgrade_ling_speed(self):
@@ -207,4 +223,24 @@ class MacroManager:
         elif self.bot.already_pending_upgrade(UpgradeId.EVOLVEMUSCULARAUGMENTS) == 0\
                 and self.bot.can_afford(UpgradeId.EVOLVEMUSCULARAUGMENTS):
             self.bot.research(UpgradeId.EVOLVEMUSCULARAUGMENTS)
+
+
+    async def upgrade_units(self):
+        evo_chambers: Units = self.bot.structures(UnitTypeId.EVOLUTIONCHAMBER).ready
+
+        targetUpgrades = [AbilityId.RESEARCH_ZERGMELEEWEAPONSLEVEL1, AbilityId.RESEARCH_ZERGMISSILEWEAPONSLEVEL1,
+                           AbilityId.RESEARCH_ZERGGROUNDARMORLEVEL1, AbilityId.RESEARCH_ZERGMISSILEWEAPONSLEVEL2,
+                           AbilityId.RESEARCH_ZERGMELEEWEAPONSLEVEL2, AbilityId.RESEARCH_ZERGGROUNDARMORLEVEL2,
+                           AbilityId.RESEARCH_ZERGMISSILEWEAPONSLEVEL3, AbilityId.RESEARCH_ZERGGROUNDARMORLEVEL3,
+                           AbilityId.RESEARCH_ZERGMELEEWEAPONSLEVEL3]
+
+        avail_upgrades = await self.bot.get_available_abilities(evo_chambers, ignore_resource_requirements=True)
+
+        for i, upgrades in enumerate(avail_upgrades):
+            evo = evo_chambers[i]
+            for upgrade in targetUpgrades:
+                if upgrade in upgrades:
+                    if self.bot.can_afford(upgrade) and evo.is_idle:
+                        self.bot.do(evo(upgrade))
+                        break
 
