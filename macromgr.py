@@ -13,20 +13,31 @@ class MacroManager:
         self.zergling: UnitTypeId = UnitTypeId.ZERGLING
         self.ling_speed = UpgradeId.ZERGLINGMOVEMENTSPEED
         self.hq = None
+        self.target_upgrades = []
 
     def setup(self):
         self.hq: Unit = self.bot.townhalls.first
+        self.target_upgrades = [AbilityId.RESEARCH_ZERGMELEEWEAPONSLEVEL1, AbilityId.RESEARCH_ZERGMISSILEWEAPONSLEVEL1,
+                                AbilityId.RESEARCH_ZERGGROUNDARMORLEVEL1, AbilityId.RESEARCH_ZERGMISSILEWEAPONSLEVEL2,
+                                AbilityId.RESEARCH_ZERGMELEEWEAPONSLEVEL2, AbilityId.RESEARCH_ZERGGROUNDARMORLEVEL2,
+                                AbilityId.RESEARCH_ZERGMISSILEWEAPONSLEVEL3, AbilityId.RESEARCH_ZERGGROUNDARMORLEVEL3,
+                                AbilityId.RESEARCH_ZERGMELEEWEAPONSLEVEL3]
 
     async def manage(self):
-        if (self.bot.units(UnitTypeId.DRONE).amount <= (self.bot.townhalls.ready.amount*19))\
+        if (self.bot.units(UnitTypeId.DRONE).amount <= (self.bot.townhalls.ready.amount * 19)) \
                 and self.bot.units(UnitTypeId.DRONE).amount <= 85:
-            await self.build_drone()
-        await self.build_overlords()
+            await self.train_drone()
+        await self.train_overlords()
         await self.build_structures()
         if self.bot.units(UnitTypeId.DRONE).amount >= 16 and self.bot.units(UnitTypeId.ZERGLING).amount <= 15:
-            await self.build_zerglings()
-        #await self.build_roaches()
-        await self.build_hydras()
+            await self.train_zerglings()
+        # await self.train_roaches()
+        await self.train_hydras()
+
+        # TODO: Not sure if better since we'll have to get all the "ready" structures. We can keep a running list of
+        # ready structures, and if a building is destroyed, we remove it from that list. This could work for if we use
+        # a build list in our policy/config.
+        await self.train_army_unit()
         if self.bot.already_pending_upgrade(self.ling_speed) == 0:
             await self.upgrade_ling_speed()
         if self.bot.structures(UnitTypeId.HYDRALISKDEN).ready:
@@ -36,21 +47,21 @@ class MacroManager:
         if self.bot.iteration % 16 == 0:
             await self.bot.distribute_workers()
 
-
     async def build_structures(self) -> None:
         if self.bot.townhalls.amount >= 2:
             if self.bot.structures(UnitTypeId.EXTRACTOR).amount < 1:
                 await self.build_gas()
             await self.build_pool()
-        # if self.bot.structures(UnitTypeId.SPAWNINGPOOL).ready:
-        #     if self.bot.structures(UnitTypeId.EXTRACTOR).amount < 2:
-        #         await self.build_gas()
-            #await self.build_roach_warren()
+            # if self.bot.structures(UnitTypeId.SPAWNINGPOOL).ready:
+            #     if self.bot.structures(UnitTypeId.EXTRACTOR).amount < 2:
+            #         await self.build_gas()
+            # await self.build_roach_warren()
             await self.morph_lair()
         if self.bot.structures(UnitTypeId.LAIR).ready:
             if self.bot.structures(UnitTypeId.EXTRACTOR).amount < 3:
                 await self.build_gas()
             await self.build_hydra_den()
+        # TODO: What if we use a modulo? Like expand every 17-20 supply or something.
         if self.bot.supply_used >= 17 and self.bot.townhalls.amount < 3:
             await self.expand()
         if self.bot.supply_used >= 90:
@@ -110,9 +121,9 @@ class MacroManager:
         Build Extractors at Vespene Gas locations near Hatchery. If only one
         hatch is up, build one gas, once hatches.amount > 1 then begin building gas at all locations.
         """
-        #iteration: int = self.bot.iteration
+        # iteration: int = self.bot.iteration
 
-        if self.bot.can_afford(UnitTypeId.EXTRACTOR):# and iteration > 180:
+        if self.bot.can_afford(UnitTypeId.EXTRACTOR):  # and iteration > 180:
             for vg in self.bot.vespene_geyser.closer_than(10, self.bot.townhalls.ready.random):
                 if not self.bot.worker_en_route_to_build(UnitTypeId.EXTRACTOR):
                     await self.bot.build(UnitTypeId.EXTRACTOR, vg)
@@ -138,18 +149,18 @@ class MacroManager:
             if self.bot.can_afford(UnitTypeId.LAIR):
                 self.hq.build(UnitTypeId.LAIR)
 
-    async def build_drone(self) -> None:
+    async def train_drone(self) -> None:
         """
         Builds drones; drone limit based on # of hatcheries; 22 drones per hatchery
         """
         drone: UnitTypeId = UnitTypeId.DRONE
         overlord: UnitTypeId = UnitTypeId.OVERLORD
-        #hatcheries: Units = self.bot.townhalls.ready.amount
+        # hatcheries: Units = self.bot.townhalls.ready.amount
         larvae: Units = self.bot.units(UnitTypeId.LARVA)
 
-        #if self.bot.units(drone).amount <= hatcheries*22:
-        if self.bot.can_afford(drone) and larvae\
-                and (self.bot.supply_left > 2 or self.bot.already_pending(overlord)) >= 1:
+        # if self.bot.units(drone).amount <= hatcheries*22:
+        if larvae and self.bot.can_afford(drone) and (
+                self.bot.supply_left > 2 or self.bot.already_pending(overlord)) >= 1:
             larvae.random.train(drone)
 
         # if (
@@ -164,7 +175,7 @@ class MacroManager:
         #     ) < 85:
         #         larvae.random.train(drone)
 
-    async def build_overlords(self) -> None:
+    async def train_overlords(self) -> None:
         """
         Build overlords up to max
         """
@@ -183,15 +194,41 @@ class MacroManager:
         ):
             larvae.random.train(overlord)
 
-    async def build_zerglings(self):
+    async def train_army_unit(self, structure: Units, unit_id: UnitTypeId, larvae: Units):
+        # TODO: How can we use one function to build any type of unit based on conditions?
+        # All units have a building, larva, and cost requirement/condition
+        # Don't have to do this, but maybe get the brain thinking how we can dry our code
+        # This opens doors to going by config/policy
+        # Could also do `train_unit` to pass in drone or overlord, but maybe too many special conditions.
+        if structure.ready and self.bot.can_afford(unit_id) and larvae and self.bot.supply_left > 2:
+            larvae.random.train(unit_id)
 
+        # We could then have more special conditions if needed for unique units.
+        if unit_id == UnitTypeId.INFESTOR:
+            # check special conditions, not sure if we will need this, but expanding the idea.
+            pass
+
+    async def execute_build(self, **kwargs):
+        # not sure... Somehow i think we can create a function based on kwargs, which would be parsed from the config
+        pass
+
+    async def build_structure(self, sequence: list):
+        # TODO: How can we pass in a sequence of a build to execute over time?
+        # We don't have to do this, but maybe get the brain thinking how we can DRY our code
+        pass
+
+    async def upgrade_ability(self, structure: Unit, ability: AbilityId):
+        # TODO: Same concept as others
+        pass
+
+    async def train_zerglings(self):
         pool_ready: Units = self.bot.structures(UnitTypeId.SPAWNINGPOOL).ready
         larvae: Units = self.bot.units(UnitTypeId.LARVA)
 
         if pool_ready and self.bot.can_afford(self.zergling) and larvae and self.bot.supply_left > 2:
             larvae.random.train(self.zergling)
 
-    async def build_roaches(self):
+    async def train_roaches(self):
         roach_warren_ready: Units = self.bot.structures(UnitTypeId.ROACHWARREN).ready
         roach: Unit = UnitTypeId.ROACH
         larvae: Units = self.bot.units(UnitTypeId.LARVA)
@@ -199,7 +236,7 @@ class MacroManager:
         if roach_warren_ready and self.bot.can_afford(roach) and larvae and self.bot.supply_left > 2:
             larvae.random.train(roach)
 
-    async def build_hydras(self):
+    async def train_hydras(self):
         hydra_den_ready: Units = self.bot.structures(UnitTypeId.HYDRALISKDEN).ready
         hydra: Unit = UnitTypeId.HYDRALISK
         larvae: Units = self.bot.units(UnitTypeId.LARVA)
@@ -216,31 +253,22 @@ class MacroManager:
     async def upgrade_hydralisks(self):
         hydra_den: Units = self.bot.structures(UnitTypeId.HYDRALISKDEN)
 
-        if self.bot.already_pending_upgrade(UpgradeId.EVOLVEGROOVEDSPINES) == 0\
+        if self.bot.already_pending_upgrade(UpgradeId.EVOLVEGROOVEDSPINES) == 0 \
                 and self.bot.can_afford(UpgradeId.EVOLVEGROOVEDSPINES):
             self.bot.research(UpgradeId.EVOLVEGROOVEDSPINES)
 
-        elif self.bot.already_pending_upgrade(UpgradeId.EVOLVEMUSCULARAUGMENTS) == 0\
+        elif self.bot.already_pending_upgrade(UpgradeId.EVOLVEMUSCULARAUGMENTS) == 0 \
                 and self.bot.can_afford(UpgradeId.EVOLVEMUSCULARAUGMENTS):
             self.bot.research(UpgradeId.EVOLVEMUSCULARAUGMENTS)
 
-
     async def upgrade_units(self):
         evo_chambers: Units = self.bot.structures(UnitTypeId.EVOLUTIONCHAMBER).ready
-
-        targetUpgrades = [AbilityId.RESEARCH_ZERGMELEEWEAPONSLEVEL1, AbilityId.RESEARCH_ZERGMISSILEWEAPONSLEVEL1,
-                           AbilityId.RESEARCH_ZERGGROUNDARMORLEVEL1, AbilityId.RESEARCH_ZERGMISSILEWEAPONSLEVEL2,
-                           AbilityId.RESEARCH_ZERGMELEEWEAPONSLEVEL2, AbilityId.RESEARCH_ZERGGROUNDARMORLEVEL2,
-                           AbilityId.RESEARCH_ZERGMISSILEWEAPONSLEVEL3, AbilityId.RESEARCH_ZERGGROUNDARMORLEVEL3,
-                           AbilityId.RESEARCH_ZERGMELEEWEAPONSLEVEL3]
-
         avail_upgrades = await self.bot.get_available_abilities(evo_chambers, ignore_resource_requirements=True)
 
-        for i, upgrades in enumerate(avail_upgrades):
-            evo = evo_chambers[i]
-            for upgrade in targetUpgrades:
+        for chamber, upgrades in enumerate(avail_upgrades):
+            evo = evo_chambers[chamber]
+            for upgrade in self.target_upgrades:
                 if upgrade in upgrades:
                     if self.bot.can_afford(upgrade) and evo.is_idle:
                         self.bot.do(evo(upgrade))
                         break
-
