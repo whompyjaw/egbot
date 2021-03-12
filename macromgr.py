@@ -33,6 +33,31 @@ class MacroManager:
             await self.train_zerglings()
         # await self.train_roaches()
         await self.train_hydras()
+        await self.train_units()
+
+
+    async def train_units(self):
+
+        train units
+            check den
+                train hydra
+            check warren
+
+        units to build:
+            lings : UnitTypeId.Spawningpool,
+            hydra : den,
+
+        if key == ling
+            train army unit(ling.items)
+        if dict['pool']:
+            build dict['lings']
+
+            for unit in units to build:
+
+
+
+
+
 
         # TODO: Not sure if better since we'll have to get all the "ready" structures. We can keep a running list of
         # ready structures, and if a building is destroyed, we remove it from that list. This could work for if we use
@@ -46,6 +71,9 @@ class MacroManager:
             await self.upgrade_units()
         if self.bot.iteration % 16 == 0:
             await self.bot.distribute_workers()
+
+
+
 
     async def build_structures(self) -> None:
         if self.bot.townhalls.amount >= 2:
