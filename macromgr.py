@@ -260,10 +260,7 @@ class MacroManager:
         # TODO: Same concept as others
         pass
 
-    async def train_zerglings(self):
-=======
-    async def build_zerglings(self):
->>>>>>> origin/g_build_policy
+    async def build_zerg(self):
         pool_ready: Units = self.bot.structures(UnitTypeId.SPAWNINGPOOL).ready
         larvae: Units = self.bot.units(UnitTypeId.LARVA)
 
