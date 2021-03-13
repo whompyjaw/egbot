@@ -247,7 +247,7 @@ class MacroManager:
             # check special conditions, not sure if we will need this, but expanding the idea.
             pass
 
-    async def execute_build(self, **kwargs):
+    async def execute_build(self, s **kwargs):
         # not sure... Somehow i think we can create a function based on kwargs, which would be parsed from the config
         pass
 
