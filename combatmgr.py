@@ -176,14 +176,13 @@ class CombatManager:
             hydras = [unit for unit in self.bot.units if unit.name == 'Hydralisk']
             drones = [unit for unit in self.bot.units if unit.name == 'Drone']
             queens = [unit for unit in self.bot.units if unit.name == 'Queen']
-            supply_used = self.bot.supply_used
 
             self.bot.client.debug_text_screen(
-                f"Drones: {str(len(drones)/supply_used)}\n \
-                Zerglings: {str(len(zerglings)/supply_used)}\n \
-                Hydralisks: {str(len(hydras)/supply_used)}\n \
-                Queens: {str(len(hydras)/supply_used)}\n",
-                pos=(0.2, 0.58),
+                f"Drones: {str(len(drones)/200)}\n \
+                Zerglings: {str(len(zerglings)/200)}\n \
+                Hydralisks: {str(len(hydras)/200)}\n \
+                Queens: {str(len(queens)/200)}\n",
+                pos=(0.2, 0.50),
                 size=13,
                 color=(0, 255, 255),
             )

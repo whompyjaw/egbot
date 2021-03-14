@@ -23,9 +23,14 @@ class LingHydra(DefaultBuild):
                 STRUCTURE: id.HATCHERY,
                 WEIGHT: .425,
             },
+            id.QUEEN: {
+                # drone doesn't have a structure requirement
+                STRUCTURE: id.SPAWNINGPOOL,
+                WEIGHT: .04,
+            },
             id.ZERGLING: {
                 STRUCTURE: id.SPAWNINGPOOL,
-                WEIGHT: .225  #
+                WEIGHT: .185  #
             },
             id.HYDRALISK: {
                 STRUCTURE: id.HYDRALISKDEN,

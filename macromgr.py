@@ -6,6 +6,9 @@ from sc2.unit import UpgradeId
 from build_policy_consts import *
 import random
 from typing import List
+from queens_sc2.queens import Queens
+from queen_policy import QueenPolicy
+from creepmgr import CreepManager as cp
 
 
 class MacroManager:
@@ -18,8 +21,11 @@ class MacroManager:
         self.hq = None
         self.target_upgrades = []
         self.build = None
+        self.queens = None
+        self.qp = None
+        self.creepmgr = None
 
-    def setup(self, build):
+    def setup(self, build, creepmgr):
         self.hq: Unit = self.bot.townhalls.first
         self.target_upgrades = [AbilityId.RESEARCH_ZERGMELEEWEAPONSLEVEL1, AbilityId.RESEARCH_ZERGMISSILEWEAPONSLEVEL1,
                                 AbilityId.RESEARCH_ZERGGROUNDARMORLEVEL1, AbilityId.RESEARCH_ZERGMISSILEWEAPONSLEVEL2,
@@ -28,6 +34,9 @@ class MacroManager:
                                 AbilityId.RESEARCH_ZERGMELEEWEAPONSLEVEL3]
 
         self.build = build
+        self.qp = QueenPolicy(self.bot)
+        self.queens = Queens(self.bot, True, self.qp.queen_policy)
+        self.creepmgr = creepmgr
 
     async def manage(self):
         # if (self.bot.units(UnitTypeId.DRONE).amount <= (self.bot.townhalls.ready.amount * 19)) \
@@ -42,6 +51,12 @@ class MacroManager:
 
         if self.bot.iteration % 16 == 0:
             await self.bot.distribute_workers()
+
+        if self.bot.iteration % 90 == 0 and self.bot.units(UnitTypeId.QUEEN):
+            targets = self.creepmgr.get_creep_targets()
+            if targets:
+                self.queens.update_creep_targets(targets)
+        await self.queens.manage_queens(self.bot.iteration)
 
     async def train_units(self):
         # get supply?
@@ -59,11 +74,18 @@ class MacroManager:
                 # get units for unit_id
                 unit_count = self.bot.units(unit).amount
                 unit_distr = unit_count / 200
+                if unit == UnitTypeId.QUEEN:
+                    if unit_distr <= unit_attrs.get(WEIGHT):
+                        await self.build_queens()
                 if unit_distr <= unit_attrs.get(WEIGHT):
                     weights.append(unit_attrs.get(WEIGHT))
                     trainable_units.append(unit)
 
+
         units_to_train = random.choices(trainable_units, weights, k=larvae.amount)
+
+
+
 
         unit = None
         # unit = UnitTypeId
@@ -71,6 +93,28 @@ class MacroManager:
             # i don't think we need "can afford" because train already does that
             if larvae and self.bot.supply_left > 2:
                 larvae.random.train(unit, can_afford_check=True)
+
+    async def build_queens(self) -> None:
+        """
+        If a pool exists and bot can afford build a queen.
+
+        :params: Queens object
+        """
+        queen_count: int = self.bot.units(UnitTypeId.QUEEN).amount
+        queens: Queens = self.queens
+
+        # TODO: Probably want to keep this in case we update the queen count in the policy.
+        cq: int = queens.policies.get('creep_policy').max_queens
+        dq: int = queens.policies.get('defence_policy').max_queens
+        iq: int = queens.policies.get('inject_policy').max_queens
+
+        if (queen_count + self.bot.already_pending(UnitTypeId.QUEEN)) < (cq + dq + iq):
+            if self.bot.structures(UnitTypeId.SPAWNINGPOOL).ready:
+                if self.bot.can_afford(UnitTypeId.QUEEN):
+                    for hatchery in self.bot.townhalls.ready:
+                        if hatchery.is_idle:
+                            hatchery.train(UnitTypeId.QUEEN)
+
 
     async def build_structures(self) -> None:
         if self.bot.townhalls.amount >= 2:
