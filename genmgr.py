@@ -37,7 +37,7 @@ class GeneralManager:
 
         random_build = LingHydra(self.bot)
         self.mm.setup(random_build)
-        #self.cm.setup()
+        self.cm.setup()
 
     async def manage(self, iteration: int) -> None:
         # TODO: It might be better to manaege iteration calls here

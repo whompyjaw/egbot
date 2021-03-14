@@ -28,7 +28,7 @@ class EGbot(sc2.BotAI):
         self.qp = None
         self.gm = GeneralManager(self)
         self.iteration = 0
-        self.logger = Sc2Logger()
+        self.logger = Sc2Logger(self)
 
 
     async def on_start(self):
@@ -64,7 +64,9 @@ class EGbot(sc2.BotAI):
         pass
 
     async def log_info(self):
-        res = await self.logger.log_worker_distribution(self)
+        res = await self.logger.log_worker_distribution()
+        logging.info(res)
+        res = await self.logger.log_unit_percentages()
         logging.info(res)
 
     async def control_enemy(self):

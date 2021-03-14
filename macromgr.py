@@ -51,12 +51,17 @@ class MacroManager:
         weights: List[float] = []
         trainable_units: List[UnitTypeId] = []
 
+        # unit = UnitTypeId
         for unit in units:
             unit_attrs: dict = units.get(unit)
             struct = self.bot.structures(unit_attrs.get(STRUCTURE))  # get structure status
             if struct.ready:
-                weights.append(unit_attrs.get(WEIGHT))
-                trainable_units.append(unit)
+                # get units for unit_id
+                unit_count = self.bot.units(unit).amount
+                unit_distr = unit_count / 200
+                if unit_distr <= unit_attrs.get(WEIGHT):
+                    weights.append(unit_attrs.get(WEIGHT))
+                    trainable_units.append(unit)
 
         units_to_train = random.choices(trainable_units, weights, k=larvae.amount)
 
@@ -314,3 +319,4 @@ class MacroManager:
         #     await self.upgrade_ling_speed()
         # if self.bot.structures(UnitTypeId.HYDRALISKDEN).ready:
         #     await self.upgrade_hydralisks()(
+

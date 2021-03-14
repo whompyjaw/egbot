@@ -73,6 +73,7 @@ class CombatManager:
 
     async def manage(self):
         await self.update_army()
+        await self._draw_debug()
         if len(self.army) >= 50:
             await self.attack_enemy()
             await self.micro_army(self.army, self.bot.enemy_units)
@@ -168,6 +169,24 @@ class CombatManager:
         return self.bot._distance_pos_to_pos(unit.position, target.position) <= (
                 unit.radius + target.radius + unit_attack_range + bonus_distance
         )
+
+    async def _draw_debug(self):
+        if len(self.army) > 0:
+            zerglings = [unit for unit in self.bot.units if unit.name == 'Zergling']
+            hydras = [unit for unit in self.bot.units if unit.name == 'Hydralisk']
+            drones = [unit for unit in self.bot.units if unit.name == 'Drone']
+            queens = [unit for unit in self.bot.units if unit.name == 'Queen']
+            supply_used = self.bot.supply_used
+
+            self.bot.client.debug_text_screen(
+                f"Drones: {str(len(drones)/supply_used)}\n \
+                Zerglings: {str(len(zerglings)/supply_used)}\n \
+                Hydralisks: {str(len(hydras)/supply_used)}\n \
+                Queens: {str(len(hydras)/supply_used)}\n",
+                pos=(0.2, 0.58),
+                size=13,
+                color=(0, 255, 255),
+            )
 
 
     # TODO: Should we get rid of this?

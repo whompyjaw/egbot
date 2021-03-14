@@ -23,17 +23,13 @@ class LingHydra(DefaultBuild):
                 STRUCTURE: id.HATCHERY,
                 WEIGHT: .425,
             },
-            id.QUEEN: {
-                STRUCTURE: id.SPAWNINGPOOL,
-                WEIGHT: .3
-            },
             id.ZERGLING: {
                 STRUCTURE: id.SPAWNINGPOOL,
-                WEIGHT: .4
+                WEIGHT: .225  #
             },
             id.HYDRALISK: {
                 STRUCTURE: id.HYDRALISKDEN,
-                WEIGHT: .7
+                WEIGHT: .35
             }
         }
         # i don't think i need to add things for evo chambers
