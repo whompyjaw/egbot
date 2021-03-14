@@ -28,7 +28,7 @@ class EGbot(sc2.BotAI):
         self.qp = None
         self.gm = GeneralManager(self)
         self.iteration = 0
-        self.logger = Sc2Logger()
+        self.logger = Sc2Logger(self)
 
 
     async def on_start(self):
@@ -57,14 +57,16 @@ class EGbot(sc2.BotAI):
         pass
 
     async def on_unit_destroyed(self, unit_tag: int):
-        self.gm.queens.remove_unit(unit_tag)
-        pass
+        #TODO: do we need this?
+        self.gm.mm.queens.remove_unit(unit_tag)
 
     async def on_unit_type_changed(self, unit: Unit, previous_type: UnitTypeId):
         pass
 
     async def log_info(self):
-        res = await self.logger.log_worker_distribution(self)
+        res = await self.logger.log_worker_distribution()
+        logging.info(res)
+        res = await self.logger.log_unit_percentages()
         logging.info(res)
 
     async def control_enemy(self):
@@ -76,7 +78,7 @@ def main():
     run_game(
         maps.get("AbyssalReefLE"),
         [Bot(Race.Zerg, EGbot()), Computer(Race.Terran, Difficulty.Hard)],
-        realtime=True,
+        realtime=False,
     )
 
 

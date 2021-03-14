@@ -4,7 +4,7 @@ class QueenPolicy:
             "creep_queens": {
                 "active": True,
                 "max": 2,
-                "priority": True,
+                "priority": 1,
                 "defend_against_air": True,
                 "defend_against_ground": True,
                 "distance_between_existing_tumors": 10,
@@ -44,7 +44,7 @@ class QueenPolicy:
             "inject_queens": {
                 "active": True,
                 "max": 3,
-                "priority": True,
+                "priority": False,
                 "defend_against_air": True,
                 "defend_against_ground": True,
                 #   "pass_own_threats": bool,
@@ -56,3 +56,29 @@ class QueenPolicy:
                 #             },
             },
         }
+
+        # self.mid_game_policy: dict = {
+        #     "creep_queens": {
+        #         "active": True,
+        #         "max": 2,
+        #         "priority": True,
+        #         "defend_against_air": True,
+        #         "defend_against_ground": True,
+        #         "distance_between_existing_tumors": 10,
+        #         "creep_targets": [],
+        #     },
+        #     "defence_queens": {
+        #         "active": True,
+        #         "max": 2,
+        #         "priority": False,
+        #         "defend_against_air": True,
+        #         "defend_against_ground": True,
+        #     },
+        #     "inject_queens": {
+        #         "active": True,
+        #         "max": 3,
+        #         "priority": False,
+        #         "defend_against_air": True,
+        #         "defend_against_ground": True,
+        #     },
+        # }
