@@ -3,7 +3,7 @@ from sc2.ids.ability_id import AbilityId
 from sc2.unit import Unit
 from sc2.units import Units
 from sc2.unit import UpgradeId
-from build_policy_consts import *
+from constants import *
 import random
 from typing import List
 from queens_sc2.queens import Queens
@@ -67,9 +67,8 @@ class MacroManager:
             unit_attrs: dict = units.get(unit)
             struct = self.bot.structures(unit_attrs.get(STRUCTURE))  # get structure status
             if struct.ready:
-                # get units for unit_id
-                unit_count = self.bot.units(unit).amount
-                unit_distr = unit_count / 200
+                unit_count = self.bot.units(unit).amount + self.bot.already_pending(unit)
+                unit_distr = unit_count * unit_attrs.get(SUPPLY_COST) / 200
                 if unit == UnitTypeId.QUEEN:
                     if unit_distr <= unit_attrs.get(WEIGHT):
                         await self.build_queens()
@@ -77,18 +76,11 @@ class MacroManager:
                     weights.append(unit_attrs.get(WEIGHT))
                     trainable_units.append(unit)
 
-
-        units_to_train = random.choices(trainable_units, weights, k=larvae.amount)
-
-
-
-
-        unit = None
-        # unit = UnitTypeId
-        for unit in units_to_train:
-            # i don't think we need "can afford" because train already does that
-            if larvae and self.bot.supply_left > 2:
-                larvae.random.train(unit, can_afford_check=True)
+        if trainable_units:
+            units_to_train = random.choices(trainable_units, weights, k=larvae.amount)
+            for unit in units_to_train:
+                if larvae and self.bot.supply_left > 2:
+                    larvae.random.train(unit, can_afford_check=True)
 
     async def build_queens(self) -> None:
         """

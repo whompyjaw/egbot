@@ -1,13 +1,6 @@
 STRUCTURE = 'structure'
 WEIGHT = 'weight'
-
-
-
-
-
-
-
-#
+SUPPLY_COST = 'supply_cost'
 BUILD_LAIR = 'build_lair'
 BUILD_HIVE = 'build_hive'
 # BUILD_ROACHWARREN = 'build_roach_warren'

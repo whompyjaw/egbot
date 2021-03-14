@@ -26,7 +26,6 @@ class GeneralManager:
 
         Returns
         -------
-
         """
         # TODO: Choose random build here (eventually)
         self.map_data = MapData(self.bot)
