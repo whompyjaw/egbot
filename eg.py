@@ -57,8 +57,8 @@ class EGbot(sc2.BotAI):
         pass
 
     async def on_unit_destroyed(self, unit_tag: int):
+        #TODO: do we need this?
         self.gm.mm.queens.remove_unit(unit_tag)
-        pass
 
     async def on_unit_type_changed(self, unit: Unit, previous_type: UnitTypeId):
         pass
