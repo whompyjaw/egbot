@@ -7,8 +7,7 @@ from pathmgr import PathManager
 from queens_sc2.queens import Queens
 from queen_policy import QueenPolicy
 from MapAnalyzer import MapData
-
-
+from builds import *
 
 class GeneralManager:
     def __init__(self, bot) -> None:
@@ -30,11 +29,14 @@ class GeneralManager:
         -------
 
         """
+        # TODO: Choose random build here (eventually)
         self.map_data = MapData(self.bot)
         self.setup_queens()
         self.pm.setup(self.map_data)
         self.cp.setup(self.pm)
-        self.mm.setup()
+
+        random_build = LingHydra(self.bot)
+        self.mm.setup(random_build)
         #self.cm.setup()
 
     async def manage(self, iteration: int) -> None:
