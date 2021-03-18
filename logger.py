@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from sc2.unit import Unit
+from sc2.unit import Unit, UnitTypeId as id
 from sc2.units import Units
 
 class Sc2Logger:
@@ -27,16 +27,16 @@ class Sc2Logger:
         return wd
 
     async def log_unit_percentages(self) -> dict:
-        zerglings = [unit for unit in self.bot.units if unit.name == 'Zergling']
-        hydras = [unit for unit in self.bot.units if unit.name == 'Hydralisk']
-        drones = [unit for unit in self.bot.units if unit.name == 'Drone']
-        queens = [unit for unit in self.bot.units if unit.name == 'Queen']
+        zerglings = self.bot.units(id.ZERGLING).amount + self.bot.already_pending(id.ZERGLING)
+        hydras = self.bot.units(id.HYDRALISK).amount + self.bot.already_pending(id.HYDRALISK)
+        drones = self.bot.units(id.DRONE).amount + self.bot.already_pending(id.DRONE)
+        queens = self.bot.units(id.QUEEN).amount + self.bot.already_pending(id.QUEEN)
 
         units = {
-            'drones': len(drones) / 200,
-            'lings': len(zerglings) / 200,
-            'hydras': len(hydras) / 200,
-            'queens': len(queens) / 200,
+            'drones': drones * 1 / 200,
+            'lings': zerglings * 1 / 200,
+            'hydras': hydras * 2 / 200,
+            'queens': queens * 2/ 200,
         }
 
         return units
