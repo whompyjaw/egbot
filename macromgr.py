@@ -105,58 +105,63 @@ class MacroManager:
 
 
     async def build_structures(self) -> None:
+        await self.build_unit_structures()
+
+        # drone_amt = self.bot.units(UnitTypeId.DRONE).amount
+        # if drone_amt % self.build.expand_rate == 0 or self.can_expand is True:
+        #     self.can_expand = True
+        #     await self.expand()
+
         if self.bot.townhalls.amount >= 2:
             if self.bot.structures(UnitTypeId.EXTRACTOR).amount < 1:
                 await self.build_gas()
-            await self.build_pool()
-            await self.build_lair()
         if self.bot.structures(UnitTypeId.LAIR).ready:
             if self.bot.structures(UnitTypeId.EXTRACTOR).amount < 3:
                 await self.build_gas()
-            await self.build_hydra_den()
         # TODO: What if we use a modulo? Like expand every 17-20 supply or something.
-        if self.bot.supply_used >= 17 and self.bot.townhalls.amount < 3:
-            await self.expand()
-        if self.bot.supply_used >= 90:
-            await self.expand()
+        # # 2nd expac
+        # if self.bot.supply_used >= self.build.expand_rate and self.bot.townhalls.amount == 1:
+        #     await self.expand()
+        # # 3rd expac
+        # if self.bot.supply_used >= self.build.expand_rate * 1.875 and self.bot.townhalls.amount == 2:
+        #     await self.expand()
+        # # 4th expac
+        # if self.bot.supply_used >= self.build.expand_rate * 3:
+        #     await self.expand()
         if self.bot.townhalls.ready.amount >= 2:
             await self.build_evo_chamber()
         if self.bot.townhalls.ready.amount >= 5:
             await self.build_gas()
 
-    async def build_pool(self) -> None:
-        """Builds a Spawning Pool near starting Hatchery location"""
-        pool: Units = self.bot.structures(UnitTypeId.SPAWNINGPOOL)  # NOTE: made for fun
-        pool_pending = self.bot.already_pending(UnitTypeId.SPAWNINGPOOL)
+    async def build_unit_structures(self):
+        structs: List[UnitTypeId] = self.build.build_sequence.items()
+        await self._check_expand()
 
-        if not pool.ready and not pool_pending:
-            if self.bot.can_afford(UnitTypeId.SPAWNINGPOOL):
-                await self.bot.build(
-                    UnitTypeId.SPAWNINGPOOL,
-                    near=self.hq.position.towards(self.bot.game_info.map_center, 5),
-                )
+        for struct, attributes in structs:
+            if struct is not UnitTypeId.HATCHERY:
+                if self.bot.supply_used >= attributes.get(SUPPLY) and not self.bot.structures(struct) and not self.bot.already_pending(struct):
+                    if self.bot.can_afford(struct):
+                        if struct == UnitTypeId.LAIR:
+                            self.hq.build(struct)
+                        elif struct == UnitTypeId.SPAWNINGPOOL:
+                            if not attributes.get(BEFORE_HATCH):
+                                if self.bot.townhalls.amount >= 2:
+                                    await self._build_structure(struct, attributes.get(LOCATION))
 
-    async def build_roach_warren(self):
-        roach_warren_id = UnitTypeId.ROACHWARREN
-        roach_warren: Units = self.bot.structures(UnitTypeId.ROACHWARREN)
+                        else:
+                            await self._build_structure(struct, attributes.get(LOCATION))
 
-        if not roach_warren.ready and not self.bot.already_pending(roach_warren_id):
-            if self.bot.can_afford(roach_warren_id):
-                await self.bot.build(
-                    UnitTypeId.ROACHWARREN,
-                    near=self.hq.position.towards(self.bot.game_info.map_center, 5),
-                )
+    async def _build_structure(self, id, location):
+        worker = self.bot.select_build_worker(location)
+        if worker:
+            worker.build(id, location)
 
-    async def build_hydra_den(self):
-        hydra_den_id = UnitTypeId.HYDRALISKDEN
-        hydra_den: Units = self.bot.structures(UnitTypeId.HYDRALISKDEN)
-
-        if not hydra_den.ready and not self.bot.already_pending(hydra_den_id):
-            if self.bot.can_afford(hydra_den_id):
-                await self.bot.build(
-                    UnitTypeId.HYDRALISKDEN,
-                    near=self.bot.main_base_ramp.bottom_center.towards(self.bot.game_info.map_center, 3),
-                )
+    async def _check_expand(self):
+        hatcheries = self.build.build_sequence.get(id.HATCHERY).values()
+        for hatch in hatcheries:
+            if hatch.get(SUPPLY) <= self.bot.supply_used and hatch.get(
+                    TOWNHALL_REQUIREMENT) >= self.bot.townhalls.amount:
+                await self.expand()
 
     async def build_evo_chamber(self):
         evo_id = UnitTypeId.EVOLUTIONCHAMBER

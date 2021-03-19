@@ -40,4 +40,24 @@ class LingHydra(DefaultBuild):
                 SUPPLY_COST: 2
             }
         }
-        # i don't think i need to add things for evo chambers
+
+        # struct_dict = [{id.HATCHERY:{'location': await self.bot.get_next_expansion()},
+        #                 id.SPAWNINGPOOL:{'location': self.hq.position.towards(self.bot.game_info.map_center, 5)},
+        #                 id.EXTRACTOR:{'location': self.bot.vespene_geyser.closer_than(10, self.bot.townhalls.ready.random)},
+        #                 id.HATCHERY:{'location': await self.bot.get_next_expansion()},
+        #                 id.EXTRACTOR:{'location': self.bot.vespene_geyser.closer_than(10, self.bot.townhalls.ready.random)},
+        #                 id.EVOLUTIONCHAMBER:{'location':self.bot.townhalls[1].position.towards(self.bot.game_info.map_center, 5)},
+        #                 id.EVOLUTIONCHAMBER:{'location':self.bot.townhalls[1].position.towards(self.bot.game_info.map_center, 5)},
+        #                 id.LAIR:{'location':self.bot.townhalls.first},
+        #                 id.HYDRALISKDEN:{'location': self.bot.main_base_ramp.bottom_center.towards(self.bot.game_info.map_center, 3)}
+        #                 }]
+        #
+        # async def build_stuff(self, structures: list):
+        #     for struct in structures:
+        #         #struct.keys() should return the UnitTypeId
+        #         #struct.get('location') should return the build location
+        #         #we then check if can afford
+        #         self.bot.build(struct.keys(), struct.get('location'), can_afford_check=True)
+        #         structures.pop(struct)
+        #         break
+
