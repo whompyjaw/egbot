@@ -74,15 +74,7 @@ class MacroManager:
         weights: List[float] = []
         trainable_units: List[UnitTypeId] = []
 
-        if self.bot.supply_used == 13 and self.bot.already_pending(id.OVERLORD) < 1:
-            larvae.random.train(id.OVERLORD)
-        elif (
-                self.bot.supply_cap > 14
-                and self.bot.supply_left < 3  # TODO: 2 or 3?
-                and larvae
-                and self.bot.can_afford(id.OVERLORD)
-                and self.bot.already_pending(id.OVERLORD) < 3
-        ):
+        if self._check_overlords() and larvae:
             larvae.random.train(id.OVERLORD)
         else:
         # unit = UnitTypeId
@@ -121,12 +113,9 @@ class MacroManager:
         dq: int = queens.policies.get('defence_policy').max_queens
         iq: int = queens.policies.get('inject_policy').max_queens
 
-        if (queen_count + self.bot.already_pending(UnitTypeId.QUEEN)) < (cq + dq + iq):
-            if self.bot.structures(UnitTypeId.SPAWNINGPOOL).ready:
-                if self.bot.can_afford(UnitTypeId.QUEEN):
-                    for hatchery in self.bot.townhalls.ready:
-                        if hatchery.is_idle:
-                            hatchery.train(UnitTypeId.QUEEN)
+        if (queen_count + self.bot.already_pending(id.QUEEN)) < (cq + dq + iq):
+            if self.bot.structures(id.SPAWNINGPOOL).ready:
+                self.bot.train(id.QUEEN, 1)
 
     async def _build_structure(self, id, location):
         worker = self.bot.select_build_worker(location)
@@ -137,6 +126,11 @@ class MacroManager:
         hatcheries = [hatch for hatch in self.build.build_sequence.get(id.HATCHERY).values()]
         townhall_count = self.bot.townhalls.amount
 
+        #our dictionary doesn't go above a 4th expansion, "list index out of range" so we can add in
+        #a max expand value inplace of the below:
+        if townhall_count > 4:
+            return False
+
         if hatcheries[townhall_count-1].get(SUPPLY) <= self.bot.supply_used:
             return True
         else:
@@ -144,9 +138,35 @@ class MacroManager:
 
     async def _build_gas(self):
         extractors = self.build.build_sequence.get(id.EXTRACTOR).values()
-        for extractor in extractors:
-            if extractor.get(SUPPLY) <= self.bot.supply_used and self.bot.can_afford(id.EXTRACTOR):
-                await self._build_structure(id.EXTRACTOR, extractor.get(LOCATION))
+        if self.bot.can_afford(id.EXTRACTOR):
+            if self.bot.supply_used >= 130:
+                for vg in self.bot.vespene_geyser.closer_than(10, self.bot.townhalls.ready.random):
+                    await self._build_structure(id.EXTRACTOR, vg)
+                    break
+            else:
+                for extractor in extractors:
+                    if extractor.get(SUPPLY) <= self.bot.supply_used\
+                            and extractor.get(EXTRACTOR_COUNT) > self.bot.structures(id.EXTRACTOR).amount:
+                        if not self.bot.worker_en_route_to_build(id.EXTRACTOR):
+                            for vg in self.bot.vespene_geyser.closer_than(10, self.bot.townhalls.ready.random):
+                                await self._build_structure(id.EXTRACTOR, vg)
+                                break
+
+    def _check_overlords(self):
+        larvae: Units = self.bot.units(UnitTypeId.LARVA)
+
+        if self.bot.supply_used == 13 and self.bot.already_pending(id.OVERLORD) < 1:
+            return True
+        elif (
+                self.bot.supply_cap > 16
+                and self.bot.supply_left < 3  # TODO: 2 or 3?
+                and larvae
+                and self.bot.can_afford(id.OVERLORD)
+                and self.bot.already_pending(id.OVERLORD) < 3
+        ):
+            return True
+        else:
+            return False
 
     async def build_evo_chamber(self):
         evo_id = UnitTypeId.EVOLUTIONCHAMBER
