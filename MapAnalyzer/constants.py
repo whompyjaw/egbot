@@ -29,7 +29,7 @@ COLORS = {
         19: "azure",
         20: "azure"
 }
-LOG_FORMAT = "<w><bold>{time:YY:MM:DD:HH:macromgr:ss}|" \
+LOG_FORMAT = "<w><bold>{time:YY:MM:DD:HH:mm:ss}|" \
              "<level>{level: <8}</level>|<green>{name: ^15}</green>|" \
              "{function: ^15}|" \
              "{line: >4}|" \

@@ -6,3 +6,6 @@ venv/
 __pycache__/
 .dir-locals.el
 egbot.log
+/MapAnalyzer/
+/tests/
+/queens_sc2/
