@@ -3,11 +3,13 @@ from sc2.ids.ability_id import AbilityId
 from sc2.unit import Unit
 from sc2.units import Units
 from sc2.unit import UpgradeId
+from sc2.position import Point2
 from constants import *
 import random
 from typing import List
 from queens_sc2.queens import Queens
 from queen_policy import QueenPolicy
+from builds import *
 
 
 class MacroManager:
@@ -23,19 +25,20 @@ class MacroManager:
         self.queens = None
         self.qp = None
         self.creepmgr = None
+        self.can_expand = False
 
-    def setup(self, build, creepmgr):
+    def setup(self, creepmgr):
         self.hq: Unit = self.bot.townhalls.first
         self.target_upgrades = [AbilityId.RESEARCH_ZERGMELEEWEAPONSLEVEL1, AbilityId.RESEARCH_ZERGMISSILEWEAPONSLEVEL1,
                                 AbilityId.RESEARCH_ZERGGROUNDARMORLEVEL1, AbilityId.RESEARCH_ZERGMISSILEWEAPONSLEVEL2,
                                 AbilityId.RESEARCH_ZERGMELEEWEAPONSLEVEL2, AbilityId.RESEARCH_ZERGGROUNDARMORLEVEL2,
                                 AbilityId.RESEARCH_ZERGMISSILEWEAPONSLEVEL3, AbilityId.RESEARCH_ZERGGROUNDARMORLEVEL3,
                                 AbilityId.RESEARCH_ZERGMELEEWEAPONSLEVEL3]
-
-        self.build = build
+        self.build = LingHydra(self.bot)
         self.qp = QueenPolicy(self.bot)
         self.queens = Queens(self.bot, True, self.qp.queen_policy)
         self.creepmgr = creepmgr
+
 
     async def manage(self):
         await self.build_order()
@@ -193,30 +196,6 @@ class MacroManager:
                 worker = self.bot.select_build_worker(next_expac)
                 if worker:
                     worker.build(UnitTypeId.HATCHERY, next_expac)
-
-    async def build_lair(self) -> None:
-        if self.hq.is_idle and not self.bot.townhalls(UnitTypeId.LAIR):
-            if self.bot.can_afford(UnitTypeId.LAIR):
-                self.hq.build(UnitTypeId.LAIR)
-
-    # async def train_overlords(self) -> None:
-    #     """
-    #     Build overlords up to max
-    #     """
-    #     # TODO: Will need to figure out if we need to create more than 200 supply OLs
-    #     larvae: Units = self.bot.units(UnitTypeId.LARVA)
-    #     overlord: UnitTypeId = UnitTypeId.OVERLORD
-    #
-    #     if self.bot.supply_used <= 13 and self.bot.already_pending(overlord) < 1:
-    #         larvae.random.train(overlord)
-    #     elif (
-    #             self.bot.supply_cap > 14
-    #             and self.bot.supply_left < 3  # TODO: 2 or 3?
-    #             and larvae
-    #             and self.bot.can_afford(overlord)
-    #             and self.bot.already_pending(overlord) < 3
-    #     ):
-    #         larvae.random.train(overlord)
 
     async def upgrade_ling_speed(self):
         pool: Units = self.bot.structures(UnitTypeId.SPAWNINGPOOL)

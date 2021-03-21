@@ -6,7 +6,7 @@ from macromgr import MacroManager
 from pathmgr import PathManager
 
 from MapAnalyzer import MapData
-from builds import *
+
 
 class GeneralManager:
     def __init__(self, bot) -> None:
@@ -32,8 +32,8 @@ class GeneralManager:
         self.pm.setup(self.map_data)
         self.creepmgr.setup(self.pm)
 
-        random_build = LingHydra(self.bot)
-        self.mm.setup(random_build, self.creepmgr)
+
+        self.mm.setup(self.creepmgr)
         self.cm.setup()
 
     async def manage(self, iteration: int) -> None:
