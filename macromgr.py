@@ -44,6 +44,8 @@ class MacroManager:
         await self.build_order()
         await self.upgrade_units()
 
+        #big changes
+
         if self.bot.iteration % 16 == 0:
             await self.bot.distribute_workers()
 
