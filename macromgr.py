@@ -15,9 +15,6 @@ from builds import *
 class MacroManager:
     def __init__(self, bot):
         self.bot = bot
-        self.actions = []
-        self.roach_hydra = False
-        self.zergling: UnitTypeId = UnitTypeId.ZERGLING
         self.ling_speed = UpgradeId.ZERGLINGMOVEMENTSPEED
         self.hq = None
         self.target_upgrades = []
@@ -25,7 +22,6 @@ class MacroManager:
         self.queens = None
         self.qp = None
         self.creepmgr = None
-        self.can_expand = False
 
     def setup(self, creepmgr):
         self.hq: Unit = self.bot.townhalls.first
@@ -34,7 +30,7 @@ class MacroManager:
                                 AbilityId.RESEARCH_ZERGMELEEWEAPONSLEVEL2, AbilityId.RESEARCH_ZERGGROUNDARMORLEVEL2,
                                 AbilityId.RESEARCH_ZERGMISSILEWEAPONSLEVEL3, AbilityId.RESEARCH_ZERGGROUNDARMORLEVEL3,
                                 AbilityId.RESEARCH_ZERGMELEEWEAPONSLEVEL3]
-        self.build = LingHydra(self.bot)
+        self.build = LingBaneMuta(self.bot)
         self.qp = QueenPolicy(self.bot)
         self.queens = Queens(self.bot, True, self.qp.queen_policy)
         self.creepmgr = creepmgr
@@ -63,7 +59,7 @@ class MacroManager:
                     if self.bot.can_afford(struct):
                         await self.expand()
             elif (struct is not id.HATCHERY or struct is not id.EXTRACTOR) and not self._check_expand():
-                if self.bot.supply_used >= attributes.get(SUPPLY) and not self.bot.structures(struct) and not self.bot.already_pending(struct):
+                if self.bot.supply_used >= attributes.get(SUPPLY_REQ) and not self.bot.structures(struct) and not self.bot.already_pending(struct):
                     if struct == UnitTypeId.LAIR:
                         self.hq.build(struct)
                     else:
@@ -73,7 +69,7 @@ class MacroManager:
 
     async def train_units(self):
         units: dict = self.build.units_to_train
-        larvae: Units = self.bot.units(UnitTypeId.LARVA)
+        larvae: Units = self.bot.units(id.LARVA)
         weights: List[float] = []
         trainable_units: List[UnitTypeId] = []
 
@@ -134,7 +130,7 @@ class MacroManager:
         if townhall_count > 4:
             return False
 
-        if hatcheries[townhall_count-1].get(SUPPLY) <= self.bot.supply_used:
+        if hatcheries[townhall_count-1].get(SUPPLY_REQ) <= self.bot.supply_used:
             return True
         else:
             return False
@@ -148,7 +144,7 @@ class MacroManager:
                     break
             else:
                 for extractor in extractors:
-                    if extractor.get(SUPPLY) <= self.bot.supply_used\
+                    if extractor.get(SUPPLY_REQ) <= self.bot.supply_used\
                             and extractor.get(EXTRACTOR_COUNT) > self.bot.structures(id.EXTRACTOR).amount:
                         if not self.bot.worker_en_route_to_build(id.EXTRACTOR):
                             for vg in self.bot.vespene_geyser.closer_than(10, self.bot.townhalls.ready.random):

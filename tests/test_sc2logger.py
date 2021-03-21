@@ -2,13 +2,13 @@ import unittest
 from unittest import mock
 from collections import defaultdict
 
-from logger import Sc2Logger
+from datamgr import DataManager
 from eg import EGbot
 
 
 class TestSc2Logger(unittest.TestCase):
     def setUp(self) -> None:
-        self.logger = Sc2Logger()
+        self.logger = DataManager()
         # return super().setUp() (not sure why pylance autocompletes this)
         self.bot = EGbot()
         self.bot.game_data = mock.Mock()
