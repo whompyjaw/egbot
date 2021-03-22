@@ -135,14 +135,14 @@ class LingBaneMuta(DefaultBuild):
             },
             id.BANELING: {
                 STRUCTURE_REQ: id.BANELINGNEST,
-                WEIGHT: 0.75,
+                WEIGHT: 0.05,
                 SUPPLY_COST: 0.5,
                 MORPH_RATE: 5,
                 UNIT_REQ: id.ZERGLING
             },
             id.MUTALISK: {
                 STRUCTURE_REQ: id.SPIRE,
-                WEIGHT: 0.20,
+                WEIGHT: 0.25,
                 SUPPLY_COST: 2
             }
         })
