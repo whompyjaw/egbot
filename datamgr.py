@@ -43,9 +43,15 @@ class DataManager:
         for unit, attributes in units.items():
             # calculate values for each unit
             unit_amt = self.bot.units(unit).amount + self.bot.already_pending(unit)
-            unit_distributions[unit] = unit_amt * attributes.get(SUPPLY_COST) / 200
+            distr = unit_amt * attributes.get(SUPPLY_COST) / 200
+            unit_distributions[unit] = str(distr) + ' (' + str(unit_amt) + ')'
 
         logging.info(unit_distributions)
+
+    async def get_res_collect_rate(self):
+        # todo calculate this for governing when to spam units and when to not
+        pass
+
 
 
 

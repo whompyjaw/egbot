@@ -32,18 +32,18 @@ class DefaultBuild:
         self.units_to_train = {
             id.DRONE: {
                 # drone doesn't really have a structure requirement
-                STRUCTURE: id.HATCHERY,
-                WEIGHT: .425,
+                STRUCTURE_REQ: id.HATCHERY,
+                WEIGHT: 0.425,
                 SUPPLY_COST: 1
             },
             id.QUEEN: {
-                STRUCTURE: id.SPAWNINGPOOL,
-                WEIGHT: .04,
+                STRUCTURE_REQ: id.SPAWNINGPOOL,
+                WEIGHT: 0.04,
                 SUPPLY_COST: 2
             },
             id.ZERGLING: {
-                STRUCTURE: id.SPAWNINGPOOL,
-                WEIGHT: .185,
+                STRUCTURE_REQ: id.SPAWNINGPOOL,
+                WEIGHT: 0.185,
                 SUPPLY_COST: 1
             },
         }
@@ -85,26 +85,27 @@ class LingHydra(DefaultBuild):
                 SUPPLY_REQ: 56,
             }
         }
+        # todo: use .update to clean this up
         self.units_to_train = {
             id.DRONE: {
                 # drone doesn't really have a structure requirement
-                STRUCTURE: id.HATCHERY,
-                WEIGHT: .425,
+                STRUCTURE_REQ: id.HATCHERY,
+                WEIGHT: 0.425,
                 SUPPLY_COST: 1
             },
             id.QUEEN: {
-                STRUCTURE: id.SPAWNINGPOOL,
-                WEIGHT: .04,
+                STRUCTURE_REQ: id.SPAWNINGPOOL,
+                WEIGHT: 0.04,
                 SUPPLY_COST: 2
             },
             id.ZERGLING: {
-                STRUCTURE: id.SPAWNINGPOOL,
-                WEIGHT: .185,
+                STRUCTURE_REQ: id.SPAWNINGPOOL,
+                WEIGHT: 0.185,
                 SUPPLY_COST: 1
             },
             id.HYDRALISK: {
-                STRUCTURE: id.HYDRALISKDEN,
-                WEIGHT: .35,
+                STRUCTURE_REQ: id.HYDRALISKDEN,
+                WEIGHT: 0.35,
                 SUPPLY_COST: 2
             }
         }
@@ -123,23 +124,25 @@ class LingBaneMuta(DefaultBuild):
             },
             id.SPIRE: {
                 LOCATION: self.bot.gm.macromgr.hq.position.towards(self.bot.game_info.map_center, 15),
-                SUPPLY_REQ: 56
+                SUPPLY_REQ: 56  # todo need to check ideal supply for this
             }
         })
         self.units_to_train.update({
             id.ZERGLING: {
-                STRUCTURE: id.SPAWNINGPOOL,
-                WEIGHT: .185,
+                STRUCTURE_REQ: id.SPAWNINGPOOL,
+                WEIGHT: 0.235,
                 SUPPLY_COST: 1
             },
             id.BANELING: {
-                STRUCTURE: id.BANELINGNEST,
-                WEIGHT: .175,
-                SUPPLY_COST: 0.5
+                STRUCTURE_REQ: id.BANELINGNEST,
+                WEIGHT: 0.75,
+                SUPPLY_COST: 0.5,
+                MORPH_RATE: 5,
+                UNIT_REQ: id.ZERGLING
             },
             id.MUTALISK: {
-                STRUCTURE: id.SPIRE,
-                WEIGHT: 0.175,
+                STRUCTURE_REQ: id.SPIRE,
+                WEIGHT: 0.20,
                 SUPPLY_COST: 2
             }
         })

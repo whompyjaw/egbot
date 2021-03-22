@@ -76,17 +76,36 @@ class MacroManager:
         if self._check_overlords() and larvae:
             larvae.random.train(id.OVERLORD)
         else:
-        # unit = UnitTypeId
             for unit in units:
                 unit_attrs: dict = units.get(unit)
-                struct = self.bot.structures(unit_attrs.get(STRUCTURE))  # get structure status
-                if struct.ready:
-                    unit_count = self.bot.units(unit).amount + self.bot.already_pending(unit)
-                    unit_distr = unit_count * unit_attrs.get(SUPPLY_COST) / 200
-                    if unit == UnitTypeId.QUEEN:
-                        if unit_distr <= unit_attrs.get(WEIGHT):
-                            await self.build_queens()
-                    if unit_distr <= unit_attrs.get(WEIGHT):
+                struct_req = self.bot.structures(unit_attrs.get(STRUCTURE_REQ))
+                unit_count = self.bot.units(unit).amount + self.bot.already_pending(unit)
+                unit_distr = unit_count * unit_attrs.get(SUPPLY_COST) / 200
+
+                # note '<' better than '<='. results closer to what is set in builds
+                if struct_req.ready and unit_distr < unit_attrs.get(WEIGHT):
+                    if unit == id.QUEEN:
+                        await self.build_queens()
+                    elif unit == id.BANELING:
+                        # todo: i think an issue with this, is that banes get build before the mutas, so the resources
+                        # that could be used for muta get taken up by banelings, but not sure as long as the distr is set
+                        # appropriately
+                        lings = self.bot.units(id.ZERGLING)
+                        morph_rate = unit_attrs.get(MORPH_RATE)
+
+                        # todo: turn this into using the `unit_req` that was added to the build
+                        ling_attrs = units.get(id.ZERGLING)
+                        max_ling_dist = ling_attrs.get(WEIGHT)
+                        current_ling_distr = (lings.amount + self.bot.already_pending(id.ZERGLING)) * ling_attrs.get(SUPPLY_COST) / 200
+
+                        # if ling's current distribution is at least 50% of the ling's max distr, make some banes
+                        if current_ling_distr / max_ling_dist >= 0.5 and lings.amount >= morph_rate:
+                            i = 0
+                            while i < morph_rate:
+                                if self.bot.can_afford(id.BANELING):
+                                    lings[i].train(id.BANELING)
+                                i += 1
+                    else:
                         weights.append(unit_attrs.get(WEIGHT))
                         trainable_units.append(unit)
 
@@ -97,6 +116,12 @@ class MacroManager:
                         larvae.random.train(unit, can_afford_check=True)
                     elif larvae and self.bot.supply_left >= 1 and self.bot.already_pending(id.OVERLORD) >= 1:
                         larvae.random.train(unit, can_afford_check=True)
+
+    async def morph_banelings(self):
+        # note this will likely be turned into `morph_units`; would be ideal if it can work for other unit types
+        pass
+
+
 
     async def build_queens(self) -> None:
         """
