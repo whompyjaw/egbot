@@ -45,6 +45,4 @@ class CreepManager:
                 creep_target_list.append(pos)
 
         # shuffle(target_list)
-
-
         return creep_target_list

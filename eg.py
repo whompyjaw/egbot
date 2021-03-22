@@ -77,8 +77,8 @@ def main():
     """Setting realtime=False makes the game/bot play as fast as possible"""
     run_game(
         maps.get("AbyssalReefLE"),
-        [Bot(Race.Zerg, EGbot()), Computer(Race.Terran, Difficulty.Hard)],
-        realtime=True,
+        [Bot(Race.Zerg, EGbot()), Computer(Race.Protoss, Difficulty.VeryHard)],
+        realtime=False,
     )
 
 

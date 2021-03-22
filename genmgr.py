@@ -32,7 +32,6 @@ class GeneralManager:
         self.pm.setup(self.map_data)
         self.creepmgr.setup(self.pm)
 
-
         self.mm.setup(self.creepmgr)
         self.cm.setup()
 

@@ -28,15 +28,19 @@ class Sc2Logger:
 
     async def log_unit_percentages(self) -> dict:
         zerglings = self.bot.units(id.ZERGLING).amount + self.bot.already_pending(id.ZERGLING)
-        hydras = self.bot.units(id.HYDRALISK).amount + self.bot.already_pending(id.HYDRALISK)
-        drones = self.bot.units(id.DRONE).amount + self.bot.already_pending(id.DRONE)
-        queens = self.bot.units(id.QUEEN).amount + self.bot.already_pending(id.QUEEN)
+        #hydras = self.bot.units(id.HYDRALISK).amount + self.bot.already_pending(id.HYDRALISK)
+        banelings = self.bot.units(id.BANELING).amount + self.bot.already_pending(id.BANELING)
+        mutas = self.bot.units(id.MUTALISK).amount + self.bot.already_pending(id.MUTALISK)
+        #drones = self.bot.units(id.DRONE).amount + self.bot.already_pending(id.DRONE)
+        #queens = self.bot.units(id.QUEEN).amount + self.bot.already_pending(id.QUEEN)
 
         units = {
-            'drones': drones * 1 / 200,
+            #'drones': drones * 1 / 200,
             'lings': zerglings * 1 / 200,
-            'hydras': hydras * 2 / 200,
-            'queens': queens * 2/ 200,
+           # 'hydras': hydras * 2 / 200,
+           # 'queens': queens * 2/ 200,
+            'mutas': mutas * 1 / 200,
+            'banes': banelings * 1 / 200,
         }
 
         return units

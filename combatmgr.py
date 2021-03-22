@@ -174,17 +174,25 @@ class CombatManager:
         if len(self.army) > 0:
             zerglings = [unit for unit in self.bot.units if unit.name == 'Zergling']
             hydras = [unit for unit in self.bot.units if unit.name == 'Hydralisk']
+            banes = [unit for unit in self.bot.units if unit.name == 'Baneling']
+            mutas = [unit for unit in self.bot.units if unit.name == 'Mutalisk']
             drones = [unit for unit in self.bot.units if unit.name == 'Drone']
             queens = [unit for unit in self.bot.units if unit.name == 'Queen']
 
             self.bot.client.debug_text_screen(
                 f"Drones: {str(len(drones)/200)}\n \
                 Zerglings: {str(len(zerglings)/200)}\n \
-                Hydralisks: {str(len(hydras)/200)}\n \
-                Queens: {str(len(queens)/200)}\n",
+                Banelings: {str(len(banes) / 200)}\n \
+                Mutalisks: {str(len(mutas) / 200)}\n",
+
                 pos=(0.2, 0.50),
                 size=13,
                 color=(0, 255, 255),
+
+                # Hydralisks: {str(len(hydras) / 200)}\n \
+                # Queens: {str(len(queens) / 200)}\n
+
+
             )
 
 
