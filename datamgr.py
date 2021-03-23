@@ -49,7 +49,7 @@ class DataManager:
         logging.info(unit_distributions)
 
     async def get_res_collect_rate(self):
-        # todo calculate this for governing when to spam units and when to not
+        # todo calculate this for governing when to spam units and when to not (potentially)
         pass
 
 

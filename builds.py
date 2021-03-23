@@ -131,14 +131,16 @@ class LingBaneMuta(DefaultBuild):
             id.ZERGLING: {
                 STRUCTURE_REQ: id.SPAWNINGPOOL,
                 WEIGHT: 0.235,
-                SUPPLY_COST: 1
+                SUPPLY_COST: 1,
+
             },
             id.BANELING: {
                 STRUCTURE_REQ: id.BANELINGNEST,
-                WEIGHT: 0.75,
+                WEIGHT: 0.075,
                 SUPPLY_COST: 0.5,
                 MORPH_RATE: 5,
-                UNIT_REQ: id.ZERGLING
+                UNIT_REQ: id.ZERGLING,
+                MORPH_DISTR_REQ: 0.60  # note i don't know if this should go here or in the attributes of the req'd unit.
             },
             id.MUTALISK: {
                 STRUCTURE_REQ: id.SPIRE,

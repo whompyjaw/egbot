@@ -87,24 +87,11 @@ class MacroManager:
                     if unit == id.QUEEN:
                         await self.build_queens()
                     elif unit == id.BANELING:
-                        # todo: i think an issue with this, is that banes get build before the mutas, so the resources
-                        # that could be used for muta get taken up by banelings, but not sure as long as the distr is set
-                        # appropriately
-                        lings = self.bot.units(id.ZERGLING)
-                        morph_rate = unit_attrs.get(MORPH_RATE)
-
-                        # todo: turn this into using the `unit_req` that was added to the build
-                        ling_attrs = units.get(id.ZERGLING)
-                        max_ling_dist = ling_attrs.get(WEIGHT)
-                        current_ling_distr = (lings.amount + self.bot.already_pending(id.ZERGLING)) * ling_attrs.get(SUPPLY_COST) / 200
-
-                        # if ling's current distribution is at least 50% of the ling's max distr, make some banes
-                        if current_ling_distr / max_ling_dist >= 0.5 and lings.amount >= morph_rate:
-                            i = 0
-                            while i < morph_rate:
-                                if self.bot.can_afford(id.BANELING):
-                                    lings[i].train(id.BANELING)
-                                i += 1
+                        await self._morph_units(unit, units, unit_attrs)
+                    elif unit == id.RAVAGER:
+                        pass
+                    elif unit == id.LURKER:
+                        pass
                     else:
                         weights.append(unit_attrs.get(WEIGHT))
                         trainable_units.append(unit)
@@ -117,10 +104,49 @@ class MacroManager:
                     elif larvae and self.bot.supply_left >= 1 and self.bot.already_pending(id.OVERLORD) >= 1:
                         larvae.random.train(unit, can_afford_check=True)
 
-    async def morph_banelings(self):
-        # note this will likely be turned into `morph_units`; would be ideal if it can work for other unit types
-        pass
+    # async def _morph_banelings(self, unit: UnitTypeId, attrs: dict):
+    #     # note this will likely be turned into `morph_units`; would be ideal if it can work for other unit types
+    #     lings = self.bot.units(id.ZERGLING)
+    #     morph_rate = attrs.get(MORPH_RATE)
+    #
+    #     # todo: turn this into using the `unit_req` that was added to the build
+    #     ling_attrs = units.get(id.ZERGLING)
+    #     max_ling_dist = ling_attrs.get(WEIGHT)
+    #     current_ling_distr = (lings.amount + self.bot.already_pending(id.ZERGLING)) * ling_attrs.get(SUPPLY_COST) / 200
+    #
+    #     # if ling's current distribution is at least 50% of the ling's max distr, make some banes
+    #     # can use this as an attribute i'd think, but it'd have to be general enough.
+    #     if current_ling_distr / max_ling_dist > 0.5 and lings.amount >= morph_rate:
+    #         i = 0
+    #         while i < morph_rate:
+    #             if self.bot.can_afford(id.BANELING):
+    #                 lings[i].train(id.BANELING)
+    #             i += 1
 
+    async def _morph_units(self, unit: UnitTypeId, units: dict, unit_attrs: dict):
+        # setup the required unit's information
+        required_unit: UnitTypeId = unit_attrs.get(UNIT_REQ)
+        req_units = self.bot.units(required_unit)
+
+        ru_attrs = units.get(required_unit)
+        ru_supply_cost = ru_attrs.get(SUPPLY_COST)
+        ru_pending_amt = self.bot.already_pending(required_unit)
+        ru_max_distr = ru_attrs.get(WEIGHT)
+
+        morph_distr_req = unit_attrs.get(MORPH_DISTR_REQ)
+        morph_rate = unit_attrs.get(MORPH_RATE)
+
+        # get the distribution of the required unit
+        ru_current_dist = (req_units.amount + ru_pending_amt) * ru_supply_cost / 200
+
+        # if the current req'd unit count is greater than the distribution requirment to morph
+        # then train up to the morph rate
+        if ru_current_dist / ru_max_distr > morph_distr_req:
+            i = 0
+            while i < morph_rate:
+                if self.bot.can_afford(unit):
+                    req_units[i].train(unit)
+                i += 1
 
 
     async def build_queens(self) -> None:
