@@ -15,9 +15,6 @@ from builds import *
 class MacroManager:
     def __init__(self, bot):
         self.bot = bot
-        self.actions = []
-        self.roach_hydra = False
-        self.zergling: UnitTypeId = UnitTypeId.ZERGLING
         self.ling_speed = UpgradeId.ZERGLINGMOVEMENTSPEED
         self.hq = None
         self.target_upgrades = []
@@ -25,7 +22,6 @@ class MacroManager:
         self.queens = None
         self.qp = None
         self.creepmgr = None
-        self.can_expand = False
 
     def setup(self, creepmgr):
         self.hq: Unit = self.bot.townhalls.first
@@ -76,7 +72,7 @@ class MacroManager:
 
     async def train_units(self):
         units: dict = self.build.units_to_train
-        larvae: Units = self.bot.units(UnitTypeId.LARVA)
+        larvae: Units = self.bot.units(id.LARVA)
         weights: List[float] = []
         trainable_units: List[UnitTypeId] = []
 

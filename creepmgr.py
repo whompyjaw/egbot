@@ -19,7 +19,7 @@ class CreepManager:
         self.section_size = int(len(self.creep_paths) / 3)
 
     async def manage(self):
-        return await self.update_creep()
+        pass
 
     def get_creep_targets(self) -> List[Point2]:
         # if not self.ally_expac_paths_set:
