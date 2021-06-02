@@ -46,7 +46,7 @@ class DefaultBuild:
                 SUPPLY_COST: 2
             },
             id.ZERGLING: {
-                STRUCTURE: id.SPAWNINGPOOL,
+                STRUCTURE_REQ: id.SPAWNINGPOOL,
                 WEIGHT: .185,
                 SUPPLY_COST: 0.5
             },
@@ -122,7 +122,7 @@ class LingBaneMuta(DefaultBuild):
             id.ZERGLING: {
                 STRUCTURE_REQ: id.SPAWNINGPOOL,
                 WEIGHT: 0.235,
-                SUPPLY_COST: 0.5
+                SUPPLY_COST: 1
             },
             id.BANELING: {
                 STRUCTURE_REQ: id.BANELINGNEST,
