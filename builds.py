@@ -48,7 +48,7 @@ class DefaultBuild:
             id.ZERGLING: {
                 STRUCTURE_REQ: id.SPAWNINGPOOL,
                 WEIGHT: .185,
-                SUPPLY_COST: 0.5
+                SUPPLY_COST: 1
             },
         }
         self.build_lair = True
