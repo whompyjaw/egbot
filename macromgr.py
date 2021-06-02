@@ -3,19 +3,18 @@ from sc2.ids.ability_id import AbilityId
 from sc2.unit import Unit
 from sc2.units import Units
 from sc2.unit import UpgradeId
+from sc2.position import Point2
 from constants import *
 import random
 from typing import List
 from queens_sc2.queens import Queens
 from queen_policy import QueenPolicy
+from builds import *
 
 
 class MacroManager:
     def __init__(self, bot):
         self.bot = bot
-        self.actions = []
-        self.roach_hydra = False
-        self.zergling: UnitTypeId = UnitTypeId.ZERGLING
         self.ling_speed = UpgradeId.ZERGLINGMOVEMENTSPEED
         self.hq = None
         self.target_upgrades = []
@@ -24,25 +23,21 @@ class MacroManager:
         self.qp = None
         self.creepmgr = None
 
-    def setup(self, build, creepmgr):
+    def setup(self, creepmgr):
         self.hq: Unit = self.bot.townhalls.first
         self.target_upgrades = [AbilityId.RESEARCH_ZERGMELEEWEAPONSLEVEL1, AbilityId.RESEARCH_ZERGMISSILEWEAPONSLEVEL1,
                                 AbilityId.RESEARCH_ZERGGROUNDARMORLEVEL1, AbilityId.RESEARCH_ZERGMISSILEWEAPONSLEVEL2,
                                 AbilityId.RESEARCH_ZERGMELEEWEAPONSLEVEL2, AbilityId.RESEARCH_ZERGGROUNDARMORLEVEL2,
                                 AbilityId.RESEARCH_ZERGMISSILEWEAPONSLEVEL3, AbilityId.RESEARCH_ZERGGROUNDARMORLEVEL3,
                                 AbilityId.RESEARCH_ZERGMELEEWEAPONSLEVEL3]
-
-        self.build = build
+        self.build = LingBaneMuta(self.bot)
         self.qp = QueenPolicy(self.bot)
         self.queens = Queens(self.bot, True, self.qp.queen_policy)
         self.creepmgr = creepmgr
 
+
     async def manage(self):
-        await self.build_structures()
-        await self.train_units()
-        # TODO: Not sure if better since we'll have to get all the "ready" structures. We can keep a running list of
-        # ready structures, and if a building is destroyed, we remove it from that list. This could work for if we use
-        # a build list in our policy/config.
+        await self.build_order()
         await self.upgrade_units()
 
         if self.bot.iteration % 16 == 0:
@@ -54,33 +49,108 @@ class MacroManager:
                 self.queens.update_creep_targets(targets)
         await self.queens.manage_queens(self.bot.iteration)
 
+    async def build_order(self):
+        structs: List[UnitTypeId] = self.build.build_sequence.items()
+
+        for struct, attributes in structs:
+            if struct is id.HATCHERY or struct is id.EXTRACTOR or struct is id.EVOLUTIONCHAMBER:
+                await self._build_gas()
+                await self._build_evo_chamber()
+                if self._check_expand():
+                    if self.bot.can_afford(struct):
+                        await self.expand()
+            elif (struct is not id.HATCHERY or struct is not id.EXTRACTOR or struct is not id.EVOLUTIONCHAMBER)\
+                    and not self._check_expand() and not self._check_hatch_upgrade():
+                if self.bot.supply_used >= attributes.get(SUPPLY_REQ) and not self.bot.structures(struct)\
+                        and not self.bot.already_pending(struct):
+                    await self._build_structure(struct, attributes.get(LOCATION))
+                else:
+                    await self.train_units()
+            elif struct == UnitTypeId.LAIR:
+                if self._check_hatch_upgrade() and self.bot.can_afford(struct):
+                    self.hq.build(struct)
+
     async def train_units(self):
-        # get supply?
-        await self.train_overlords()
         units: dict = self.build.units_to_train
-        larvae: Units = self.bot.units(UnitTypeId.LARVA)
+        larvae: Units = self.bot.units(id.LARVA)
         weights: List[float] = []
         trainable_units: List[UnitTypeId] = []
 
-        # unit = UnitTypeId
-        for unit in units:
-            unit_attrs: dict = units.get(unit)
-            struct = self.bot.structures(unit_attrs.get(STRUCTURE))  # get structure status
-            if struct.ready:
+        if self._check_overlords() and larvae:
+            larvae.random.train(id.OVERLORD)
+        else:
+            for unit in units:
+                unit_attrs: dict = units.get(unit)
+                struct_req = self.bot.structures(unit_attrs.get(STRUCTURE_REQ))
                 unit_count = self.bot.units(unit).amount + self.bot.already_pending(unit)
                 unit_distr = unit_count * unit_attrs.get(SUPPLY_COST) / 200
-                if unit == UnitTypeId.QUEEN:
-                    if unit_distr <= unit_attrs.get(WEIGHT):
-                        await self.build_queens()
-                if unit_distr <= unit_attrs.get(WEIGHT):
-                    weights.append(unit_attrs.get(WEIGHT))
-                    trainable_units.append(unit)
 
-        if trainable_units:
-            units_to_train = random.choices(trainable_units, weights, k=larvae.amount)
-            for unit in units_to_train:
-                if larvae and self.bot.supply_left > 2:
-                    larvae.random.train(unit, can_afford_check=True)
+                # note '<' better than '<='. results closer to what is set in builds
+                if struct_req.ready and unit_distr < unit_attrs.get(WEIGHT):
+                    if unit == id.QUEEN:
+                        await self.build_queens()
+                    elif unit == id.BANELING:
+                        await self._morph_units(unit, units, unit_attrs)
+                    elif unit == id.RAVAGER:
+                        pass
+                    elif unit == id.LURKER:
+                        pass
+                    else:
+                        weights.append(unit_attrs.get(WEIGHT))
+                        trainable_units.append(unit)
+
+            if trainable_units:
+                units_to_train = random.choices(trainable_units, weights, k=larvae.amount)
+                for unit in units_to_train:
+                    if larvae and self.bot.supply_left >= 2:
+                        larvae.random.train(unit, can_afford_check=True)
+                    elif larvae and self.bot.supply_left >= 1 and self.bot.already_pending(id.OVERLORD) >= 1:
+                        larvae.random.train(unit, can_afford_check=True)
+
+    # async def _morph_banelings(self, unit: UnitTypeId, attrs: dict):
+    #     # note this will likely be turned into `morph_units`; would be ideal if it can work for other unit types
+    #     lings = self.bot.units(id.ZERGLING)
+    #     morph_rate = attrs.get(MORPH_RATE)
+    #
+    #     # todo: turn this into using the `unit_req` that was added to the build
+    #     ling_attrs = units.get(id.ZERGLING)
+    #     max_ling_dist = ling_attrs.get(WEIGHT)
+    #     current_ling_distr = (lings.amount + self.bot.already_pending(id.ZERGLING)) * ling_attrs.get(SUPPLY_COST) / 200
+    #
+    #     # if ling's current distribution is at least 50% of the ling's max distr, make some banes
+    #     # can use this as an attribute i'd think, but it'd have to be general enough.
+    #     if current_ling_distr / max_ling_dist > 0.5 and lings.amount >= morph_rate:
+    #         i = 0
+    #         while i < morph_rate:
+    #             if self.bot.can_afford(id.BANELING):
+    #                 lings[i].train(id.BANELING)
+    #             i += 1
+
+    async def _morph_units(self, unit: UnitTypeId, units: dict, unit_attrs: dict):
+        # setup the required unit's information
+        required_unit: UnitTypeId = unit_attrs.get(UNIT_REQ)
+        req_units = self.bot.units(required_unit)
+
+        ru_attrs = units.get(required_unit)
+        ru_supply_cost = ru_attrs.get(SUPPLY_COST)
+        ru_pending_amt = self.bot.already_pending(required_unit)
+        ru_max_distr = ru_attrs.get(WEIGHT)
+
+        morph_distr_req = unit_attrs.get(MORPH_DISTR_REQ)
+        morph_rate = unit_attrs.get(MORPH_RATE)
+
+        # get the distribution of the required unit
+        ru_current_dist = (req_units.amount + ru_pending_amt) * ru_supply_cost / 200
+
+        # if the current req'd unit count is greater than the distribution requirment to morph
+        # then train up to the morph rate
+        if ru_current_dist / ru_max_distr > morph_distr_req:
+            i = 0
+            while i < morph_rate:
+                if self.bot.can_afford(unit):
+                    req_units[i].train(unit)
+                i += 1
+
 
     async def build_queens(self) -> None:
         """
@@ -96,91 +166,80 @@ class MacroManager:
         dq: int = queens.policies.get('defence_policy').max_queens
         iq: int = queens.policies.get('inject_policy').max_queens
 
-        if (queen_count + self.bot.already_pending(UnitTypeId.QUEEN)) < (cq + dq + iq):
-            if self.bot.structures(UnitTypeId.SPAWNINGPOOL).ready:
-                if self.bot.can_afford(UnitTypeId.QUEEN):
-                    for hatchery in self.bot.townhalls.ready:
-                        if hatchery.is_idle:
-                            hatchery.train(UnitTypeId.QUEEN)
+        if (queen_count + self.bot.already_pending(id.QUEEN)) < (cq + dq + iq):
+            if self.bot.structures(id.SPAWNINGPOOL).ready:
+                self.bot.train(id.QUEEN, 1)
 
+    async def _build_structure(self, id, location):
+        worker = self.bot.select_build_worker(location)
+        if worker:
+            worker.build(id, location)
 
-    async def build_structures(self) -> None:
-        if self.bot.townhalls.amount >= 2:
-            if self.bot.structures(UnitTypeId.EXTRACTOR).amount < 1:
-                await self.build_gas()
-            await self.build_pool()
-            await self.build_lair()
-        if self.bot.structures(UnitTypeId.LAIR).ready:
-            if self.bot.structures(UnitTypeId.EXTRACTOR).amount < 3:
-                await self.build_gas()
-            await self.build_hydra_den()
-        # TODO: What if we use a modulo? Like expand every 17-20 supply or something.
-        if self.bot.supply_used >= 17 and self.bot.townhalls.amount < 3:
-            await self.expand()
-        if self.bot.supply_used >= 90:
-            await self.expand()
-        if self.bot.townhalls.ready.amount >= 2:
-            await self.build_evo_chamber()
-        if self.bot.townhalls.ready.amount >= 5:
-            await self.build_gas()
+    def _check_expand(self):
+        hatcheries = [hatch for hatch in self.build.build_sequence.get(id.HATCHERY).values()]
+        townhall_count = self.bot.townhalls.amount
 
-    async def build_pool(self) -> None:
-        """Builds a Spawning Pool near starting Hatchery location"""
-        pool: Units = self.bot.structures(UnitTypeId.SPAWNINGPOOL)  # NOTE: made for fun
-        pool_pending = self.bot.already_pending(UnitTypeId.SPAWNINGPOOL)
+        #our dictionary doesn't go above a 4th expansion, "list index out of range" so we can add in
+        #a max expand value inplace of the below:
+        if townhall_count > 4:
+            return False
 
-        if not pool.ready and not pool_pending:
-            if self.bot.can_afford(UnitTypeId.SPAWNINGPOOL):
-                await self.bot.build(
-                    UnitTypeId.SPAWNINGPOOL,
-                    near=self.hq.position.towards(self.bot.game_info.map_center, 5),
-                )
+        if hatcheries[townhall_count-1].get(SUPPLY_REQ) <= self.bot.supply_used:
+            return True
+        else:
+            return False
 
-    async def build_roach_warren(self):
-        roach_warren_id = UnitTypeId.ROACHWARREN
-        roach_warren: Units = self.bot.structures(UnitTypeId.ROACHWARREN)
+    def _check_hatch_upgrade(self):
+        lair_timing = self.build.build_sequence[id.LAIR].get(SUPPLY_REQ)
+        #hive_timing = [self.build.build_sequence.get(id.HIVE).values()]
 
-        if not roach_warren.ready and not self.bot.already_pending(roach_warren_id):
-            if self.bot.can_afford(roach_warren_id):
-                await self.bot.build(
-                    UnitTypeId.ROACHWARREN,
-                    near=self.hq.position.towards(self.bot.game_info.map_center, 5),
-                )
+        if lair_timing <= self.bot.supply_used and not self.bot.structures(id.LAIR)\
+                and not self.bot.already_pending(id.LAIR):
+            return True
+        else:
+            return False
 
-    async def build_hydra_den(self):
-        hydra_den_id = UnitTypeId.HYDRALISKDEN
-        hydra_den: Units = self.bot.structures(UnitTypeId.HYDRALISKDEN)
-
-        if not hydra_den.ready and not self.bot.already_pending(hydra_den_id):
-            if self.bot.can_afford(hydra_den_id):
-                await self.bot.build(
-                    UnitTypeId.HYDRALISKDEN,
-                    near=self.bot.main_base_ramp.bottom_center.towards(self.bot.game_info.map_center, 3),
-                )
-
-    async def build_evo_chamber(self):
-        evo_id = UnitTypeId.EVOLUTIONCHAMBER
-        evo_chamber: Units = self.bot.structures(UnitTypeId.EVOLUTIONCHAMBER)
-
-        if evo_chamber.amount < 2 and not self.bot.already_pending(evo_id):
-            if self.bot.can_afford(evo_id):
-                await self.bot.build(
-                    UnitTypeId.EVOLUTIONCHAMBER,
-                    near=self.bot.townhalls[1].position.towards(self.bot.game_info.map_center, 5),
-                )
-
-    async def build_gas(self) -> None:
-        """
-        Build Extractors at Vespene Gas locations near Hatchery. If only one
-        hatch is up, build one gas, once hatches.amount > 1 then begin building gas at all locations.
-        """
-        # iteration: int = self.bot.iteration
-
-        if self.bot.can_afford(UnitTypeId.EXTRACTOR):  # and iteration > 180:
-            for vg in self.bot.vespene_geyser.closer_than(10, self.bot.townhalls.ready.random):
-                if not self.bot.worker_en_route_to_build(UnitTypeId.EXTRACTOR):
-                    await self.bot.build(UnitTypeId.EXTRACTOR, vg)
+    async def _build_gas(self):
+        extractors = self.build.build_sequence.get(id.EXTRACTOR).values()
+        if self.bot.can_afford(id.EXTRACTOR):
+            if self.bot.supply_used >= 130:
+                for vg in self.bot.vespene_geyser.closer_than(10, self.bot.townhalls.ready.random):
+                    await self._build_structure(id.EXTRACTOR, vg)
                     break
+            else:
+                for extractor in extractors:
+                    if extractor.get(SUPPLY_REQ) <= self.bot.supply_used\
+                            and extractor.get(EXTRACTOR_COUNT) > self.bot.structures(id.EXTRACTOR).amount:
+                        if not self.bot.worker_en_route_to_build(id.EXTRACTOR):
+                            for vg in self.bot.vespene_geyser.closer_than(10, self.bot.townhalls.ready.random):
+                                await self._build_structure(id.EXTRACTOR, vg)
+                                break
+
+    async def _build_evo_chamber(self):
+        evo_chambers: Units = self.build.build_sequence.get(id.EVOLUTIONCHAMBER).values()
+
+        for evo in evo_chambers:
+            location = self.bot.townhalls.ready.random.position.towards_with_random_angle(self.bot.game_info.map_center, 5)
+            if evo.get(SUPPLY_REQ) <= self.bot.supply_used\
+                    and self.bot.structures(id.EVOLUTIONCHAMBER).amount < evo.get(EVO_COUNT):
+                if not self.bot.worker_en_route_to_build(id.EVOLUTIONCHAMBER):
+                    await self._build_structure(id.EVOLUTIONCHAMBER, location)
+
+    def _check_overlords(self):
+        larvae: Units = self.bot.units(UnitTypeId.LARVA)
+
+        if self.bot.supply_used == 13 and self.bot.already_pending(id.OVERLORD) < 1:
+            return True
+        elif (
+                self.bot.supply_cap > 16
+                and self.bot.supply_left < 3  # TODO: 2 or 3?
+                and larvae
+                and self.bot.can_afford(id.OVERLORD)
+                and self.bot.already_pending(id.OVERLORD) < 3
+        ):
+            return True
+        else:
+            return False
 
     async def expand(self) -> None:
         """
@@ -196,30 +255,6 @@ class MacroManager:
                 worker = self.bot.select_build_worker(next_expac)
                 if worker:
                     worker.build(UnitTypeId.HATCHERY, next_expac)
-
-    async def build_lair(self) -> None:
-        if self.hq.is_idle and not self.bot.townhalls(UnitTypeId.LAIR):
-            if self.bot.can_afford(UnitTypeId.LAIR):
-                self.hq.build(UnitTypeId.LAIR)
-
-    async def train_overlords(self) -> None:
-        """
-        Build overlords up to max
-        """
-        # TODO: Will need to figure out if we need to create more than 200 supply OLs
-        larvae: Units = self.bot.units(UnitTypeId.LARVA)
-        overlord: UnitTypeId = UnitTypeId.OVERLORD
-
-        if self.bot.supply_used <= 13 and self.bot.already_pending(overlord) < 1:
-            larvae.random.train(overlord)
-        elif (
-                self.bot.supply_cap > 14
-                and self.bot.supply_left < 3  # TODO: 2 or 3?
-                and larvae
-                and self.bot.can_afford(overlord)
-                and self.bot.already_pending(overlord) < 3
-        ):
-            larvae.random.train(overlord)
 
     async def upgrade_ling_speed(self):
         pool: Units = self.bot.structures(UnitTypeId.SPAWNINGPOOL)
@@ -237,6 +272,9 @@ class MacroManager:
         elif self.bot.already_pending_upgrade(UpgradeId.EVOLVEMUSCULARAUGMENTS) == 0 \
                 and self.bot.can_afford(UpgradeId.EVOLVEMUSCULARAUGMENTS):
             self.bot.research(UpgradeId.EVOLVEMUSCULARAUGMENTS)
+
+    async def upgrade_spire_abilities(self):
+        pass
 
     async def upgrade_units(self):
         evo_chambers: Units = self.bot.structures(UnitTypeId.EVOLUTIONCHAMBER).ready

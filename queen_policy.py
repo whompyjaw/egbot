@@ -3,7 +3,7 @@ class QueenPolicy:
         self.queen_policy: dict = {
             "creep_queens": {
                 "active": True,
-                "max": 2,
+                "max": 4,
                 "priority": 1,
                 "defend_against_air": True,
                 "defend_against_ground": True,

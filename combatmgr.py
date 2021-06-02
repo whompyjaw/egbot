@@ -73,7 +73,6 @@ class CombatManager:
 
     async def manage(self):
         await self.update_army()
-        await self._draw_debug()
         if len(self.army) >= 50:
             await self.attack_enemy()
             await self.micro_army(self.army, self.bot.enemy_units)
