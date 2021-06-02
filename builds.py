@@ -48,7 +48,7 @@ class DefaultBuild:
             id.ZERGLING: {
                 STRUCTURE: id.SPAWNINGPOOL,
                 WEIGHT: .185,
-                SUPPLY_COST: 1
+                SUPPLY_COST: 0.5
             },
         }
         self.build_lair = True
@@ -56,7 +56,6 @@ class DefaultBuild:
         self.build_evo_chamber = True
         self.expand_rate = 16 # TODO: Do we need this?
         # might be better to create a list of structures we will have in general, but not necessarily sequential
-
 
 
 class LingHydra(DefaultBuild):
@@ -68,7 +67,7 @@ class LingHydra(DefaultBuild):
                 SUPPLY_REQ: 42,
             },
             id.HYDRALISKDEN: {
-                LOCATION: self.bot.gm.mm.hq.position.towards_with_random_angle(self.bot.game_info.map_center, 10),
+                LOCATION: self.bot.gm.macromgr.hq.position.towards_with_random_angle(self.bot.game_info.map_center, 10),
                 SUPPLY_REQ: 56,
             }
         })
@@ -111,7 +110,7 @@ class LingBaneMuta(DefaultBuild):
                 SUPPLY_REQ: 42,  # TODO: Might need to customize this value to better fit Muta timing
             },
             id.BANELINGNEST: {
-                LOCATION: self.bot.gm.mm.hq.position.towards_with_random_angle(self.bot.game_info.map_center, 10),
+                LOCATION: self.bot.gm.macromgr.hq.position.towards_with_random_angle(self.bot.game_info.map_center, 10),
                 SUPPLY_REQ: 23,
             },
             id.SPIRE: {
