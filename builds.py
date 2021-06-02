@@ -36,13 +36,13 @@ class DefaultBuild:
         self.units_to_train = {
             id.DRONE: {
                 # drone doesn't really have a structure requirement
-                STRUCTURE: id.HATCHERY,
-                WEIGHT: .425,
+                STRUCTURE_REQ: id.HATCHERY,
+                WEIGHT: 0.425,
                 SUPPLY_COST: 1
             },
             id.QUEEN: {
-                STRUCTURE: id.SPAWNINGPOOL,
-                WEIGHT: .04,
+                STRUCTURE_REQ: id.SPAWNINGPOOL,
+                WEIGHT: 0.04,
                 SUPPLY_COST: 2
             },
             id.ZERGLING: {
@@ -74,23 +74,23 @@ class LingHydra(DefaultBuild):
         self.units_to_train = {
             id.DRONE: {
                 # drone doesn't really have a structure requirement
-                STRUCTURE: id.HATCHERY,
-                WEIGHT: .425,
+                STRUCTURE_REQ: id.HATCHERY,
+                WEIGHT: 0.425,
                 SUPPLY_COST: 1
             },
             id.QUEEN: {
-                STRUCTURE: id.SPAWNINGPOOL,
-                WEIGHT: .04,
+                STRUCTURE_REQ: id.SPAWNINGPOOL,
+                WEIGHT: 0.04,
                 SUPPLY_COST: 2
             },
             id.ZERGLING: {
-                STRUCTURE: id.SPAWNINGPOOL,
-                WEIGHT: .185,
+                STRUCTURE_REQ: id.SPAWNINGPOOL,
+                WEIGHT: 0.185,
                 SUPPLY_COST: 1
             },
             id.HYDRALISK: {
-                STRUCTURE: id.HYDRALISKDEN,
-                WEIGHT: .35,
+                STRUCTURE_REQ: id.HYDRALISKDEN,
+                WEIGHT: 0.35,
                 SUPPLY_COST: 2
             }
         }
@@ -120,18 +120,21 @@ class LingBaneMuta(DefaultBuild):
         })
         self.units_to_train.update({
             id.ZERGLING: {
-                STRUCTURE: id.SPAWNINGPOOL,
-                WEIGHT: .185,
-                SUPPLY_COST: 1
-            },
-            id.BANELING: {
-                STRUCTURE: id.BANELINGNEST,
-                WEIGHT: .175,
+                STRUCTURE_REQ: id.SPAWNINGPOOL,
+                WEIGHT: 0.235,
                 SUPPLY_COST: 0.5
             },
+            id.BANELING: {
+                STRUCTURE_REQ: id.BANELINGNEST,
+                WEIGHT: 0.05,
+                SUPPLY_COST: 0.5,
+                MORPH_RATE: 5,
+                UNIT_REQ: id.ZERGLING,
+                MORPH_DISTR_REQ: 0.60  # note i don't know if this should go here or in the attributes of the req'd unit.
+            },
             id.MUTALISK: {
-                STRUCTURE: id.SPIRE,
-                WEIGHT: 0.175,
+                STRUCTURE_REQ: id.SPIRE,
+                WEIGHT: 0.20,
                 SUPPLY_COST: 2
             }
         })

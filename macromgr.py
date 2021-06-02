@@ -79,32 +79,78 @@ class MacroManager:
         if self._check_overlords() and larvae:
             larvae.random.train(id.OVERLORD)
         else:
-        # unit = UnitTypeId
             for unit in units:
                 unit_attrs: dict = units.get(unit)
-                struct = self.bot.structures(unit_attrs.get(STRUCTURE))  # get structure status
-                if struct.ready:
-                    unit_count = self.bot.units(unit).amount + self.bot.already_pending(unit)
-                    unit_distr = unit_count * unit_attrs.get(SUPPLY_COST) / 200
-                    if unit == UnitTypeId.QUEEN:
-                        if unit_distr <= unit_attrs.get(WEIGHT):
-                            await self.build_queens()
-                    elif unit == id.BANELING or unit == id.LURKER or unit == id.BROODLORD:
-                        if unit_distr <= unit_attrs.get(WEIGHT):
-                            await self._morph_units(unit)
+                struct_req = self.bot.structures(unit_attrs.get(STRUCTURE_REQ))
+                unit_count = self.bot.units(unit).amount + self.bot.already_pending(unit)
+                unit_distr = unit_count * unit_attrs.get(SUPPLY_COST) / 200
+
+                # note '<' better than '<='. results closer to what is set in builds
+                if struct_req.ready and unit_distr < unit_attrs.get(WEIGHT):
+                    if unit == id.QUEEN:
+                        await self.build_queens()
+                    elif unit == id.BANELING:
+                        await self._morph_units(unit, units, unit_attrs)
+                    elif unit == id.RAVAGER:
+                        pass
+                    elif unit == id.LURKER:
+                        pass
                     else:
-                        if unit_distr <= unit_attrs.get(WEIGHT):
-                            weights.append(unit_attrs.get(WEIGHT))
-                            trainable_units.append(unit)
+                        weights.append(unit_attrs.get(WEIGHT))
+                        trainable_units.append(unit)
 
             if trainable_units:
                 units_to_train = random.choices(trainable_units, weights, k=larvae.amount)
-
                 for unit in units_to_train:
                     if larvae and self.bot.supply_left >= 2:
                         larvae.random.train(unit, can_afford_check=True)
                     elif larvae and self.bot.supply_left >= 1 and self.bot.already_pending(id.OVERLORD) >= 1:
                         larvae.random.train(unit, can_afford_check=True)
+
+    # async def _morph_banelings(self, unit: UnitTypeId, attrs: dict):
+    #     # note this will likely be turned into `morph_units`; would be ideal if it can work for other unit types
+    #     lings = self.bot.units(id.ZERGLING)
+    #     morph_rate = attrs.get(MORPH_RATE)
+    #
+    #     # todo: turn this into using the `unit_req` that was added to the build
+    #     ling_attrs = units.get(id.ZERGLING)
+    #     max_ling_dist = ling_attrs.get(WEIGHT)
+    #     current_ling_distr = (lings.amount + self.bot.already_pending(id.ZERGLING)) * ling_attrs.get(SUPPLY_COST) / 200
+    #
+    #     # if ling's current distribution is at least 50% of the ling's max distr, make some banes
+    #     # can use this as an attribute i'd think, but it'd have to be general enough.
+    #     if current_ling_distr / max_ling_dist > 0.5 and lings.amount >= morph_rate:
+    #         i = 0
+    #         while i < morph_rate:
+    #             if self.bot.can_afford(id.BANELING):
+    #                 lings[i].train(id.BANELING)
+    #             i += 1
+
+    async def _morph_units(self, unit: UnitTypeId, units: dict, unit_attrs: dict):
+        # setup the required unit's information
+        required_unit: UnitTypeId = unit_attrs.get(UNIT_REQ)
+        req_units = self.bot.units(required_unit)
+
+        ru_attrs = units.get(required_unit)
+        ru_supply_cost = ru_attrs.get(SUPPLY_COST)
+        ru_pending_amt = self.bot.already_pending(required_unit)
+        ru_max_distr = ru_attrs.get(WEIGHT)
+
+        morph_distr_req = unit_attrs.get(MORPH_DISTR_REQ)
+        morph_rate = unit_attrs.get(MORPH_RATE)
+
+        # get the distribution of the required unit
+        ru_current_dist = (req_units.amount + ru_pending_amt) * ru_supply_cost / 200
+
+        # if the current req'd unit count is greater than the distribution requirment to morph
+        # then train up to the morph rate
+        if ru_current_dist / ru_max_distr > morph_distr_req:
+            i = 0
+            while i < morph_rate:
+                if self.bot.can_afford(unit):
+                    req_units[i].train(unit)
+                i += 1
+
 
     async def build_queens(self) -> None:
         """
@@ -124,20 +170,7 @@ class MacroManager:
             if self.bot.structures(id.SPAWNINGPOOL).ready:
                 self.bot.train(id.QUEEN, 1)
 
-    async def _morph_units(self, unit: UnitTypeId):
-        if unit == id.BANELING:
-            zerglings = self.bot.units(id.ZERGLING)
-            banelings = self.bot.units(id.BANELING)
-            if zerglings:
-                if (zerglings.amount / 2) >= banelings.amount:
-                    zerglings.random.train(unit, can_afford_check=True)
-
-        if unit == id.LURKER:
-            pass
-        if unit == id.BROODLORD:
-            pass
-
-    async def _build_structure(self, id: UnitTypeId, location: Point2):
+    async def _build_structure(self, id, location):
         worker = self.bot.select_build_worker(location)
         if worker:
             worker.build(id, location)
