@@ -29,7 +29,7 @@ class DefaultBuild:
                 BEFORE_HATCH: False,
             },
             id.LAIR: {
-                LOCATION: self.bot.gm.mm.hq.position,
+                LOCATION: self.bot.gm.macromgr.hq.position,
                 SUPPLY_REQ: 42,
             },
         }
@@ -64,7 +64,7 @@ class LingHydra(DefaultBuild):
         super().__init__(bot)
         self.build_sequence.update({
             id.LAIR: {
-                LOCATION: self.bot.gm.mm.hq.position,
+                LOCATION: self.bot.gm.macromgr.hq.position,
                 SUPPLY_REQ: 42,
             },
             id.HYDRALISKDEN: {
@@ -107,7 +107,7 @@ class LingBaneMuta(DefaultBuild):
                 EXTRACTOR_4: {SUPPLY_REQ: 46, EXTRACTOR_COUNT: 4},
             },
             id.LAIR: {
-                LOCATION: self.bot.gm.mm.hq.position,
+                LOCATION: self.bot.gm.macromgr.hq.position,
                 SUPPLY_REQ: 42,  # TODO: Might need to customize this value to better fit Muta timing
             },
             id.BANELINGNEST: {
